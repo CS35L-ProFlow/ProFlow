@@ -1,0 +1,15 @@
+FROM node:19-alpine3.16 As development
+
+WORKDIR /usr/src/app
+
+RUN npm i -g @nestjs/cli
+
+COPY package*.json ./
+
+RUN npm ci
+
+COPY . .
+
+EXPOSE ${BACKEND_PORT}
+
+CMD ["npm", "run", "start:debug"]

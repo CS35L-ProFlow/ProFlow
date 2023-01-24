@@ -1,0 +1,32 @@
+services:
+  db:
+    container_name: ${DATABASE_CONTAINER}
+    image: mysql:8.0.32
+    restart: always
+    environment:
+      MYSQL_DATABASE: ${DATABASE_NAME}
+      MYSQL_USER: 'user'
+      MYSQL_PASSWORD: ${DATABASE_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${DATABASE_PASSWORD}
+    ports:
+      - '3306:3306'
+    expose:
+      - '3306'
+    volumes:
+      - sqldb:/var/lib/mysql
+  backend:
+    container_name: backend
+    build:
+      context: ./packages/backend
+      dockerfile: Dockerfile.local
+    restart: always
+    env_file: .env
+    ports:
+      - "${BACKEND_PORT}:${BACKEND_PORT}"
+    volumes:
+      - "./packages/backend/src:/usr/src/app/src"
+    depends_on:
+      - ${DATABASE_CONTAINER}
+
+volumes:
+  sqldb:
