@@ -11,7 +11,11 @@ export class LoginService {
 		return await this.user_repository.findOne({ where: { email, password } });
 	}
 
-	async create_user(email: string, password: string): Promise<User> {
+	async create_user(email: string, password: string): Promise<User | null> {
+		if (this.user_repository.findOne({ where: { email } })) {
+			return null;
+		}
+
 		const user = new User();
 		user.email = email;
 		user.password = password;

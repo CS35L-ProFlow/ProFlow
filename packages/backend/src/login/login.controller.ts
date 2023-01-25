@@ -1,49 +1,41 @@
 import { Controller, Post, Body, HttpException, HttpStatus } from '@nestjs/common';
-import { ApiProperty } from '@nestjs/swagger';
-import { IsEmail, IsNotEmpty } from "class-validator";
+
+import { LoginRequest, LoginResponse } from "../dtos/dtos.entity";
 
 import { LoginService } from "./login.service";
-
-export class LoginRequest {
-	@IsNotEmpty()
-	@IsEmail()
-	@ApiProperty()
-	email: string;
-
-	@IsNotEmpty()
-	@ApiProperty()
-	password: string;
-}
-
-export class LoginResponse {
-	guid?: string;
-}
 
 @Controller('login')
 export class LoginController {
 
 	constructor(private login_service: LoginService) { }
 
+	/*
+	 * Attempts to authorize a user with a specific email and password.
+	 * If the email-password combination is not found as a registered user in the database, then 401
+	 * will be returned. It is intentionally unclear whether this is due to an incorrect password,
+	 * username, or simply because the user was not signed up in the first place.
+	 */
 	@Post()
-	async login(@Body() req: LoginRequest) {
+	async login(@Body() req: LoginRequest): Promise<LoginResponse> {
 		const user = await this.login_service.get_user(req.email, req.password);
-		if (!user) {
-			console.log("Failed to log-in new user. Password either doesn't match or the user has not signed up before.")
-			return {};
-		}
+		if (!user)
+			throw new HttpException("Failed to log-in. Either email or password does not match", HttpStatus.UNAUTHORIZED);
 
 		console.log("User logged in: " + user.email);
 
 		return { guid: user.guid };
 	}
 
+	/*
+	 * Attempts to sign up a user with a given email and password.
+	 * If the user already exists, then 401 unauthorized will be returned.
+	 */
 	@Post("signup")
 	async signup(@Body() req: LoginRequest): Promise<LoginResponse> {
 		{
 			const user = await this.login_service.get_user(req.email, req.password);
 			if (user) {
-				console.log("Attempted to sign-up new user, but user already has account with matching password, signing up.")
-				this.login(req);
+				console.log("Attempted to sign-up new user, but user already has account with matching password, logging in.")
 				return { guid: user.guid };
 			}
 		}
@@ -51,7 +43,8 @@ export class LoginController {
 		console.log("Adding new user " + req.email)
 		const user = await this.login_service.create_user(req.email, req.password);
 
-		// throw new HttpException("User already has an account!", HttpStatus.FORBIDDEN);
+		if (!user)
+			throw new HttpException("Failed to sign-up user: user already exists!", HttpStatus.UNAUTHORIZED);
 
 		return { guid: user.guid };
 	}
