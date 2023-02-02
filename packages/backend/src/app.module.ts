@@ -4,22 +4,26 @@ import { AppService } from './app.service';
 
 import { TypeOrmModule } from "@nestjs/typeorm"
 
-import { User, Project, Card } from "./database/entities"
-import { LoginModule } from './login/login.module';
+import { User, Project, Card, UserInvite } from "./database/entities"
+import { AuthModule } from './auth/auth.module';
+import { UsersModule } from './users/users.module';
+import { DATABASE_CONTAINER, DATABASE_PASSWORD, DATABASE_NAME } from "./env"
+
 
 @Module({
 	imports: [
 		TypeOrmModule.forRoot({
 			type: 'mysql',
-			host: process.env["DATABASE_CONTAINER"],
+			host: DATABASE_CONTAINER,
 			port: 3306,
 			username: 'root',
-			password: process.env["DATABASE_PASSWORD"],
-			database: process.env["DATABASE_NAME"],
-			entities: [User, Project, Card],
+			password: DATABASE_PASSWORD,
+			database: DATABASE_NAME,
+			entities: [User, Project, Card, UserInvite],
 			synchronize: true,
 		}),
-		LoginModule
+		AuthModule,
+		UsersModule
 	],
 	controllers: [AppController],
 	providers: [AppService],

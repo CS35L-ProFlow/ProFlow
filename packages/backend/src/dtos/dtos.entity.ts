@@ -17,8 +17,13 @@ export class LoginRequest {
 
 export class LoginResponse {
 	/*
-	 * The user GUID is a string that is needed in order to perform requests that need authorization.
+	 * The JSON Web Token (jwt) that is required to perform any authorized actions.
 	 */
-	guid: string;
+	jwt: string;
+
+	/*
+	 * The expire time of the jwt in seconds.
+	 */
+	expire_sec: number;
 }
 
