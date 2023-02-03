@@ -27,6 +27,22 @@ services:
       - "./packages/backend/src:/usr/src/app/src"
     depends_on:
       - ${DATABASE_CONTAINER}
+  frontend:
+    container_name: frontend
+    build:
+      context: ./packages/frontend
+      dockerfile: Dockerfile.local
+    restart: always
+    env_file: .env
+    environment:
+      - PORT=${FRONTEND_PORT}
+    ports:
+      - "${FRONTEND_PORT}:${FRONTEND_PORT}"
+    volumes:
+      - "./packages/frontend/src:/usr/src/app/src"
+      - "./packages/frontend/public:/usr/src/app/public"
+    depends_on:
+      - backend
 
 volumes:
   sqldb:
