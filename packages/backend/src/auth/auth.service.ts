@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 
-import { UsersService } from "../users/users.service";
+import { UserService } from "../user/user.service";
 import { User } from "../database/entities";
 import { JwtService } from "@nestjs/jwt";
 
@@ -8,12 +8,12 @@ import * as bcrypt from "bcrypt";
 
 @Injectable()
 export class AuthService {
-	constructor(private users_service: UsersService, private jwt_service: JwtService) { }
+	constructor(private user_service: UserService, private jwt_service: JwtService) { }
 
 	async validate(email: string, password: string): Promise<User | null> {
 		email = email.toLowerCase();
 
-		const db_user = await this.users_service.find_user_with_email(email);
+		const db_user = await this.user_service.find_user_with_email(email);
 		if (!db_user) {
 			console.log("No user with email " + email);
 			return null;
@@ -23,8 +23,6 @@ export class AuthService {
 			console.log("Password does not match!");
 			return null;
 		}
-
-		console.log("User successfully logged in! " + email);
 
 		return db_user;
 	}
@@ -36,18 +34,16 @@ export class AuthService {
 
 	async signup(email: string, password: string): Promise<boolean> {
 		email = email.toLowerCase();
-		if (await this.users_service.find_user_with_email(email)) {
+		if (await this.user_service.find_user_with_email(email)) {
 			console.log("User already exists! " + email);
 			return false;
 		}
 
 		const salt = await bcrypt.genSalt();
-		console.log("Salt " + salt);
 		const hash = await bcrypt.hash(password, salt);
-		console.log("Hash " + hash);
 
-		const db_user = await this.users_service.create_user(email, hash);
-		console.log("New user signed up: " + db_user.email);
+		const db_user = await this.user_service.create_user(email, hash);
+		console.log("New user signed up: " + db_user!.email);
 
 		return true;
 	}

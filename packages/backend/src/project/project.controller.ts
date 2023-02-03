@@ -1,0 +1,58 @@
+import { Controller, Post, Param, Body, UseGuards, ForbiddenException } from '@nestjs/common';
+import { ApiBearerAuth, ApiParam, ApiQuery } from '@nestjs/swagger';
+import { JwtAuthGuard, AuthUser } from "../auth/jwt.guard";
+import { User } from "../database/entities";
+
+import { InviteMemberResult, ProjectService } from "./project.service";
+import { CreateProjectRequest } from "../dtos/dtos.entity";
+import { RequiredQuery } from "../decorators";
+
+@Controller('project')
+export class ProjectController {
+	constructor(private project_service: ProjectService) { }
+
+	// @UseGuards(JwtAuthGuard)
+	// @ApiBearerAuth()
+	// @Get(":guid")
+	// async get_project_info(@AuthUser() user: User, @Param() params: { guid: string }) {
+	// 	const { guid } = params;
+	// 	const project = await this.project_service.find_project(user, guid);
+	// 	if (!project) {
+	// 		throw new ForbiddenException();
+	// 	}
+	// }
+
+	@UseGuards(JwtAuthGuard)
+	@ApiBearerAuth()
+	@ApiParam({ name: "guid", required: true, description: "Project GUID" })
+	@ApiQuery({ name: "invitee", required: true, description: "Invitee to project's email" })
+	@Post(":guid/invite")
+	async project_invite_member(@AuthUser() user: User, @Param() param: { guid: string }, @RequiredQuery("invitee") invitee: string) {
+		const res = await this.project_service.project_invite_member(user, param.guid, invitee);
+		if (res != InviteMemberResult.Success) {
+			throw new ForbiddenException(res.toString());
+		}
+	}
+
+	@UseGuards(JwtAuthGuard)
+	@ApiBearerAuth()
+	@ApiParam({ name: "guid", required: true, description: "Project GUID" })
+	@Post(":guid/delete")
+	async delete_project(@AuthUser() user: User, @Param() param: { guid: string }) {
+		const deleted = await this.project_service.delete_project(user, param.guid);
+		if (!deleted) {
+			throw new ForbiddenException();
+		}
+	}
+
+	@UseGuards(JwtAuthGuard)
+	@ApiBearerAuth()
+	@Post("create")
+	async create_project(@AuthUser() user: User, @Body() req: CreateProjectRequest) {
+		const created = await this.project_service.create_project(user, req.name);
+		if (!created) {
+			throw new ForbiddenException();
+		}
+	}
+
+}

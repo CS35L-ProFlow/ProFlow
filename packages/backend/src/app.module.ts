@@ -1,13 +1,12 @@
 import { Module } from '@nestjs/common';
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
 
 import { TypeOrmModule } from "@nestjs/typeorm"
 
 import { User, Project, Card, UserInvite } from "./database/entities"
 import { AuthModule } from './auth/auth.module';
-import { UsersModule } from './users/users.module';
+import { UserModule } from './user/user.module';
 import { DATABASE_CONTAINER, DATABASE_PASSWORD, DATABASE_NAME } from "./env"
+import { ProjectModule } from './project/project.module';
 
 
 @Module({
@@ -23,9 +22,8 @@ import { DATABASE_CONTAINER, DATABASE_PASSWORD, DATABASE_NAME } from "./env"
 			synchronize: true,
 		}),
 		AuthModule,
-		UsersModule
+		UserModule,
+		ProjectModule
 	],
-	controllers: [AppController],
-	providers: [AppService],
 })
 export class AppModule { }

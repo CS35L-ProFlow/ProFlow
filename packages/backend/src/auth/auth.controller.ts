@@ -1,6 +1,8 @@
-import { Controller, Post, Body, UnauthorizedException } from '@nestjs/common';
+import { Controller, Post, Body, UnauthorizedException, UseGuards } from '@nestjs/common';
 import { LoginRequest, LoginResponse } from "../dtos/dtos.entity";
 import { AuthService } from "./auth.service";
+import { JwtAuthGuard, AuthUser } from "./jwt.guard";
+import { User } from "../database/entities";
 import { JWT_EXPIRE_SEC } from "../env";
 
 @Controller('auth')
@@ -21,7 +23,14 @@ export class AuthController {
 
 		const jwt = this.auth_service.login(user);
 
-		// TODO(Brandon): Don't hard-code the expire time.
+		return { jwt, expire_sec: JWT_EXPIRE_SEC };
+	}
+
+	@UseGuards(JwtAuthGuard)
+	@Post("refresh")
+	async refresh(@AuthUser() user: User): Promise<LoginResponse> {
+		const jwt = this.auth_service.login(user);
+
 		return { jwt, expire_sec: JWT_EXPIRE_SEC };
 	}
 

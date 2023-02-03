@@ -27,3 +27,25 @@ export class LoginResponse {
 	expire_sec: number;
 }
 
+export class GetProjectsResponse {
+	/*
+	 * A list of project GUIDs.
+	 */
+	project_guids: string[];
+}
+
+export class GetInvitesResponse {
+	/*
+	 * A list of project invite GUIDs.
+	 */
+	invite_guids: string[];
+}
+
+export class CreateProjectRequest {
+	/*
+	 * Name of the project.
+	 */
+	@IsNotEmpty()
+	name: string;
+}
+

@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { PassportModule } from "@nestjs/passport";
-import { UsersModule } from "../users/users.module";
+import { UserModule } from "../user/user.module";
 import { AuthController } from './auth.controller';
 
 import { JwtModule } from "@nestjs/jwt";
@@ -11,7 +11,7 @@ import { JWT_SECRET, JWT_EXPIRE_SEC } from "../env";
 
 
 @Module({
-	imports: [UsersModule,
+	imports: [UserModule,
 		PassportModule,
 		JwtModule.register({
 			secret: JWT_SECRET,
