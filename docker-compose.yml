@@ -47,7 +47,7 @@ services:
     volumes:
       - "./packages/frontend/src:/usr/src/app/src"
       - "./packages/frontend/public:/usr/src/app/public"
-      - "./packages/frontend/.generated:/usr/generated/"
+      - "./packages/frontend/.generated:/usr/src/app/.generated"
     depends_on:
       backend:
         condition: service_healthy
