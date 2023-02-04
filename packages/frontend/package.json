@@ -18,9 +18,12 @@
 	},
 	"scripts": {
 		"start": "react-scripts start",
+		"start-dev": "npm run watch-generate-client & npm run start",
 		"build": "react-scripts build",
 		"test": "react-scripts test",
-		"eject": "react-scripts eject"
+		"eject": "react-scripts eject",
+		"generate-client": "rm -rf src/proflow && openapi --input ./.generated/proflow_openapi.json --output ./src/proflow/ --name ProFlow && chmod -R a+rw ./src/proflow",
+		"watch-generate-client": "watch 'npm run generate-client' ./.generated/"
 	},
 	"eslintConfig": {
 		"extends": [
@@ -39,5 +42,9 @@
 			"last 1 firefox version",
 			"last 1 safari version"
 		]
+	},
+	"devDependencies": {
+		"openapi-typescript-codegen": "^0.23.0",
+		"watch": "^1.0.2"
 	}
 }

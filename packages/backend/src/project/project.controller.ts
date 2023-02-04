@@ -1,5 +1,5 @@
 import { Controller, Post, Param, Body, UseGuards, ForbiddenException } from '@nestjs/common';
-import { ApiBearerAuth, ApiParam, ApiQuery } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiParam, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard, AuthUser } from "../auth/jwt.guard";
 import { User } from "../database/entities";
 
@@ -7,6 +7,7 @@ import { InviteMemberResult, ProjectService } from "./project.service";
 import { CreateProjectRequest } from "../dtos/dtos.entity";
 import { RequiredQuery } from "../decorators";
 
+@ApiTags('project')
 @Controller('project')
 export class ProjectController {
 	constructor(private project_service: ProjectService) { }
@@ -38,7 +39,7 @@ export class ProjectController {
 	@ApiBearerAuth()
 	@ApiParam({ name: "guid", required: true, description: "Project GUID" })
 	@Post(":guid/delete")
-	async delete_project(@AuthUser() user: User, @Param() param: { guid: string }) {
+	async project_delete(@AuthUser() user: User, @Param() param: { guid: string }) {
 		const deleted = await this.project_service.delete_project(user, param.guid);
 		if (!deleted) {
 			throw new ForbiddenException();
@@ -48,7 +49,7 @@ export class ProjectController {
 	@UseGuards(JwtAuthGuard)
 	@ApiBearerAuth()
 	@Post("create")
-	async create_project(@AuthUser() user: User, @Body() req: CreateProjectRequest) {
+	async project_create(@AuthUser() user: User, @Body() req: CreateProjectRequest) {
 		const created = await this.project_service.create_project(user, req.name);
 		if (!created) {
 			throw new ForbiddenException();

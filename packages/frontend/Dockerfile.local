@@ -10,4 +10,5 @@ COPY . .
 
 EXPOSE ${FRONTEND_PORT}
 
-CMD ["npm", "run", "start"]
+ENV OPENAPI_DOC=/usr/generated/proflow_openapi.json
+CMD ["npm", "run", "start-dev"]

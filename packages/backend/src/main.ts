@@ -4,14 +4,15 @@ import { ValidationPipe } from '@nestjs/common';
 
 import { SwaggerModule, DocumentBuilder } from "@nestjs/swagger";
 import { BACKEND_PORT } from "./env";
+import * as fs from "fs";
 
 async function bootstrap() {
 	const app = await NestFactory.create(AppModule);
 	app.useGlobalPipes(new ValidationPipe());
 
 	const config = new DocumentBuilder()
-		.setTitle("CS35L Final Project")
-		.setDescription("CS35L Final Project backend API description")
+		.setTitle("ProFlow API")
+		.setDescription("ProFlow REST API documentation")
 		.setVersion("1.0")
 		.addBearerAuth({
 			type: "http",
@@ -23,8 +24,9 @@ async function bootstrap() {
 		})
 		.build();
 
-	const doc = SwaggerModule.createDocument(app, config);
+	const doc = SwaggerModule.createDocument(app, config, { operationIdFactory: (_: string, method_key: string) => method_key });
 	SwaggerModule.setup("api", app, doc);
+	fs.writeFileSync(process.env["OPENAPI_OUT"]!, JSON.stringify(doc));
 
 	await app.listen(BACKEND_PORT);
 }
