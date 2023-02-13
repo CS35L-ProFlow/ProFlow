@@ -5,55 +5,73 @@ import { ApiError } from "./proflow/core/ApiError";
 import { BACKEND_PORT } from "./env";
 
 class AppState {
-	jwt?: string = undefined;
+	private jwt?: string = undefined;
+
+	get client() {
+		return new ProFlow({
+			BASE: "http://localhost:" + BACKEND_PORT,
+			HEADERS: this.jwt ? { "Authorization": "Bearer " + this.jwt } : undefined
+		})
+	};
+
+
+	authorize(jwt: string, expire_sec: number) {
+		this.jwt = jwt;
+		this.refresh_auth(this.refresh_rate_ms(expire_sec));
+	}
+
+	private refresh_auth(timeout_ms: number) {
+		console.log("Refreshing in " + timeout_ms + " ms...")
+		setTimeout(async () => {
+			try {
+				const res = await this.client.auth.authRefresh();
+				this.jwt = res.jwt;
+				console.log("Refreshed auth token!");
+
+				this.refresh_auth(this.refresh_rate_ms(res.expire_sec));
+			} catch (e) {
+				console.log("Failed to refresh JWT token, trying again...");
+				this.refresh_auth(500);
+			}
+		}, timeout_ms)
+	}
+
+	private refresh_rate_ms = (secs: number) => Math.max((secs - 30) * 1000, 1000)
+
+	get is_authorized() { return this.jwt != undefined; }
 }
 
 const App = () => {
 	const state = new AppState();
-	const client = () => new ProFlow({
-		BASE: "http://localhost:" + BACKEND_PORT,
-		HEADERS: state.jwt ? { "Authorization": "Bearer " + state.jwt } : undefined
-	});
 
 	const login_email = "user@gmail.com";
 	const login_password = "test";
 
-	if (!state.jwt) {
-		return (
-			<>
-				<Button variant="contained" onClick={async () => {
-					try {
-						const res = await client().auth.authSignup({ email: login_email, password: login_password });
-						console.log("Signed up " + res.jwt)
-						state.jwt = res.jwt;
-					} catch (e) {
-						if (e instanceof ApiError) {
-							console.log("Request failed (" + e.status + ") error: " + e.body.message);
-						}
+	return (
+		<>
+			<Button variant="contained" onClick={async () => {
+				try {
+					const res = await state.client.auth.authSignup({ email: login_email, password: login_password });
+					state.authorize(res.jwt, res.expire_sec);
+				} catch (e) {
+					if (e instanceof ApiError) {
+						console.log("Request failed (" + e.status + ") error: " + e.body.message);
 					}
-				}}>Signup</Button>
+				}
+			}}>Signup</Button>
 
-				<Button variant="contained" onClick={async () => {
-					const res = await client().auth.authLogin({ email: login_email, password: login_password });
-					console.log("Logged in " + res.jwt)
-					state.jwt = res.jwt;
-				}}>Login</Button>
+			<Button variant="contained" onClick={async () => {
+				const res = await state.client.auth.authLogin({ email: login_email, password: login_password });
+				console.log("Logged in " + res.jwt)
+				state.authorize(res.jwt, res.expire_sec);
+			}}>Login</Button>
 
-				<Button variant="contained" onClick={async () => {
-					const res = await client().auth.authRefresh();
-					console.log("Refreshed " + res.jwt)
-					state.jwt = res.jwt;
-				}}>Refresh</Button>
-
-				<Button variant="contained" onClick={async () => {
-					const res = await client().user.getUserProjects();
-					console.log("Get projects " + res.project_guids)
-				}}>Get Projects</Button>
-			</>
-		);
-	} else {
-		return <div></div>
-	}
+			<Button variant="contained" onClick={async () => {
+				const res = await state.client.user.getUserProjects();
+				console.log("Get projects " + res.project_guids)
+			}}>Get Projects</Button>
+		</>
+	);
 }
 
 export default App;
