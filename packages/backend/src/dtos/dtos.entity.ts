@@ -54,6 +54,22 @@ export class CreateProjectRequest {
 	name: string;
 }
 
+export class CreateSubProjectRequest {
+	/*
+	 * Name of the sub-project.
+	 */
+	@IsNotEmpty()
+	name: string;
+}
+
+export class CreateProjectColumnRequest {
+	/*
+	 * Name of the column.
+	 */
+	@IsNotEmpty()
+	name: string;
+}
+
 export class GetUserResponse {
 	/*
 	 * The name of the user.
@@ -62,6 +78,18 @@ export class GetUserResponse {
 
 	/*
 	 * The GUID of the user.
+	 */
+	guid: string;
+}
+
+export class ProjectColumnResponse {
+	/*
+	 * The name of the column.
+	 */
+	name: string;
+
+	/*
+	 * The GUID of the column.
 	 */
 	guid: string;
 }
@@ -81,6 +109,65 @@ export class GetProjectResponse {
 	 * The user GUIDs of the project.
 	 */
 	members: string[];
+
+	/*
+	 * The GUID of the project.
+	 */
+	guid: string;
+
+	/*
+	 * The columns in the project. These are in order.
+	 */
+	columns: ProjectColumnResponse[]
+}
+
+export class SubProjectResponse {
+	/*
+	 * The name of the sub-project
+	 */
+	name: string;
+
+	/*
+	 * The GUID of the sub-project
+	 */
+	guid: string;
+
+	/*
+	 * The parent sub-project GUID, if there is one.
+	 */
+	parent_guid?: string;
+
+	/*
+	 * The child sub-projects.
+	 */
+	children: SubProjectResponse[]
+
+	/*
+	 * The root project GUID.
+	 */
+	project: string;
+}
+
+export class GetProjectTreeResponse {
+	/*
+	 * Name of the project
+	 */
+	name: string;
+
+	/*
+	 * The owner's user GUID of the project.
+	 */
+	owner: string;
+
+	/*
+	 * The GUID of the project.
+	 */
+	guid: string;
+
+	/*
+	 * The sub-projects.
+	 */
+	sub_projects: SubProjectResponse[];
 }
 
 export class GetInvitationResponse {
