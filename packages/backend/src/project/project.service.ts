@@ -21,9 +21,10 @@ export class ProjectService {
 
 	async find_project(member: User, guid: string): Promise<Project | null> {
 		const query = this.project_repository.createQueryBuilder("project");
-		query.innerJoinAndSelect("project.members", "user")
-			.andWhere("user.guid = :guid", { guid: member.guid })
-			.andWhere("guid = :guid", { guid })
+		query
+			.innerJoinAndSelect("project.owner", "owner")
+			.innerJoinAndSelect("project.members", "member", "member.guid = :member_guid", { member_guid: member.guid })
+			.where("project.guid = :guid", { guid })
 			.limit(1);
 		return await query.getOne();
 	}
@@ -76,6 +77,11 @@ export class ProjectService {
 		await this.invite_repository.save({ invitee, project });
 
 		return InviteMemberResult.Success;
+	}
+
+	async find_invitiation(invitee: User, guid: string): Promise<UserInvite | null> {
+		const existing = await this.invite_repository.findOne({ where: { invitee, guid }, relations: ["invitee", "project", "project.owner"] });
+		return existing;
 	}
 
 	async accept_invitation(invitee: User, guid: string): Promise<boolean> {

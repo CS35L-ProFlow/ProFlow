@@ -26,7 +26,7 @@ export class AuthController {
 
 		const jwt = this.auth_service.login(user);
 
-		return { jwt, expire_sec: JWT_EXPIRE_SEC };
+		return { jwt, user_guid: user.guid, expire_sec: JWT_EXPIRE_SEC };
 	}
 
 	@UseGuards(JwtAuthGuard)
@@ -35,7 +35,7 @@ export class AuthController {
 	async auth_refresh(@AuthUser() user: User): Promise<LoginResponse> {
 		const jwt = this.auth_service.login(user);
 
-		return { jwt, expire_sec: JWT_EXPIRE_SEC };
+		return { jwt, user_guid: user.guid, expire_sec: JWT_EXPIRE_SEC };
 	}
 
 	@Post("signup")

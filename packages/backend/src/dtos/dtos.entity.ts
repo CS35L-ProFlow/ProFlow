@@ -17,6 +17,11 @@ export class LoginRequest {
 
 export class LoginResponse {
 	/*
+	 * The user's GUID.
+	 */
+	user_guid: string;
+
+	/*
 	 * The JSON Web Token (jwt) that is required to perform any authorized actions.
 	 */
 	jwt: string;
@@ -27,7 +32,7 @@ export class LoginResponse {
 	expire_sec: number;
 }
 
-export class GetProjectsResponse {
+export class GetProjectListResponse {
 	/*
 	 * A list of project GUIDs.
 	 */
@@ -49,3 +54,53 @@ export class CreateProjectRequest {
 	name: string;
 }
 
+export class GetUserResponse {
+	/*
+	 * The name of the user.
+	 */
+	email: string;
+
+	/*
+	 * The GUID of the user.
+	 */
+	guid: string;
+}
+
+export class GetProjectResponse {
+	/*
+	 * Name of the project.
+	 */
+	name: string;
+
+	/*
+	 * The owner's user GUID of the project.
+	 */
+	owner: string;
+
+	/*
+	 * The user GUIDs of the project.
+	 */
+	members: string[];
+}
+
+export class GetInvitationResponse {
+	/*
+	 * The GUID of the project that the invite is for.
+	 */
+	project_guid: string;
+
+	/*
+	 * The name of the project that the invite is for.
+	 */
+	project_name: string;
+
+	/*
+	 * The owner's user GUID of the project that the invite is for.
+	 */
+	owner_guid: string;
+
+	/*
+	 * The owner's email of the project that the invite is for.
+	 */
+	owner_email: string;
+}
