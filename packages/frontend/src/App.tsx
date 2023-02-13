@@ -1,58 +1,59 @@
 import React from 'react';
-import logo from './logo.svg';
-import { Counter } from './features/counter/Counter';
-import './App.css';
+import Button from '@mui/material/Button'
+import { ProFlow } from "./proflow/ProFlow";
+import { ApiError } from "./proflow/core/ApiError";
+import { BACKEND_PORT } from "./env";
 
-function App() {
-	return (
-		<div className="App">
-			<header className="App-header">
-				<img src={logo} className="App-logo" alt="logo" />
-				<Counter />
-				<p>
-					Edit <code>src/App.tsx</code> and save to reload.
-				</p>
-				<span>
-					<span>Learn </span>
-					<a
-						className="App-link"
-						href="https://reactjs.org/"
-						target="_blank"
-						rel="noopener noreferrer"
-					>
-						Test
-					</a>
-					<span>, </span>
-					<a
-						className="App-link"
-						href="https://redux.js.org/"
-						target="_blank"
-						rel="noopener noreferrer"
-					>
-						Redux
-					</a>
-					<span>, </span>
-					<a
-						className="App-link"
-						href="https://redux-toolkit.js.org/"
-						target="_blank"
-						rel="noopener noreferrer"
-					>
-						Redux Toolkit
-					</a>
-					,<span> and </span>
-					<a
-						className="App-link"
-						href="https://react-redux.js.org/"
-						target="_blank"
-						rel="noopener noreferrer"
-					>
-						React Redux
-					</a>
-				</span>
-			</header>
-		</div>
-	);
+class AppState {
+	jwt?: string = undefined;
+}
+
+const App = () => {
+	const state = new AppState();
+	const client = () => new ProFlow({
+		BASE: "http://localhost:" + BACKEND_PORT,
+		HEADERS: state.jwt ? { "Authorization": "Bearer " + state.jwt } : undefined
+	});
+
+	const login_email = "user@gmail.com";
+	const login_password = "test";
+
+	if (!state.jwt) {
+		return (
+			<>
+				<Button variant="contained" onClick={async () => {
+					try {
+						const res = await client().auth.authSignup({ email: login_email, password: login_password });
+						console.log("Signed up " + res.jwt)
+						state.jwt = res.jwt;
+					} catch (e) {
+						if (e instanceof ApiError) {
+							console.log("Request failed (" + e.status + ") error: " + e.body.message);
+						}
+					}
+				}}>Signup</Button>
+
+				<Button variant="contained" onClick={async () => {
+					const res = await client().auth.authLogin({ email: login_email, password: login_password });
+					console.log("Logged in " + res.jwt)
+					state.jwt = res.jwt;
+				}}>Login</Button>
+
+				<Button variant="contained" onClick={async () => {
+					const res = await client().auth.authRefresh();
+					console.log("Refreshed " + res.jwt)
+					state.jwt = res.jwt;
+				}}>Refresh</Button>
+
+				<Button variant="contained" onClick={async () => {
+					const res = await client().user.getUserProjects();
+					console.log("Get projects " + res.project_guids)
+				}}>Get Projects</Button>
+			</>
+		);
+	} else {
+		return <div></div>
+	}
 }
 
 export default App;

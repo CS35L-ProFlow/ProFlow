@@ -3,12 +3,13 @@ import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
 
 import { SwaggerModule, DocumentBuilder } from "@nestjs/swagger";
-import { BACKEND_PORT } from "./env";
+import { BACKEND_PORT, FRONTEND_PORT } from "./env";
 import * as fs from "fs";
 
 async function bootstrap() {
 	const app = await NestFactory.create(AppModule);
 	app.useGlobalPipes(new ValidationPipe());
+	app.enableCors({ origin: "http://localhost:" + FRONTEND_PORT });
 
 	const config = new DocumentBuilder()
 		.setTitle("ProFlow API")
