@@ -3,6 +3,7 @@ import Button from '@mui/material/Button'
 import { ProFlow } from "./proflow/ProFlow";
 import { ApiError } from "./proflow/core/ApiError";
 import { BACKEND_PORT } from "./env";
+import {Sign_Up} from './sign_up'
 
 class AppState {
 	private jwt?: string = undefined;
@@ -74,4 +75,6 @@ const App = () => {
 	);
 }
 
-export default App;
+// export default App;
+
+export default Sign_Up;
