@@ -1,57 +1,76 @@
 import React from 'react';
-import logo from './logo.svg';
-import { Counter } from './features/counter/Counter';
-import './App.css';
+import Button from '@mui/material/Button'
+import { ProFlow } from "./proflow/ProFlow";
+import { ApiError } from "./proflow/core/ApiError";
+import { BACKEND_PORT } from "./env";
 
-function App() {
+class AppState {
+	private jwt?: string = undefined;
+
+	get client() {
+		return new ProFlow({
+			BASE: "http://localhost:" + BACKEND_PORT,
+			HEADERS: this.jwt ? { "Authorization": "Bearer " + this.jwt } : undefined
+		})
+	};
+
+
+	authorize(jwt: string, expire_sec: number) {
+		this.jwt = jwt;
+		this.refresh_auth(this.refresh_rate_ms(expire_sec));
+	}
+
+	private refresh_auth(timeout_ms: number) {
+		console.log("Refreshing in " + timeout_ms + " ms...")
+		setTimeout(async () => {
+			try {
+				const res = await this.client.auth.authRefresh();
+				this.jwt = res.jwt;
+				console.log("Refreshed auth token!");
+
+				this.refresh_auth(this.refresh_rate_ms(res.expire_sec));
+			} catch (e) {
+				console.log("Failed to refresh JWT token, trying again...");
+				this.refresh_auth(500);
+			}
+		}, timeout_ms)
+	}
+
+	private refresh_rate_ms = (secs: number) => Math.max((secs - 30) * 1000, 1000)
+
+	get is_authorized() { return this.jwt != undefined; }
+}
+
+const App = () => {
+	const state = new AppState();
+
+	const login_email = "user@gmail.com";
+	const login_password = "test";
+
 	return (
-		<div className="App">
-			<header className="App-header">
-				<img src={logo} className="App-logo" alt="logo" />
-				<Counter />
-				<p>
-					Edit <code>src/App.tsx</code> and save to reload.
-				</p>
-				<span>
-					<span>Learn </span>
-					<a
-						className="App-link"
-						href="https://reactjs.org/"
-						target="_blank"
-						rel="noopener noreferrer"
-					>
-						Test
-					</a>
-					<span>, </span>
-					<a
-						className="App-link"
-						href="https://redux.js.org/"
-						target="_blank"
-						rel="noopener noreferrer"
-					>
-						Redux
-					</a>
-					<span>, </span>
-					<a
-						className="App-link"
-						href="https://redux-toolkit.js.org/"
-						target="_blank"
-						rel="noopener noreferrer"
-					>
-						Redux Toolkit
-					</a>
-					,<span> and </span>
-					<a
-						className="App-link"
-						href="https://react-redux.js.org/"
-						target="_blank"
-						rel="noopener noreferrer"
-					>
-						React Redux
-					</a>
-				</span>
-			</header>
-		</div>
+		<>
+			<Button variant="contained" onClick={async () => {
+				try {
+					const res = await state.client.auth.authSignup({ email: login_email, password: login_password });
+					state.authorize(res.jwt, res.expire_sec);
+				} catch (e) {
+					if (e instanceof ApiError) {
+						console.log("Request failed (" + e.status + ") error: " + e.body.message);
+					}
+				}
+			}}>Signup</Button>
+
+			<Button variant="contained" onClick={async () => {
+				const res = await state.client.auth.authLogin({ email: login_email, password: login_password });
+				console.log("Logged in " + res.jwt)
+				state.authorize(res.jwt, res.expire_sec);
+			}}>Login</Button>
+
+			<Button variant="contained" onClick={async () => {
+				const res = await state.client.user.getUserProjects();
+				console.log("Get projects " + res.project_guids)
+			}}>Get Projects</Button>
+		</>
 	);
 }
 

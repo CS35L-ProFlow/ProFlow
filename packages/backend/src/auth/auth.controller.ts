@@ -1,10 +1,11 @@
 import { Controller, Post, Body, UnauthorizedException, UseGuards } from '@nestjs/common';
 import { LoginRequest, LoginResponse } from "../dtos/dtos.entity";
+import { } from '@nestjs/swagger';
 import { AuthService } from "./auth.service";
 import { JwtAuthGuard, AuthUser } from "./jwt.guard";
 import { User } from "../database/entities";
 import { JWT_EXPIRE_SEC } from "../env";
-import { ApiTags } from "@nestjs/swagger";
+import { ApiBearerAuth, ApiTags } from "@nestjs/swagger";
 
 @ApiTags('auth')
 @Controller('auth')
@@ -25,15 +26,16 @@ export class AuthController {
 
 		const jwt = this.auth_service.login(user);
 
-		return { jwt, expire_sec: JWT_EXPIRE_SEC };
+		return { jwt, user_guid: user.guid, expire_sec: JWT_EXPIRE_SEC };
 	}
 
 	@UseGuards(JwtAuthGuard)
+	@ApiBearerAuth()
 	@Post("refresh")
 	async auth_refresh(@AuthUser() user: User): Promise<LoginResponse> {
 		const jwt = this.auth_service.login(user);
 
-		return { jwt, expire_sec: JWT_EXPIRE_SEC };
+		return { jwt, user_guid: user.guid, expire_sec: JWT_EXPIRE_SEC };
 	}
 
 	@Post("signup")

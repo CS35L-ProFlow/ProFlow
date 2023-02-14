@@ -17,6 +17,11 @@ export class LoginRequest {
 
 export class LoginResponse {
 	/*
+	 * The user's GUID.
+	 */
+	user_guid: string;
+
+	/*
 	 * The JSON Web Token (jwt) that is required to perform any authorized actions.
 	 */
 	jwt: string;
@@ -27,7 +32,7 @@ export class LoginResponse {
 	expire_sec: number;
 }
 
-export class GetProjectsResponse {
+export class GetProjectListResponse {
 	/*
 	 * A list of project GUIDs.
 	 */
@@ -49,3 +54,140 @@ export class CreateProjectRequest {
 	name: string;
 }
 
+export class CreateSubProjectRequest {
+	/*
+	 * Name of the sub-project.
+	 */
+	@IsNotEmpty()
+	name: string;
+}
+
+export class CreateProjectColumnRequest {
+	/*
+	 * Name of the column.
+	 */
+	@IsNotEmpty()
+	name: string;
+}
+
+export class GetUserResponse {
+	/*
+	 * The name of the user.
+	 */
+	email: string;
+
+	/*
+	 * The GUID of the user.
+	 */
+	guid: string;
+}
+
+export class ProjectColumnResponse {
+	/*
+	 * The name of the column.
+	 */
+	name: string;
+
+	/*
+	 * The GUID of the column.
+	 */
+	guid: string;
+}
+
+export class GetProjectResponse {
+	/*
+	 * Name of the project.
+	 */
+	name: string;
+
+	/*
+	 * The owner's user GUID of the project.
+	 */
+	owner: string;
+
+	/*
+	 * The user GUIDs of the project.
+	 */
+	members: string[];
+
+	/*
+	 * The GUID of the project.
+	 */
+	guid: string;
+
+	/*
+	 * The columns in the project. These are in order.
+	 */
+	columns: ProjectColumnResponse[]
+}
+
+export class SubProjectResponse {
+	/*
+	 * The name of the sub-project
+	 */
+	name: string;
+
+	/*
+	 * The GUID of the sub-project
+	 */
+	guid: string;
+
+	/*
+	 * The parent sub-project GUID, if there is one.
+	 */
+	parent_guid?: string;
+
+	/*
+	 * The child sub-projects.
+	 */
+	children: SubProjectResponse[]
+
+	/*
+	 * The root project GUID.
+	 */
+	project: string;
+}
+
+export class GetProjectTreeResponse {
+	/*
+	 * Name of the project
+	 */
+	name: string;
+
+	/*
+	 * The owner's user GUID of the project.
+	 */
+	owner: string;
+
+	/*
+	 * The GUID of the project.
+	 */
+	guid: string;
+
+	/*
+	 * The sub-projects.
+	 */
+	sub_projects: SubProjectResponse[];
+}
+
+export class GetInvitationResponse {
+	/*
+	 * The GUID of the project that the invite is for.
+	 */
+	project_guid: string;
+
+	/*
+	 * The name of the project that the invite is for.
+	 */
+	project_name: string;
+
+	/*
+	 * The owner's user GUID of the project that the invite is for.
+	 */
+	owner_guid: string;
+
+	/*
+	 * The owner's email of the project that the invite is for.
+	 */
+	owner_email: string;
+}
