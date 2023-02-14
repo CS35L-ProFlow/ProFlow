@@ -59,7 +59,7 @@ const App = () => {
 	<body>
 		<div className = "Main-Page">
 			<nav>
-				<img src="/Users/jhylee17/ProFlow/packages/frontend/src/logo192.png" className = "logo"></img>
+				<img src="LOGO-HERE" className = "logo"></img>
 				<ul>
 					<li>
 						<Button variant="contained" className = "Button-Design"onClick={async () => {
