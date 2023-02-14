@@ -18,10 +18,7 @@ export class UserService {
 			return null;
 		}
 
-		const user = new User();
-		user.email = email;
-		user.password = password;
-		return await this.user_repository.save(user);
+		return await this.user_repository.save({ email, password });
 	}
 
 	async find_user_with_guid(guid: string): Promise<User | null> {
