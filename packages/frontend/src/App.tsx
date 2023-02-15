@@ -3,8 +3,8 @@ import Button from '@mui/material/Button'
 import { ProFlow } from "./proflow/ProFlow";
 import { ApiError } from "./proflow/core/ApiError";
 import { BACKEND_PORT } from "./env";
-import './Main-page.css';
-import { Column, Profile, NoteCard, closeAddNotesIcon, addNotes, PopupBox } from './Main-page'; 
+import './MainPage.css';
+import { Column, Profile, NoteCard, closeAddNotesIcon, addNotes, PopupBox } from './MainPage'; 
 import { deepStrictEqual } from 'assert';
 
 class AppState {
@@ -92,12 +92,12 @@ const App = () => {
 			<div className = "wrapper">
 				<Column title="Backing">
 					<div>
-						<NoteCard title="Title" description="description..." time="time"><div></div></NoteCard>
+						<NoteCard title="Title" description="description..." time="time"></NoteCard>
 					</div>
 				</Column>
-				<Column title="Design"><div></div></Column>
-				<Column title="To Do"><div></div></Column>
-				<Column title="Doing"><div></div></Column>
+				<Column title="Design"></Column>
+				<Column title="To Do"></Column>
+				<Column title="Doing"></Column>
 		
 			</div>
 		</div>
