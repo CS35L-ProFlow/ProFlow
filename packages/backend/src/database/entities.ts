@@ -1,4 +1,4 @@
-import { Entity, Column, PrimaryGeneratedColumn, ManyToOne, OneToMany, Generated, Tree, TreeChildren, TreeParent, ManyToMany, JoinColumn, JoinTable } from "typeorm"
+import { Entity, Column, PrimaryGeneratedColumn, ManyToOne, OneToMany, Generated, Tree, TreeChildren, TreeParent, ManyToMany, JoinColumn, JoinTable, CreateDateColumn, UpdateDateColumn } from "typeorm"
 
 @Entity("user")
 export class User {
@@ -113,7 +113,6 @@ export class ProjectColumn {
 	@ManyToOne(() => Project, { nullable: false, onDelete: "CASCADE", onUpdate: "CASCADE" })
 	@JoinColumn({ name: "project_id" })
 	readonly project: Project;
-
 }
 
 @Entity("card")
@@ -143,11 +142,11 @@ export class Card {
 	@Column({ type: "text" })
 	description: string;
 
-	@Column({ type: "date" })
+	@CreateDateColumn()
 	readonly date_created: Date;
 
-	@Column({ type: "date" })
-	date_modified: Date;
+	@UpdateDateColumn()
+	readonly date_modified: Date;
 
 	@Column({ type: "int" })
 	priority: number;
