@@ -3,9 +3,9 @@ import Button from '@mui/material/Button'
 import { ProFlow } from "./proflow/ProFlow";
 import { ApiError } from "./proflow/core/ApiError";
 import { BACKEND_PORT } from "./env";
-import './App.css';
+import './Main-page.css';
+import { Column, Profile, NoteCard, closeAddNotesIcon, addNotes, PopupBox } from './Main-page'; 
 import { deepStrictEqual } from 'assert';
-
 
 class AppState {
 	private jwt?: string = undefined;
@@ -48,13 +48,6 @@ const App = () => {
 	const state = new AppState();
 	const login_email = "user@gmail.com";
 	const login_password = "test";
-	//Drop down menu event handler. 
-	//  let subMenu = document.getElementById("subMenu");
-	//  function toggleMenu(){
-	// 	 return subMenu!.classList.toggle("open-menu");
-	// 	}
-		
-
 	return (
 	<body>
 		<div className = "Main-Page">
@@ -91,186 +84,26 @@ const App = () => {
 
 
 				</ul>
-				
-				<img src = "User-Image-Here" className = "user-pic" onClick = {toggleMenu}></img>
-				<div className = "drop-down-menu" id="subMenu">
-					<div className = "drop-down">
-						<div className = "user-profile">
-						<img src='placehold.it/200x200'/>
-						<h2>User Name Here</h2>
-						</div>
-						<hr></hr>
-
-						<a href='#' className = "drop-down-link">
-						<p>Switch accounts</p>
-						</a>
-
-						<a href='#' className = "drop-down-link">
-						<p>Manage Account</p>
-						</a>
-
-						<a href='#' className = "drop-down-link">
-						<p>Profile and visibility</p>
-						</a>
-
-						<a href='#' className = "drop-down-link">
-						<p>Settings</p>
-						</a>
-						<hr></hr>
-						<a href='#' className = "drop-down-link">
-						<p>Can add other functionalities here</p>
-						</a>
-					</div>
-
-
-
-				</div>
-
+				<Profile UserName='[NAME HERE]'></Profile>
 
 			</nav>
-
-
-		<div className = "popup-box">
-			<div className = "popup">
-				<div className = "content">
-					<header>
-						<p>Add a New Note</p>
-						<i onClick={closeAddNotesIcon}>x</i>
-					</header>
-					<form action='#'>
-						<div className = "row">
-							<label>Title</label>
-							<input type="text"></input>
-						</div>
-						<div className = "row description">
-							<label>Description</label>
-							<textarea></textarea>
-						</div>
-						<Button id="save-note-button" onClick={addNotes}>Add Note</Button>
-					</form>
-				</div>
+			<PopupBox></PopupBox>
+		
+			<div className = "wrapper">
+				<Column title="Backing">
+					<div>
+						<NoteCard title="Title" description="description..." time="time"><div></div></NoteCard>
+					</div>
+				</Column>
+				<Column title="Design"><div></div></Column>
+				<Column title="To Do"><div></div></Column>
+				<Column title="Doing"><div></div></Column>
+		
 			</div>
 		</div>
-		
-		<div className = "wrapper">
-			<li className = "note">
-				<div className="details">
-					<p>Backing</p>
-					<hr></hr>
-				</div>
-				//TODO: card attempt here
-				<div className = "note-card">
-						<p>Title</p>
-						<span>Description...</span>
-						<div className="bottom-content">
-							<span>Time</span>
-							<div className='settings'>
-								<i>Setting</i>
-								<ul className="menu">
-									<li>Edit</li>
-									<li>Delete</li>
-								</ul>
-							</div>
-							
-						</div>
-				</div>
-				
-				<div className = "add-buttom">
-				<Button id="add-note-button" onClick={addNotesButton}>Add new Notes</Button>
-				</div>
-			</li>
-
-			<li className = "note">
-				<div className="details">
-					<p>Design</p>
-					<hr></hr>
-				</div>
-				<div className = "bottom">
-				<Button>Add new Notes</Button>
-				</div>
-			</li>
-			<li className = "note">
-				<div className="details">
-					<p>To Do</p>
-					<hr></hr>
-				</div>
-				<div className = "bottom">
-				<Button>Add new Notes</Button>
-				</div>
-			</li>
-			<li className = "note">
-				<div className="details">
-					<p>Doing</p>
-					<hr></hr>
-				</div>
-				<div className = "bottom">
-				<Button>Add new Notes</Button>
-				</div>
-			</li>
-			
-				
-		</div>
-		</div>
-		
-
 	</body>
 	
 	);
 }
-
-//User Menu Dropdown 
-function toggleMenu(){
-	let subMenu = document.getElementById("subMenu");
-	return subMenu!.classList.toggle("open-menu");
-}
-
-//Show ADD NEW NOTES popup
-const addBox = document.getElementById("add-note-button");
-function addNotesButton(){
-	let popupBox = document.querySelector(".popup-box");
-	return popupBox!.classList.add("show");
-}
-
-//Hide ADD NEW NOTES popup
-function closeAddNotesIcon(){
-	let popupBox = document.querySelector(".popup-box");
-	return popupBox!.classList.remove("show");
-}
-const notes = JSON.parse(localStorage.getItem("notes") || "[]")
-//TODO: Show all the notes in localStorage
-function showNotes(){
-	notes.forEach((note:string) => {
-		//Add a card for each string stored in local memory.
-		//addBox!.insertAdjacentHTML("afterend", divTag);
-	});
-}
-
-//Add new notes
-function addNotes(){
-	let addButton = document.getElementById("save-note-button")
-	let titleTag = document.querySelector("input")
-	let descriptionTag = document.querySelector("textarea")
-	let noteTitle = titleTag?.value;
-	let noteDescription = descriptionTag?.value;
-	const monthArray = ["January", "February", "March", "April", "May", "June", "July", 
-					"August", "September", "October", "November","December"];
-	
-	if(noteTitle || noteDescription){
-		let date = new Date();
-		const day = date.getDate();
-		const month = monthArray[date.getMonth()];
-		const year = date.getFullYear();
-
-		let noteInfo = {
-			title: noteTitle,
-			description: noteDescription,
-			time: `${month} ${day} ${year}`
-		}
-		notes.push(noteInfo);
-		localStorage.setItem("notes", JSON.stringify(notes));
-		closeAddNotesIcon();
-	}
-}
-
 
 export default App;
