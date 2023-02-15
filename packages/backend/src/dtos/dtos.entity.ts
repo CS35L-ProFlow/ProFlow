@@ -62,6 +62,31 @@ export class CreateSubProjectRequest {
 	name: string;
 }
 
+export class AddCardRequest {
+	/*
+	 * The title of the card.
+	 */
+	@IsNotEmpty()
+	title: string;
+
+	/*
+	 * The column GUID to add the card to.
+	 */
+	@IsNotEmpty()
+	column: string;
+
+	/*
+	 * The description of the card.
+	 */
+	@IsNotEmpty()
+	description: string;
+
+	/*
+	 * The user GUID that the card is assigned to.
+	 */
+	assignee?: string;
+}
+
 export class CreateProjectColumnRequest {
 	/*
 	 * Name of the column.
@@ -168,6 +193,70 @@ export class GetProjectTreeResponse {
 	 * The sub-projects.
 	 */
 	sub_projects: SubProjectResponse[];
+}
+
+export class CardResponse {
+	/*
+	 * The GUID of the card.
+	 */
+	guid: string;
+
+	/*
+	 * The title of the card.
+	 */
+	title: string;
+
+	/*
+	 * The description of the card.
+	 */
+	description: string;
+
+	/*
+	 * The user GUID that the card is assigned to.
+	 */
+	assignee?: string;
+
+	/*
+	 * The project GUID that the card belongs to
+	 */
+	project_guid: string;
+
+	/*
+	 * The sub-project GUID that the card belongs to
+	 */
+	sub_project_guid: string;
+
+	/*
+	 * The priority index of the card in the column.
+	 */
+	priority: number;
+
+	/*
+	 * The date the card was created.
+	 */
+	date_created: Date;
+
+	/*
+	 * The date the card was last modified.
+	 */
+	date_modified: Date;
+}
+
+export class GetColumnCardsResponse {
+	/*
+	 * The column GUID that the cards belong to.
+	 */
+	column: string;
+
+	/*
+	 * The name of the column
+	 */
+	column_name: string;
+
+	/*
+	 * The cards that are in the column
+	 */
+	cards: CardResponse[];
 }
 
 export class GetInvitationResponse {
