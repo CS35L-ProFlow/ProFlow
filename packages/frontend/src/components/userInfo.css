@@ -1,0 +1,77 @@
+.main-user-info {
+    margin: 20px;
+    display: flex;
+    width: 45%;
+    flex-direction: column;
+    color: black; 
+    border-radius: 10px;
+    /* background-color:rgb(187, 234, 234); */
+    background: linear-gradient(145deg, rgb(187, 234, 234), #0886d9);
+    justify-content: space-around;
+}
+
+.main-user-info > .user-avatar-main {
+    color: white; 
+    margin: 15px;
+    vertical-align: middle;
+    width: 105px;
+    height: 100px;
+    border-radius: 50%;      
+    border-style:groove;
+    border-color: black;
+    font-family: 'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;
+}
+
+.main-user-info > .user-description {
+    font-family: 'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;
+    direction: flex;
+    justify-content: center;
+    color: white; 
+    background: linear-gradient(145deg, #231a9f, #323ad1);
+    padding: 20px;
+    border-radius: 5px;
+    margin-left: 20%;
+    margin-bottom: 10px;
+    width: 70%;
+}
+
+.main-user-info > .user-name-main {
+    padding: 10px;
+    margin-left:15px;
+    font-family: 'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;
+}
+
+.buttons{
+    display: flex;
+    margin-top:200px;
+    width: 30%;
+
+    height: 10%;
+    font-family: 'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;
+}
+
+.toppage {
+    display:flex;
+    flex-direction: row;
+    justify-content: space-around;
+}
+
+body {
+    background-color: rgb(34, 34, 118);
+    font-family: 'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;
+}
+
+.name-and-org {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    margin:15px;
+    font-family: 'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;
+}
+
+.involved-projects {
+    color:white;
+    display:flex;
+    flex-direction: column;
+    margin-left:1000px;
+}

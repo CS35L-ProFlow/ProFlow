@@ -1,0 +1,52 @@
+#navigation {
+    top: 0;
+    position: sticky;
+    width: 100%;
+    z-index: 4;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: rgb(106, 67, 197);
+    height:60px;
+    font-family: 'Ubuntu', sans-serif;
+}
+
+#navigations {
+    top: 0;
+    position: sticky;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    background-color: rgb(106, 67, 197);
+    height:60px;
+    font-family: 'Ubuntu', sans-serif;
+    z-index: 4;
+}
+
+.link {
+    text-decoration: none;
+    color: white;
+    margin:20px;
+    opacity: 50%;
+}
+
+.link:hover{
+    opacity: 100%;
+    transition: 1s;
+}
+
+.linkName {
+    text-decoration: none;
+    color: white;
+    margin: 30px;
+    position:relative;
+}
+
+#logo{
+    transform: translateX(11%) translateY(5%) scale(0.9); /* 180% for center*/
+}
+
+.header{
+    margin-bottom:10px;
+    margin-left: 5px;
+}

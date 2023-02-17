@@ -1,9 +1,9 @@
-import Button from '@mui/material/Button'
+import Button from '@mui/material/Button';
 import { ProFlow } from "./proflow/ProFlow";
 import { ApiError } from "./proflow/core/ApiError";
 import { BACKEND_PORT } from "./env";
 import './App.css';
-import './App.tsx'
+import './App.tsx';
 import { deepStrictEqual } from 'assert';
 
 //This file contains the packground, drop down menu, and cards.
