@@ -7,9 +7,6 @@ import './MainPage.css';
 import { Column, Profile, NoteCard, closeAddNotesIcon, addNotes, PopupBox } from './MainPage'; 
 import { deepStrictEqual } from 'assert';
 
-// to test you can stick it somewhere on the page as we don't have a router yet 
-// import UserProfile from './userProfile';
-
 class AppState {
 	private jwt?: string = undefined;
 
@@ -104,7 +101,6 @@ const App = () => {
 		
 			</div>
 		</div>
-		{/* <UserProfile></UserProfile> */}
 	</body>
 	
 	);

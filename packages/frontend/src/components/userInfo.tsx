@@ -6,9 +6,9 @@ import {useState} from 'react';
 import './Project.tsx';
 import Project from './Project';
 
-export interface userData {
+export interface UserData {
     // add an image to the interface to the user from API
-    avatar?: undefined;
+    // avatar?: undefined;
 
     // name
     name: string;
@@ -16,10 +16,9 @@ export interface userData {
     // information
     description: string;
 
-    organization:string;
 }
 
-export default function UserInfo(props: userData) {
+export default function UserInfo(props: UserData) {
     const [projExp, setProjExp] = useState(true)
     const [following, setFollowing] = useState(false)
     const [contacts, setContacts] = useState(false)
@@ -49,7 +48,6 @@ export default function UserInfo(props: userData) {
                 <img alt="logo" src={avatar} className = "user-avatar-main"></img>
                 <div className = "name-and-org">
                     <div className = "user-name-main">Name: {props.name}</div>
-                    <div className = "user-org">Organization: {props.organization}</div>
                 </div>
                 <div className = "user-description">{props.description}</div>
             </div>
@@ -62,23 +60,23 @@ export default function UserInfo(props: userData) {
             {
                 projExp &&
                 <div className ="involved-projects">
-                    <Project name="ProFlow" description="beta" organization='UCLA' role="front-end"></Project>
-                    <Project name="ProFlow" description="beta" organization='UCLA' role="front-end"></Project>
-                    <Project name="ProFlow" description="beta" organization='UCLA' role="front-end"></Project>
-                    <Project name="ProFlow" description="beta" organization='UCLA' role="front-end"></Project>
+                    <Project name="ProFlow"></Project>
+                    <Project name="ProFlow"></Project>
+                    <Project name="ProFlow"></Project>
+                    <Project name="ProFlow"></Project>
                 </div>
             }
             {
                 following &&
                 <div className ="involved-projects">
-                    <Project name="ProFlow2" description="alpha" organization='nonUCLA'></Project>
-                    <Project name="Google" description="sigma" organization='nonUCLA'></Project>
+                    <Project name="ProFlow2"></Project>
+                    <Project name="Google"></Project>
                 </div>
             }
             {
                 contacts &&
                 <div className ="involved-projects">
-                    <Project name="Email" description="alpha@ucla.edu" organization='UCLA'></Project>
+                    <Project name="Email"></Project>
                 </div>
             }
     </body>
