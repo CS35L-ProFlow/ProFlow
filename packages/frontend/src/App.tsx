@@ -1,7 +1,5 @@
 import React, { useState } from 'react';
-import Button from '@mui/material/Button'
 import { ProFlow } from "./proflow/ProFlow";
-import { ApiError } from "./proflow/core/ApiError";
 import { BACKEND_PORT } from "./env";
 import './MainPage.css';
 import { Column, Profile, NoteCard, closeAddNotesIcon, addNotes, PopupBox } from './MainPage'; 
