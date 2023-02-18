@@ -4,6 +4,8 @@ import { BACKEND_PORT } from "./env";
 import './MainPage.css';
 import { Column, Profile, NoteCard, closeAddNotesIcon, addNotes, PopupBox } from './MainPage'; 
 import { SignUp } from "./SignUp";
+import {Button} from "@mui/material"
+import { ApiError } from './proflow/core/ApiError';
 // import { deepStrictEqual } from 'assert';
 
 export class AppState {
