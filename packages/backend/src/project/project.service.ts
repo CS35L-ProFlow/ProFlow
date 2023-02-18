@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository, } from "@nestjs/typeorm";
 import { Repository, TreeRepository, DataSource } from "typeorm";
-import { Project, SubProject, User, UserInvite, ProjectColumn } from "../database/entities";
+import { Project, SubProject, User, UserInvite, ProjectColumn, Card } from "../database/entities";
 import { UserService } from "../user/user.service";
 import { Ok, Err, Result } from "ts-results";
 
@@ -98,6 +98,105 @@ export class ProjectService {
 			await manager.save(ProjectColumn, { name, order_index, project });
 
 			return Ok.EMPTY;
+		});
+	}
+
+	async add_card_to_column(user: User, sub_project_guid: string, column_guid: string, title: string, description: string, assignee_guid?: string): Promise<Result<void, string>> {
+		return await this.data_source.transaction(async manager => {
+			const sub_project = await manager.findOne(SubProject, { where: { guid: sub_project_guid }, relations: ["project", "project.members"] })
+			if (!sub_project)
+				return Err("Cannot add column to project that does not exist!");
+
+			if (!sub_project.project.members.find(m => m.guid == user.guid)) {
+				return Err("User is not a member of the project and cannot add a card!")
+			}
+
+			let assignee: User | undefined = undefined;
+			if (assignee_guid) {
+				assignee = sub_project.project.members.find(m => m.guid == assignee_guid);
+				if (!assignee)
+					return Err("Assignee is not a member of the project!");
+			}
+
+			const project_column = await manager.findOne(ProjectColumn, { where: { guid: column_guid } });
+			if (!project_column) {
+				return Err("Column does not exist!")
+			}
+
+			const highest_card = await manager
+				.createQueryBuilder(Card, "card")
+				.where({ project_column, })
+				.orderBy({ priority: "DESC" })
+				.limit(1)
+				.getOne();
+			const highest_priority = highest_card?.priority ?? -1;
+			const priority = highest_priority + 1;
+
+			const card = await manager.save(Card, {
+				title,
+				description,
+				sub_project,
+				project_column,
+				assignee,
+				priority
+			});
+			console.log("Saved card " + JSON.stringify(card));
+
+			return Ok.EMPTY;
+		});
+	}
+	async find_cards(user: User, where: {
+		project_guid?: string,
+		sub_project_guid?: string,
+		column_guid?: string,
+		assignee_guid?: string
+	}): Promise<Result<{ cards: Card[], project: Project, project_column?: ProjectColumn }, string>> {
+		return await this.data_source.transaction(async manager => {
+			if (!where.project_guid && !where.sub_project_guid) {
+				return Err("");
+			}
+			let project: Project | undefined = undefined;
+			let sub_project: SubProject | undefined = undefined;
+			if (where.project_guid) {
+				project = await manager.findOne(Project, { where: { guid: where.project_guid }, relations: { members: true } }) ?? undefined;
+				if (!project) {
+					return Err("Project does not exist!");
+				}
+				if (!project.members.find(m => m.guid == user.guid)) {
+					return Err("User is not a member of this project!");
+				}
+			}
+
+			if (where.sub_project_guid) {
+				sub_project = await manager.findOne(SubProject, { where: { guid: where.sub_project_guid }, relations: { project: true } }) ?? undefined;
+				if (!sub_project) {
+					return Err("Sub-project does not exist!");
+				}
+				project = sub_project.project;
+			}
+
+			if (!project) {
+				return Err("Failed to find project!");
+			}
+
+			let project_column: ProjectColumn | undefined = undefined;
+			if (where.column_guid) {
+				project_column = await manager.findOne(ProjectColumn, { where: { guid: where.column_guid, project } }) ?? undefined;
+				if (!project_column) {
+					return Err("Column does not exist!");
+				}
+			}
+
+			let assignee: User | undefined = undefined;
+			if (where.assignee_guid) {
+				assignee = project.members.find(m => m.guid == where.assignee_guid);
+				if (!assignee) {
+					return Err("Assignee does not exist in project!");
+				}
+			}
+
+			const cards = await manager.find(Card, { where: { sub_project, project_column, assignee }, order: { priority: "ASC" } })
+			return Ok({ cards, project_column, project });
 		});
 	}
 

@@ -1,0 +1,358 @@
+*{
+    margin: 0;
+    padding: 0;
+    font-family: 'Poppins';
+    box-sizing: border-box;
+  }
+  
+  .Main-Page{
+    width: 100%;
+    min-height: 100vh;
+    background: #b8e2f2;
+    color: #525252;
+  }
+  
+  .App {
+    text-align: center;
+  }
+  
+  .App-logo {
+    height: 40vmin;
+    pointer-events: none;
+  }
+  
+  @media (prefers-reduced-motion: no-preference) {
+    .App-logo {
+      animation: App-logo-spin infinite 20s linear;
+    }
+  }
+  
+  .App-header {
+    background-color: #282c34;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    font-size: calc(10px + 2vmin);
+    color: white;
+  }
+  
+  .App-link {
+    color: #61dafb;
+  }
+  
+  @keyframes App-logo-spin {
+    from {
+      transform: rotate(0deg);
+    }
+    to {
+      transform: rotate(360deg);
+    }
+  }
+  
+  .user-pic{
+    width: 40px;
+    border-radius: 50%;
+    cursor: pointer;
+    margin-left: 30px;
+  }
+  
+  nav{
+    background: #1a1a1a;
+    width: 100%;
+    padding: 10px 10%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: relative;
+  }
+  
+  .log{
+    width: 120px;
+  }
+  
+  nav ul{
+    width: 100%;
+    text-align: right;
+  }
+  
+  nav a{
+    width: 200;
+    font-size: 25px;
+    text-align: left;
+    color: #fff;
+  }
+  
+  nav ul li{
+    display: inline-block;
+    list-style: none;
+    margin: 10px 20px;
+  }
+  
+  nav ul li a{
+    color: #fff;
+    text-decoration: none;
+  }
+  
+  .drop-down-menu{
+    position: absolute;
+    top: 100%;
+    right: 10%;
+    width: 320px;
+    max-height: 0px;
+    overflow: hidden;
+    transition: max-height 0.5s;
+    
+  }
+  
+  .drop-down-menu.open-menu{
+    max-height: 400px;
+  }
+  
+  .drop-down{
+    background: #fff;
+    padding: 20px;
+    margin: 10px;
+  }
+  .drop-down hr{
+    border:0;
+    height: 1px;
+    width: 100;
+    background: #ccc;
+    margin: 15px 0 10px;
+  }
+  .user-profile{
+    display: flex;
+    align-items: center;
+  }
+  
+  .user-profile h2{
+    font-weight: 500;
+  }
+  
+  .user-profile img{
+    width: 60px;
+    border-radius: 50%;
+    margin-right: 15px;
+  }
+  
+  .drop-down-link{
+    display: flex;
+    align-items: center;
+    text-decoration: none;
+    color: #525252;
+    margin: 12px 0;
+  }
+  
+  .drop-down-link p{
+    width: 100%;
+  }
+  
+  .drop-down-link:hover p{
+    font-weight: 600;
+  }
+  
+  .wrapper{
+    margin: 50px;
+    display: grid;
+    gap: 15px;
+    grid-template-columns: repeat(auto-fill, 265px);
+  }
+  
+  .wrapper li{
+    height: 350px;
+    list-style: none;
+    background: #ececec;
+    border-radius: 5px;
+    padding: 15px 20px 20px;
+  }
+  
+  .wrapper .note .note-card{
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 0px 10px 0px;
+  }
+  
+  
+  .note p{
+    font-size: 22px;
+    font-weight: 500;
+  }
+  
+  .note-card{
+    background: #fff;
+  
+  }
+  
+  .note-card p{
+    font-size: 18px;
+    font-weight: 400;
+  }
+  
+  .note-card span{
+    display: block;
+    margin-top: 5px;
+    color: #575757;
+    font-size: 16px;
+  }
+  .wrapper .note Button{
+    align-items: bottom;
+  }
+  
+  .add-button{
+    padding-top: 10px;
+    border-top: 1px solid #ccc;
+  }
+  
+  
+  .bottom-content{
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-top: 10px;
+    border-top: 1px solid #ccc;
+  
+  }
+  .bottom-content span{
+    color: #6d6d6d;
+    font-size: 14px;
+  }
+  .bottom-content .settings i{
+    color: #6d6d6d;
+    font-size: 14px;
+    cursor:pointer;
+  }
+  .settings{
+    position: relative;
+  }
+  .settings .menu{
+    position:absolute;
+    bottom: 0;
+    padding: 5px 0;
+    right: -5px;
+    background: #fff;
+    border-radius: 4px;
+    transform: scale(0);
+    transform-origin: bottom right;
+    box-shadow: 0 0 6px rgba(0, 0, 0, 0.15);
+    transition: transform 0.2s ease;
+  
+  }
+  
+  .settings:hover .menu{
+    transform: scale(1);
+  }
+  
+  .settings .menu li{
+    height: 25px;
+    border-radius: 0;
+    font-size: 16px;
+    display: flex;
+    padding: 17px 150;
+    cursor: pointer;
+    align-items: center;
+    background: #fff;
+    justify-content: flex-start;
+  }
+  .menu li:hover{
+    background: #9a9898;
+  }
+  
+  .popup-box{
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: 100%;
+    z-index: 2;
+    background: rgba(0, 0, 0, 0.4);
+  }
+  .popup, header{
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  
+  .popup-box .popup{
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    z-index: 3;
+    max-width: 400px; 
+    width: 100%;
+    justify-content: center;
+    transform: translate(-50%, -50%);
+  }
+  
+  .popup-box, .popup-box .popup{
+    opacity: 0;
+    pointer-events: none;
+    transition: all 0.25s ease;
+  }
+  
+  .popup-box.show, .popup-box.show .popup{
+    opacity: 1;
+    pointer-events: auto;
+  }
+  
+  .popup .content{  
+    width: calc(100%-15px);
+    border-radius: 5px;
+    background: #fff;
+  }
+  
+  .popup .content header{
+    padding: 15px 25px;
+    border-bottom: 1px solid #ccc;
+  }
+  
+  .content header p{
+    font-size: 20px;
+    font-weight: 500;
+  }
+  
+  .content header i{
+    color: #8b8989;
+    cursor: pointer;
+    font-size: 23px;
+  }
+  .content form{
+    margin: 15px 25px 35px;
+  }
+  .contetx form .row{
+    margin-bottom: 20px;
+  }
+  form .row label{
+    display: block;
+    font-size: 18px;
+    margin-bottom: 6px;
+  }
+  .content form :where(input, textarea){
+    width: 100%;
+    height: 50px;
+    outline: none;
+    font-size: 17px;
+    padding: 0 15px;
+    border-radius: 4px;
+    border: 1px solid #999;
+  }
+  
+  .content form textarea{
+    height: 150px;
+    resize: none;
+    padding: 8px 15px;
+  }
+  
+  .content form Button{
+    width: 100%;
+    height: 50px;
+    border: none;
+    outline: none;
+    color: #000;
+    cursor: pointer;
+    font-size: 17px;
+    border-radius: 4px;
+    background: #6a93f8;
+  }
