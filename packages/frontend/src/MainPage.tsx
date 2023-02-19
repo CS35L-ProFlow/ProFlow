@@ -1,7 +1,9 @@
 import Button from '@mui/material/Button'
 import './MainPage.css';
-import { AppState } from "./App";
+import { AppState, PAGES } from "./App";
 import { ApiError } from "./proflow/core/ApiError";
+import React, { useState } from 'react';
+import { Link } from "react-router-dom";
 
 //This file contains the packground, drop down menu, and cards.
 
@@ -185,16 +187,11 @@ export function MainPage(props: MainPageProps) {
 					<img src="LOGO-HERE" className="logo"></img>
 					<ul>
 						<li>
-							<Button variant="contained" className="Button-Design" onClick={async () => {
-								try {
-									const res = await state.client.auth.authSignup({ email: login_email, password: login_password });
-									state.authorize(res.jwt, res.expire_sec);
-								} catch (e) {
-									if (e instanceof ApiError) {
-										console.log("Request failed (" + e.status + ") error: " + e.body.message);
-									}
-								}
-							}}>Signup</Button>
+							<Link to={PAGES.signUp}>
+								<Button variant="contained" className="Button-Design">
+									Signup
+								</Button>
+							</Link>
 						</li>
 
 						<li>

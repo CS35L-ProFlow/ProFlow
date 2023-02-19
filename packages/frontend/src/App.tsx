@@ -1,12 +1,19 @@
 import React, { useState } from 'react';
 import { ProFlow } from "./proflow/ProFlow";
-import { BACKEND_PORT } from "./env";
 import './MainPage.css';
 import { Column, Profile, NoteCard, closeAddNotesIcon, addNotes, PopupBox } from './MainPage'; 
 import { SignUp } from "./SignUp";
-import {Button} from "@mui/material"
 import { ApiError } from './proflow/core/ApiError';
-// import { deepStrictEqual } from 'assert';
+import { MainPage } from './MainPage';
+import Project from './components/Project';
+import {
+	BrowserRouter as Router,
+	Routes,
+	Route,
+	Navigate
+  } from 'react-router-dom';
+import { BACKEND_PORT } from './env';
+
 
 export class AppState {
 	private jwt?: string = undefined;
@@ -45,69 +52,24 @@ export class AppState {
 	get is_authorized() { return this.jwt != undefined; }
 }
 
+export enum PAGES {
+	main='/',
+	user="/user",
+	signUp="/signup",
+}
+
 const App = () => {
 	const state = new AppState();
-	const login_email = "user@gmail.com";
-	const login_password = "test";
+	const [userString,setUserString]=useState("");
 	return (
-	<body>
-		<div className = "Main-Page">
-			<nav>
-				<img src="LOGO-HERE" className = "logo"></img>
-				<ul>
-					<li>
-						<Button variant="contained" className = "Button-Design"onClick={async () => {
-						try {
-							const res = await state.client.auth.authSignup({ email: login_email, password: login_password });
-							state.authorize(res.jwt, res.expire_sec);
-						} catch (e) {
-							if (e instanceof ApiError) {
-								console.log("Request failed (" + e.status + ") error: " + e.body.message);
-							}
-						}
-						console.log("hi")
-						}}>Yo</Button>
-					</li>
-
-					<li>
-						<Button variant="contained" onClick={async () => {
-							const res = await state.client.auth.authLogin({ email: login_email, password: login_password });
-							console.log("Logged in " + res.jwt)
-							state.authorize(res.jwt, res.expire_sec);
-						}}>Login</Button>
-						
-					</li>
-					<li>
-						<Button variant="contained" onClick={async () => {
-							const res = await state.client.user.getUserProjects();
-							console.log("Get projects " + res.project_guids)
-						}}>Get Projects</Button>
-					</li>
-
-
-				</ul>
-				<Profile UserName='[NAME HERE]'></Profile>
-
-			</nav>
-			<PopupBox></PopupBox>
-		
-			<div className = "wrapper">
-				<Column title="Backing">
-					<div>
-						<NoteCard title="Title" description="description..." time="time"></NoteCard>
-					</div>
-				</Column>
-				<Column title="Design"></Column>
-				<Column title="To Do"></Column>
-				<Column title="Doing"></Column>
-		
-			</div>
-		</div>
-	</body>
-	
-	);
+		<Router>
+			<Routes>
+				<Route path={PAGES.main} element={<MainPage state={state}/>}/>
+				<Route path={PAGES.signUp} element={<SignUp state={state} endUser={(user : string) => setUserString(user)}/>}/>
+				<Route path={PAGES.user} element={userString ? <Project name={userString}/> : <Navigate replace to={PAGES.signUp}/>}/>
+			</Routes>
+		</Router>
+	  )
 }
 
 export default App;
-
-// export default SignUp;

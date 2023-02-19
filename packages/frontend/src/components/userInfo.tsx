@@ -5,6 +5,7 @@ import avatar from './sad-chair.jpg';
 import {useState} from 'react';
 import './Project.tsx';
 import Project from './Project';
+import React from 'react';
 
 export interface UserData {
     // add an image to the interface to the user from API
