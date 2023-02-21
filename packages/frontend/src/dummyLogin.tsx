@@ -3,20 +3,21 @@ import { AppState } from "./App";
 import { ApiError } from "./proflow/core/ApiError";
 import { useNavigate } from "react-router-dom";
 import { PAGES } from "./App";
+import React from "react";
 // import {AuthService} from "../../backend/src/auth/auth.service"
 
-export interface SignUpProps {
+export interface dummyProps {
 	state: AppState,
     endUser : any,
 };
 
-export function SignUp(props: SignUpProps) {
+export function DummyLogin(props: dummyProps) {
     const endUser = props.endUser;
     const navigate = useNavigate();
     return(
         <div>
             <h1>Welcome!</h1>
-            <h2>Enter your new account information below:</h2>
+            <h2>Sign in:</h2>
             <div>Email:</div>
             <input id="email" type="text"/>
             <div>Password</div>
@@ -27,8 +28,9 @@ export function SignUp(props: SignUpProps) {
                 const email_input = (document.getElementById('email') as HTMLInputElement).value;
                 const password = (document.getElementById('password') as HTMLInputElement).value;
                 try {
-                    const res = await props.state.client.auth.authSignup({ email: email_input, password: password });
-                    props.state.authorize(res.jwt, res.expire_sec);
+                    const res = await props.state.client.auth.authLogin({ email: email_input, password: password });
+					props.state.authorize(res.jwt, res.expire_sec);
+                    console.log(props.state.is_authorized);
                     endUser(email_input);
                     navigate(PAGES.user);
                 } catch (e) {
@@ -36,7 +38,7 @@ export function SignUp(props: SignUpProps) {
                         console.log("Request failed (" + e.status + ") error: " + e.body.message);
                     }
                 }
-                }}>Sign Up!</Button>
+                }}>Sign In!</Button>
             <br />
 			<Button variant="contained" size="small" onClick={() => window.open("https://google.com")}>Invite Friends</Button>
 		</div>	

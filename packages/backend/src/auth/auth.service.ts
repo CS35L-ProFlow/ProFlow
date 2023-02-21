@@ -41,6 +41,8 @@ export class AuthService {
 
 		const salt = await bcrypt.genSalt();
 		const hash = await bcrypt.hash(password, salt);
+		console.log(salt);
+		console.log(hash);
 
 		const db_user = await this.user_service.create_user(email, hash);
 		console.log("New user signed up: " + db_user!.email);

@@ -176,7 +176,6 @@ export interface MainPageProps {
 };
 
 export function MainPage(props: MainPageProps) {
-	const state = props.state;
 	const login_email = "user@gmail.com";
 	const login_password = "test";
 
@@ -195,16 +194,21 @@ export function MainPage(props: MainPageProps) {
 						</li>
 
 						<li>
-							<Button variant="contained" onClick={async () => {
+							{/* <Button variant="contained" onClick={async () => {
 								const res = await state.client.auth.authLogin({ email: login_email, password: login_password });
 								console.log("Logged in " + res.jwt)
 								state.authorize(res.jwt, res.expire_sec);
-							}}>Login</Button>
+							}}>Login</Button> */}
+							<Link to={PAGES.login}>
+								<Button variant="contained" className="Button-Design">
+									Login
+								</Button>
+							</Link>
 
 						</li>
 						<li>
 							<Button variant="contained" onClick={async () => {
-								const res = await state.client.user.getUserProjects();
+								const res = await props.state.client.user.getUserProjects();
 								console.log("Get projects " + res.project_guids)
 							}}>Get Projects</Button>
 						</li>

@@ -6,6 +6,8 @@ import { SignUp } from "./SignUp";
 import { ApiError } from './proflow/core/ApiError';
 import { MainPage } from './MainPage';
 import Project from './components/Project';
+import { DummyLogin } from './dummyLogin';
+import UserInfo from './components/userInfo';
 import {
 	BrowserRouter as Router,
 	Routes,
@@ -28,11 +30,13 @@ export class AppState {
 
 	authorize(jwt: string, expire_sec: number) {
 		this.jwt = jwt;
+		// const res = await this.client.auth.authRefresh();
+		// this.jwt = res.jwt;
 		this.refresh_auth(this.refresh_rate_ms(expire_sec));
 	}
 
 	private refresh_auth(timeout_ms: number) {
-		console.log("Refreshing in " + timeout_ms + " ms...")
+		console.log("Refreshing in " + timeout_ms + " ms...");
 		setTimeout(async () => {
 			try {
 				const res = await this.client.auth.authRefresh();
@@ -56,17 +60,20 @@ export enum PAGES {
 	main='/',
 	user="/user",
 	signUp="/signup",
+	login="/login",
 }
 
+
 const App = () => {
-	const state = new AppState();
+	let state = new AppState();
 	const [userString,setUserString]=useState("");
 	return (
 		<Router>
 			<Routes>
 				<Route path={PAGES.main} element={<MainPage state={state}/>}/>
 				<Route path={PAGES.signUp} element={<SignUp state={state} endUser={(user : string) => setUserString(user)}/>}/>
-				<Route path={PAGES.user} element={userString ? <Project name={userString}/> : <Navigate replace to={PAGES.signUp}/>}/>
+				<Route path={PAGES.user} element={<UserInfo name={userString} description="test" state={state}/>}/>
+				<Route path={PAGES.login} element={<DummyLogin state={state} endUser={(user : string) => setUserString(user)}/>}/>
 			</Routes>
 		</Router>
 	  )
