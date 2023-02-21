@@ -2,12 +2,14 @@ import React, { useState } from 'react';
 import { ProFlow } from "./proflow/ProFlow";
 import { BACKEND_PORT } from "./env";
 import './MainPage.css';
-import { MainPage } from "./MainPage";
+import './App.css';
+import Login from "./components/Login";
 
 export class AppState {
 	private jwt?: string = undefined;
 
 	get client() {
+
 		return new ProFlow({
 			BASE: "http://localhost:" + BACKEND_PORT,
 			HEADERS: this.jwt ? { "Authorization": "Bearer " + this.jwt } : undefined
@@ -19,6 +21,7 @@ export class AppState {
 		this.jwt = jwt;
 		this.refresh_auth(this.refresh_rate_ms(expire_sec));
 	}
+
 
 	private refresh_auth(timeout_ms: number) {
 		console.log("Refreshing in " + timeout_ms + " ms...")
@@ -43,8 +46,7 @@ export class AppState {
 
 const App = () => {
 	const state = new AppState();
-	// Change this when testing!
-	return <MainPage state={state}></MainPage>;
+	return <Login state={state} />
 }
 
 export default App;
