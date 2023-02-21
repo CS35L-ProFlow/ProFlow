@@ -2,15 +2,14 @@ import React, { useState } from 'react';
 import { ProFlow } from "./proflow/ProFlow";
 import { BACKEND_PORT } from "./env";
 import './MainPage.css';
-import { MainPage } from "./MainPage";
-import Button from '@mui/material/Button'
 import './App.css';
+import Login from "./components/Login";
 
 export class AppState {
 	private jwt?: string = undefined;
 
 	get client() {
-		
+
 		return new ProFlow({
 			BASE: "http://localhost:" + BACKEND_PORT,
 			HEADERS: this.jwt ? { "Authorization": "Bearer " + this.jwt } : undefined
@@ -47,29 +46,7 @@ export class AppState {
 
 const App = () => {
 	const state = new AppState();
-	return (
-		<body>
-		<div className="container">
-			<h1>
-				Login
-			</h1>
-			<div className="input-group">
-				<div className ="email-and-label">
-				<label className="label">Email address</label>
-				<input name="Email" id="Email" className="input" type="email" />
-				</div>
-				<div></div>
-			</div>
-			<div className="input-group">
-				<div className ="email-and-label2">
-				<label className="label">Password</label>
-				<input name="Email" id="Email" className="input" type="email" />
-				</div>
-				<div></div>
-			</div>
-		</div>
-		</body>
-	);
+	return <Login state={state} />
 }
 
 export default App;
