@@ -1,8 +1,7 @@
 import Button from '@mui/material/Button'
-import './MainPage.css';
-import { AppState, Pages } from "./App";
-import { ApiError } from "./proflow/core/ApiError";
-import React, { useState } from 'react';
+import './ProjectView.css';
+import { AppState, Pages } from "../App";
+import React from 'react';
 import { Link } from "react-router-dom";
 
 //This file contains the packground, drop down menu, and cards.
@@ -171,14 +170,11 @@ export function addNotes() {
 	}
 }
 
-export interface MainPageProps {
+export interface ProjectViewProps {
 	state: AppState,
 };
 
-export function MainPage(props: MainPageProps) {
-	const login_email = "user@gmail.com";
-	const login_password = "test";
-
+export function ProjectView(props: ProjectViewProps) {
 	return (
 		<body>
 			<div className="Main-Page">

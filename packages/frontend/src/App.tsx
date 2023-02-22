@@ -1,18 +1,13 @@
 import React, { useState } from 'react';
 import { ProFlow } from "./proflow/ProFlow";
-import './MainPage.css';
-import { Column, Profile, NoteCard, closeAddNotesIcon, addNotes, PopupBox } from './MainPage';
 import { SignUp } from "./SignUp";
-import { ApiError } from './proflow/core/ApiError';
-import { MainPage } from './MainPage';
-import Project from './components/Project';
+import { ProjectView } from './pages/ProjectView';
 import { DummyLogin } from './dummyLogin';
 import UserInfo from './components/UserInfo';
 import {
 	BrowserRouter as Router,
 	Routes,
 	Route,
-	Navigate
 } from 'react-router-dom';
 import { BACKEND_PORT } from './env';
 
@@ -30,8 +25,6 @@ export class AppState {
 
 	authorize(jwt: string, expire_sec: number) {
 		this.jwt = jwt;
-		// const res = await this.client.auth.authRefresh();
-		// this.jwt = res.jwt;
 		this.refresh_auth(this.refresh_rate_ms(expire_sec));
 	}
 
@@ -72,7 +65,7 @@ const App = () => {
 	return (
 		<Router>
 			<Routes>
-				<Route path={Pages.MAIN} element={<MainPage state={state} />} />
+				<Route path={Pages.MAIN} element={<ProjectView state={state} />} />
 				<Route path={Pages.SIGNUP} element={<SignUp state={state} endUser={(user: string) => setUserString(user)} />} />
 				<Route path={Pages.USER} element={<UserInfo projNames={projNames} updateProjNames={setProjNames} name={userString} description="test" state={state} projGuids={projGuids} updateProjGuids={(guids: string[]) => setProjGuids(guids)} />} />
 				<Route path={Pages.LOGIN} element={<DummyLogin state={state} updateProjGuids={(guids: string[]) => setProjGuids(guids)} updateProjNames={setProjNames} endUser={(user: string) => setUserString(user)} />} />
