@@ -7,7 +7,7 @@ import { ApiError } from './proflow/core/ApiError';
 import { MainPage } from './MainPage';
 import Project from './components/Project';
 import { DummyLogin } from './dummyLogin';
-import UserInfo from './components/userInfo';
+import UserInfo from './components/UserInfo';
 import {
 	BrowserRouter as Router,
 	Routes,

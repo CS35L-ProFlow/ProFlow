@@ -1,4 +1,5 @@
-import './userInfo.css';
+import React from 'react';
+import './UserInfo.css';
 import Button from '@mui/material/Button';
 import avatar from './sad-chair.jpg';
 
@@ -6,9 +7,7 @@ import { ApiError } from '../proflow';
 import { useEffect, useState } from 'react';
 import './Project.tsx';
 import Project from './Project';
-import React from 'react';
 import { AppState } from '../App';
-import { SpaceBar } from '@mui/icons-material';
 
 export interface UserData {
 	// add an image to the interface to the user from API
