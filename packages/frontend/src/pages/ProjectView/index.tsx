@@ -1,9 +1,9 @@
 import Button from '@mui/material/Button'
-import './MainPage.css';
-import { AppState, Pages } from "./App";
-import { ApiError } from "./proflow/core/ApiError";
-import React, { useState } from 'react';
-import { Link } from "react-router-dom";
+import Client from "../../client"
+import './index.css';
+import Pages from "../../pages";
+import React from 'react';
+import { Link, useNavigate, useParams } from "react-router-dom";
 
 //This file contains the packground, drop down menu, and cards.
 
@@ -171,13 +171,12 @@ export function addNotes() {
 	}
 }
 
-export interface MainPageProps {
-	state: AppState,
+export interface ProjectViewProps {
+	client: Client,
 };
 
-export function MainPage(props: MainPageProps) {
-	const login_email = "user@gmail.com";
-	const login_password = "test";
+export default function ProjectView(props: ProjectViewProps) {
+	const { guid } = useParams();
 
 	return (
 		<body>
@@ -208,8 +207,8 @@ export function MainPage(props: MainPageProps) {
 						</li>
 						<li>
 							<Button variant="contained" onClick={async () => {
-								const res = await props.state.client.user.getUserProjects();
-								console.log("Get projects " + res.project_guids)
+								// const res = await props.client.http.user.getUserProjects();
+								// console.log("Get projects " + res.project_guids)
 							}}>Get Projects</Button>
 						</li>
 

@@ -1,0 +1,122 @@
+import { BACKEND_PORT } from '../env';
+import { ProFlow, } from "../proflow/ProFlow";
+import { ApiError } from "../proflow/core/ApiError";
+import { Result, Ok, Err } from "ts-results";
+
+const init_proflow_client = (jwt?: string) => new ProFlow({
+	// http://localhost:BACKEND_PORT/route
+	BASE: "http://localhost:" + BACKEND_PORT,
+	HEADERS: jwt ? { "Authorization": "Bearer " + jwt } : undefined
+});
+
+async function safe_request<T>(fn: () => Promise<T>): Promise<Result<T, string>> {
+	try {
+		const res = await fn();
+		return Ok(res);
+	} catch (e) {
+		if (e instanceof ApiError) {
+			return Err(e.body.message);
+		} else {
+			throw e;
+		}
+	}
+}
+
+export interface User {
+	email: string,
+
+	guid: string,
+}
+
+export interface Project {
+	guid: string,
+
+	name: string,
+
+	owner: User,
+}
+
+export class Session {
+	private client: ProFlow;
+
+	constructor(private user_email: string, private user_guid: string, jwt: string, expire_sec: number) {
+		this.client = init_proflow_client(jwt);
+		this.refresh_auth(this.refresh_rate_ms(expire_sec));
+	}
+
+	public get http() {
+		return this.client;
+	}
+
+	public get guid() {
+		return this.user_guid;
+	}
+
+	public get email() {
+		return this.user_email;
+	}
+
+	public async query_user(guid: string): Promise<Result<User, string>> {
+		return (
+			await safe_request(async () => {
+				return await this.get_user_throwable(guid);
+			})
+		).mapErr(err => "Failed to get user: " + err);
+	}
+
+	public async get_my_projects(): Promise<Result<Project[], string>> {
+		return (
+			await safe_request(async () => {
+				const res = await this.client.user.getUserProjects();
+				const guids = res.project_guids;
+				const promises = guids.map(guid => this.client.project.getProjectInfo(guid));
+
+				const project_responses = await Promise.all(promises);
+
+				return await Promise.all(project_responses.map(async (res): Promise<Project> => {
+					return { guid: res.guid, name: res.name, owner: await this.get_user_throwable(res.owner) }
+				}))
+			})
+		).mapErr(err => "Failed to get projects: " + err);
+	}
+
+	private async get_user_throwable(guid: string): Promise<User> {
+		const { email } = await this.client.user.queryUser(guid);
+		return { email, guid }
+	}
+
+
+	// TODO(Brandon): This is technically broken. If the session object is ever destroyed
+	// or a new one is created, then this will end up being disasterous. In the final application
+	// we will hopefully do something with refresh tokens stored server side to mitigate these issues.
+	private refresh_auth(timeout_ms: number) {
+		console.log("Refreshing in " + timeout_ms + " ms...");
+		setTimeout(async () => {
+			try {
+				const res = await this.http.auth.authRefresh();
+				this.client = init_proflow_client(res.jwt);
+				console.log("Refreshed auth token!");
+
+				this.refresh_auth(this.refresh_rate_ms(res.expire_sec));
+			} catch (e) {
+				console.log("Failed to refresh JWT token, trying again...");
+				this.refresh_auth(500);
+			}
+		}, timeout_ms)
+	}
+
+	private refresh_rate_ms = (secs: number) => Math.max((secs - 30) * 1000, 1000)
+}
+
+export default class Client {
+	public async login(email: string, password: string): Promise<Result<Session, string>> {
+		const client = init_proflow_client();
+
+		return (
+			await safe_request(async () => {
+				const res = await client.auth.authLogin({ email, password });
+				return new Session(email, res.user_guid, res.jwt, res.expire_sec);
+			})
+		).mapErr(err => "Failed to log in: " + err);
+	}
+}
