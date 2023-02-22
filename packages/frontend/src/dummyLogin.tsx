@@ -4,12 +4,29 @@ import { ApiError } from "./proflow/core/ApiError";
 import { useNavigate } from "react-router-dom";
 import { PAGES } from "./App";
 import React from "react";
+import { useState } from "react";
 // import {AuthService} from "../../backend/src/auth/auth.service"
 
 export interface dummyProps {
 	state: AppState,
     endUser : any,
+    updateProjGuids : any,
+    updateProjNames : any,
 };
+
+const randomDelay = () => new Promise(resolve => setTimeout(resolve, Math.random() * 1000));
+
+const getIndName = async (guid : string, state : AppState) => {
+    await randomDelay();
+    const project = await state.client.project.getProjectInfo(guid);
+    return project.name;
+  };
+
+const getNames = async (guids : string[], state : AppState, save : any) => {
+    const unresolvedPromises = guids.map((guid) => getIndName(guid,state));
+    const results = await Promise.all(unresolvedPromises);
+    save(results);
+}
 
 export function DummyLogin(props: dummyProps) {
     const endUser = props.endUser;
@@ -30,7 +47,9 @@ export function DummyLogin(props: dummyProps) {
                 try {
                     const res = await props.state.client.auth.authLogin({ email: email_input, password: password });
 					props.state.authorize(res.jwt, res.expire_sec);
-                    console.log(props.state.is_authorized);
+                    const projects = await (await props.state.client.user.getUserProjects()).project_guids;
+                    props.updateProjGuids(projects);
+                    await getNames(projects, props.state, props.updateProjNames);
                     endUser(email_input);
                     navigate(PAGES.user);
                 } catch (e) {

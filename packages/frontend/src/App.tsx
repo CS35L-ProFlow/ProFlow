@@ -63,17 +63,18 @@ export enum PAGES {
 	login="/login",
 }
 
-
 const App = () => {
-	let state = new AppState();
+	const [state,_] = useState(new AppState());
 	const [userString,setUserString]=useState("");
+	let [projGuids,setProjGuids]=useState([""]);
+	const [projNames, setProjNames] = useState([]);
 	return (
 		<Router>
 			<Routes>
 				<Route path={PAGES.main} element={<MainPage state={state}/>}/>
 				<Route path={PAGES.signUp} element={<SignUp state={state} endUser={(user : string) => setUserString(user)}/>}/>
-				<Route path={PAGES.user} element={<UserInfo name={userString} description="test" state={state}/>}/>
-				<Route path={PAGES.login} element={<DummyLogin state={state} endUser={(user : string) => setUserString(user)}/>}/>
+				<Route path={PAGES.user} element={<UserInfo projNames={projNames} updateProjNames={setProjNames} name={userString} description="test" state={state} projGuids={projGuids} updateProjGuids={(guids : string[]) => setProjGuids(guids)}/>}/>
+				<Route path={PAGES.login} element={<DummyLogin state={state} updateProjGuids={(guids : string[]) => setProjGuids(guids)} updateProjNames={setProjNames} endUser={(user : string) => setUserString(user)}/>}/>
 			</Routes>
 		</Router>
 	  )

@@ -3,7 +3,7 @@ import Button from '@mui/material/Button';
 import avatar from './sad-chair.jpg';
 
 import { ApiError } from '../proflow';
-import {useState} from 'react';
+import {useEffect, useState} from 'react';
 import './Project.tsx';
 import Project from './Project';
 import React from 'react';
@@ -22,27 +22,25 @@ export interface UserData {
 
     // project Info
     state : AppState;
+    projGuids : string[];
+    updateProjGuids : any;
+    projNames : string[];
+    updateProjNames : any;
 }
 
-const updateProjects = (projects : string[]) => {
-    let projectList : any[] = [];
-    projects.forEach((name) => {
-        projectList.push(
-            <Project name={name}></Project>
-        );
-    });
-    return <>{projectList}</>;
-    }
 
-async function createProj(state : AppState, name: string) {
-    console.log(state.is_authorized);
+async function createProj(state : AppState, name: string, oldNames : string[], updateProjNames : any, updateProjGuids : any, projects : any, setProjects : any) {
     try {
-        const res = await state.client.project.projectCreate({name: name});
-        console.log(res);
+        await state.client.project.projectCreate({name: name});
+        updateProjNames([...oldNames,name]);
+        const projGuids = await (await state.client.user.getUserProjects()).project_guids;
+        updateProjGuids(projGuids);
+        setProjects([...projects,<Project key={name} name={name}/>])
     } catch (e) {
         if (e instanceof ApiError) {
             console.log("Request failed (" + e.status + ") error: " + e.body.message);
         }
+        console.log("error");
     }
 }
  
@@ -51,8 +49,13 @@ export default function UserInfo(props: UserData) {
     const [following, setFollowing] = useState(false);
     const [contacts, setContacts] = useState(false);
     const [createName, setCreateName] = useState(false);
-    const projects : string[] = [];
-
+    const [projects, setProjects] = useState<any>([]);
+    useEffect(() => {
+        let curProjs = props.projNames.map((name) => {
+            return <Project key={name} name={name} />
+        })
+        setProjects(curProjs);
+    }, [])
     return (
     <body className="body-of-page">
         <div className = "toppage">
@@ -84,7 +87,7 @@ export default function UserInfo(props: UserData) {
             {
                 projExp &&
                 <div className ="involved-projects">
-                    <>{updateProjects(projects)}</>
+                    <>{projects}</>
                     {
                     createName ? 
                     <div> 
@@ -92,10 +95,12 @@ export default function UserInfo(props: UserData) {
                         <Button variant="contained" size="small" onClick={() => setCreateName(false)}>
                             Cancel
                         </Button> 
-                        <Button variant="contained" size="small" onClick={() => {
+                        <Button variant="contained" size="small" onClick={async () => {
                             const new_name = (document.getElementById('projName') as HTMLInputElement).value;
+                            console.log("hi");
                             if (new_name.length !== 0) {
-                                createProj(props.state, new_name);
+                                console.log("there");
+                                createProj(props.state, new_name, props.projNames, props.updateProjNames, props.updateProjGuids, projects, setProjects);
                                 setCreateName(false);
                             }
                         }}>
@@ -106,10 +111,6 @@ export default function UserInfo(props: UserData) {
                         Create New Project
                     </Button>
                     }
-                    {/* <Project name="ProFlow"></Project>
-                    <Project name="ProFlow"></Project>
-                    <Project name="ProFlow"></Project>
-                    <Project name="ProFlow"></Project> */}
                 </div>
             }
             {
