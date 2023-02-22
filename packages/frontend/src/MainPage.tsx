@@ -1,7 +1,9 @@
 import Button from '@mui/material/Button'
 import './MainPage.css';
-import { AppState } from "./App";
+import { AppState, Pages } from "./App";
 import { ApiError } from "./proflow/core/ApiError";
+import React, { useState } from 'react';
+import { Link } from "react-router-dom";
 
 //This file contains the packground, drop down menu, and cards.
 
@@ -174,7 +176,6 @@ export interface MainPageProps {
 };
 
 export function MainPage(props: MainPageProps) {
-	const state = props.state;
 	const login_email = "user@gmail.com";
 	const login_password = "test";
 
@@ -185,29 +186,29 @@ export function MainPage(props: MainPageProps) {
 					<img src="LOGO-HERE" className="logo"></img>
 					<ul>
 						<li>
-							<Button variant="contained" className="Button-Design" onClick={async () => {
-								try {
-									const res = await state.client.auth.authSignup({ email: login_email, password: login_password });
-									state.authorize(res.jwt, res.expire_sec);
-								} catch (e) {
-									if (e instanceof ApiError) {
-										console.log("Request failed (" + e.status + ") error: " + e.body.message);
-									}
-								}
-							}}>Signup</Button>
+							<Link to={Pages.SIGNUP}>
+								<Button variant="contained" className="Button-Design">
+									Signup
+								</Button>
+							</Link>
 						</li>
 
 						<li>
-							<Button variant="contained" onClick={async () => {
+							{/* <Button variant="contained" onClick={async () => {
 								const res = await state.client.auth.authLogin({ email: login_email, password: login_password });
 								console.log("Logged in " + res.jwt)
 								state.authorize(res.jwt, res.expire_sec);
-							}}>Login</Button>
+							}}>Login</Button> */}
+							<Link to={Pages.LOGIN}>
+								<Button variant="contained" className="Button-Design">
+									Login
+								</Button>
+							</Link>
 
 						</li>
 						<li>
 							<Button variant="contained" onClick={async () => {
-								const res = await state.client.user.getUserProjects();
+								const res = await props.state.client.user.getUserProjects();
 								console.log("Get projects " + res.project_guids)
 							}}>Get Projects</Button>
 						</li>

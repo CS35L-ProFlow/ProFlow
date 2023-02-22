@@ -1,9 +1,20 @@
 import React, { useState } from 'react';
 import { ProFlow } from "./proflow/ProFlow";
-import { BACKEND_PORT } from "./env";
 import './MainPage.css';
-import './App.css';
-import Login from "./components/Login";
+import { Column, Profile, NoteCard, closeAddNotesIcon, addNotes, PopupBox } from './MainPage';
+import { SignUp } from "./SignUp";
+import { ApiError } from './proflow/core/ApiError';
+import { MainPage } from './MainPage';
+import Project from './components/Project';
+import { DummyLogin } from './dummyLogin';
+import UserInfo from './components/userInfo';
+import {
+	BrowserRouter as Router,
+	Routes,
+	Route,
+	Navigate
+} from 'react-router-dom';
+import { BACKEND_PORT } from './env';
 
 export class AppState {
 	private jwt?: string = undefined;
@@ -11,7 +22,7 @@ export class AppState {
 	get client() {
 
 		return new ProFlow({
-			BASE: "http://localhost:" + BACKEND_PORT,
+			BASE: "http://localhost:" + BACKEND_PORT,	// base URL for request is localhost + BACKEND_PORT / route
 			HEADERS: this.jwt ? { "Authorization": "Bearer " + this.jwt } : undefined
 		})
 	};
@@ -19,12 +30,14 @@ export class AppState {
 
 	authorize(jwt: string, expire_sec: number) {
 		this.jwt = jwt;
+		// const res = await this.client.auth.authRefresh();
+		// this.jwt = res.jwt;
 		this.refresh_auth(this.refresh_rate_ms(expire_sec));
 	}
 
 
 	private refresh_auth(timeout_ms: number) {
-		console.log("Refreshing in " + timeout_ms + " ms...")
+		console.log("Refreshing in " + timeout_ms + " ms...");
 		setTimeout(async () => {
 			try {
 				const res = await this.client.auth.authRefresh();
@@ -44,9 +57,28 @@ export class AppState {
 	get is_authorized() { return this.jwt != undefined; }
 }
 
+export enum Pages {
+	MAIN = '/',
+	USER = "/user",
+	SIGNUP = "/signup",
+	LOGIN = "/login",
+}
+
 const App = () => {
-	const state = new AppState();
-	return <Login state={state} />
+	const [state, _] = useState(new AppState());
+	const [userString, setUserString] = useState("");
+	let [projGuids, setProjGuids] = useState([""]);
+	const [projNames, setProjNames] = useState([]);
+	return (
+		<Router>
+			<Routes>
+				<Route path={Pages.MAIN} element={<MainPage state={state} />} />
+				<Route path={Pages.SIGNUP} element={<SignUp state={state} endUser={(user: string) => setUserString(user)} />} />
+				<Route path={Pages.USER} element={<UserInfo projNames={projNames} updateProjNames={setProjNames} name={userString} description="test" state={state} projGuids={projGuids} updateProjGuids={(guids: string[]) => setProjGuids(guids)} />} />
+				<Route path={Pages.LOGIN} element={<DummyLogin state={state} updateProjGuids={(guids: string[]) => setProjGuids(guids)} updateProjNames={setProjNames} endUser={(user: string) => setUserString(user)} />} />
+			</Routes>
+		</Router>
+	)
 }
 
 export default App;
