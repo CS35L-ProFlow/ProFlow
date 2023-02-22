@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { ProFlow } from "./proflow/ProFlow";
 import './MainPage.css';
-import { Column, Profile, NoteCard, closeAddNotesIcon, addNotes, PopupBox } from './MainPage'; 
+import { Column, Profile, NoteCard, closeAddNotesIcon, addNotes, PopupBox } from './MainPage';
 import { SignUp } from "./SignUp";
 import { ApiError } from './proflow/core/ApiError';
 import { MainPage } from './MainPage';
@@ -13,7 +13,7 @@ import {
 	Routes,
 	Route,
 	Navigate
-  } from 'react-router-dom';
+} from 'react-router-dom';
 import { BACKEND_PORT } from './env';
 
 
@@ -56,28 +56,28 @@ export class AppState {
 	get is_authorized() { return this.jwt != undefined; }
 }
 
-export enum PAGES {
-	main='/',
-	user="/user",
-	signUp="/signup",
-	login="/login",
+export enum Pages {
+	MAIN = '/',
+	USER = "/user",
+	SIGNUP = "/signup",
+	LOGIN = "/login",
 }
 
 const App = () => {
-	const [state,_] = useState(new AppState());
-	const [userString,setUserString]=useState("");
-	let [projGuids,setProjGuids]=useState([""]);
+	const [state, _] = useState(new AppState());
+	const [userString, setUserString] = useState("");
+	let [projGuids, setProjGuids] = useState([""]);
 	const [projNames, setProjNames] = useState([]);
 	return (
 		<Router>
 			<Routes>
-				<Route path={PAGES.main} element={<MainPage state={state}/>}/>
-				<Route path={PAGES.signUp} element={<SignUp state={state} endUser={(user : string) => setUserString(user)}/>}/>
-				<Route path={PAGES.user} element={<UserInfo projNames={projNames} updateProjNames={setProjNames} name={userString} description="test" state={state} projGuids={projGuids} updateProjGuids={(guids : string[]) => setProjGuids(guids)}/>}/>
-				<Route path={PAGES.login} element={<DummyLogin state={state} updateProjGuids={(guids : string[]) => setProjGuids(guids)} updateProjNames={setProjNames} endUser={(user : string) => setUserString(user)}/>}/>
+				<Route path={Pages.MAIN} element={<MainPage state={state} />} />
+				<Route path={Pages.SIGNUP} element={<SignUp state={state} endUser={(user: string) => setUserString(user)} />} />
+				<Route path={Pages.USER} element={<UserInfo projNames={projNames} updateProjNames={setProjNames} name={userString} description="test" state={state} projGuids={projGuids} updateProjGuids={(guids: string[]) => setProjGuids(guids)} />} />
+				<Route path={Pages.LOGIN} element={<DummyLogin state={state} updateProjGuids={(guids: string[]) => setProjGuids(guids)} updateProjNames={setProjNames} endUser={(user: string) => setUserString(user)} />} />
 			</Routes>
 		</Router>
-	  )
+	)
 }
 
 export default App;
