@@ -1,8 +1,9 @@
 import Button from '@mui/material/Button'
-import './ProjectView.css';
-import { AppState, Pages } from "../App";
+import Client from "../../client"
+import './index.css';
+import Pages from "../../pages";
 import React from 'react';
-import { Link } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 
 //This file contains the packground, drop down menu, and cards.
 
@@ -171,10 +172,12 @@ export function addNotes() {
 }
 
 export interface ProjectViewProps {
-	state: AppState,
+	client: Client,
 };
 
-export function ProjectView(props: ProjectViewProps) {
+export default function ProjectView(props: ProjectViewProps) {
+	const { guid } = useParams();
+
 	return (
 		<body>
 			<div className="Main-Page">
@@ -204,8 +207,8 @@ export function ProjectView(props: ProjectViewProps) {
 						</li>
 						<li>
 							<Button variant="contained" onClick={async () => {
-								const res = await props.state.client.user.getUserProjects();
-								console.log("Get projects " + res.project_guids)
+								// const res = await props.client.http.user.getUserProjects();
+								// console.log("Get projects " + res.project_guids)
 							}}>Get Projects</Button>
 						</li>
 
