@@ -16,11 +16,11 @@ import {
 } from 'react-router-dom';
 import { BACKEND_PORT } from './env';
 
-
 export class AppState {
 	private jwt?: string = undefined;
 
 	get client() {
+
 		return new ProFlow({
 			BASE: "http://localhost:" + BACKEND_PORT,	// base URL for request is localhost + BACKEND_PORT / route
 			HEADERS: this.jwt ? { "Authorization": "Bearer " + this.jwt } : undefined
@@ -34,6 +34,7 @@ export class AppState {
 		// this.jwt = res.jwt;
 		this.refresh_auth(this.refresh_rate_ms(expire_sec));
 	}
+
 
 	private refresh_auth(timeout_ms: number) {
 		console.log("Refreshing in " + timeout_ms + " ms...");
