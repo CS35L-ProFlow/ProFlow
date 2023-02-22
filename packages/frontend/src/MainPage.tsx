@@ -1,6 +1,6 @@
 import Button from '@mui/material/Button'
 import './MainPage.css';
-import { AppState, PAGES } from "./App";
+import { AppState, Pages } from "./App";
 import { ApiError } from "./proflow/core/ApiError";
 import React, { useState } from 'react';
 import { Link } from "react-router-dom";
@@ -186,7 +186,7 @@ export function MainPage(props: MainPageProps) {
 					<img src="LOGO-HERE" className="logo"></img>
 					<ul>
 						<li>
-							<Link to={PAGES.signUp}>
+							<Link to={Pages.SIGNUP}>
 								<Button variant="contained" className="Button-Design">
 									Signup
 								</Button>
@@ -199,7 +199,7 @@ export function MainPage(props: MainPageProps) {
 								console.log("Logged in " + res.jwt)
 								state.authorize(res.jwt, res.expire_sec);
 							}}>Login</Button> */}
-							<Link to={PAGES.login}>
+							<Link to={Pages.LOGIN}>
 								<Button variant="contained" className="Button-Design">
 									Login
 								</Button>
