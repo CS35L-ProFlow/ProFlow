@@ -4,7 +4,7 @@ import { ProFlow } from "./proflow/ProFlow";
 import { ApiError } from "./proflow/core/ApiError";
 import { BACKEND_PORT } from "./env";
 import './MainPage.css';
-import { Column, Profile, NoteCard, closeAddNotesIcon, addNotes, PopupBox } from './MainPage'; 
+import { Column, Profile, NoteCard, closeAddNotesIcon, addNotes, PopupBox, toggleSidePanel, SidePanel } from './MainPage'; 
 import { deepStrictEqual } from 'assert';
 
 class AppState {
@@ -51,6 +51,7 @@ const App = () => {
 	return (
 	<body>
 		<div className = "Main-Page">
+			
 			<nav>
 				<img src="LOGO-HERE" className = "logo"></img>
 				<ul>
@@ -88,22 +89,27 @@ const App = () => {
 
 			</nav>
 			<PopupBox></PopupBox>
-		
-			<div className = "wrapper">
-				<Column title="Backing">
-					<div>
-						<NoteCard title="Title" description="description..." time="time"></NoteCard>
-					</div>
-				</Column>
-				<Column title="Design"></Column>
-				<Column title="To Do"></Column>
-				<Column title="Doing"></Column>
-		
-			</div>
+			<SidePanel ProjectTitle1='Project 1' ProjectTitle2='Project 2'></SidePanel>
+
+
+
+
+
+
+
+
 		</div>
 	</body>
 	
 	);
 }
+
+// export function toggleSidePanel(){
+// 	let sidePanel = document.querySelector(".side-panel");
+// 	let sidePanelOpen = document.querySelector(".side-panel-toggle")
+// 	sidePanelOpen!.classList.toggle("side-panel-open")
+// 	return sidePanel!.classList.toggle("open-side-panel")
+	
+// }
 
 export default App;

@@ -5,6 +5,7 @@ import { BACKEND_PORT } from "./env";
 import './App.css';
 import './App.tsx'
 import { deepStrictEqual } from 'assert';
+import { Description } from '@mui/icons-material';
 
 //This file contains the packground, drop down menu, and cards.
 
@@ -15,7 +16,7 @@ export interface ColumnProps {
 }
 
 export function Column(props: ColumnProps) {
-    return <li className="note">
+    return <li className="note" draggable='true'>
         <div className="details">
             <p>{props.title}</p>
             <hr></hr>
@@ -67,6 +68,7 @@ export function Profile(props: ProfileOptions){
 			</div></div>
 }
 
+
 //Small Node Card
 export interface NoteProps{
     title: string;
@@ -75,7 +77,7 @@ export interface NoteProps{
     children?: React.ReactNode,
 }
 export function NoteCard(props: NoteProps){
-    return <div className = "note-card">
+    return <div className = "note-card" draggable='true'>
                 <p>{props.title}</p>
                 <span>{props.description}</span>
                 <div className="bottom-content">
@@ -116,6 +118,46 @@ export function PopupBox(){
                 </div>
 }
 
+//Side Panel
+
+export interface PanelProps{
+    ProjectTitle1: string;
+	ProjectTitle2: string;
+	children?: React.ReactNode,
+}
+
+export function SidePanel(props:PanelProps){
+	return 	<div className='side-wrapper'>
+				<div className='side-panel'>
+					<h2>
+						Project
+						<hr></hr>
+						<Button>{props.ProjectTitle1}</Button>
+						<Button>{props.ProjectTitle2}</Button>
+
+					</h2>
+				</div>
+				<button className='side-panel-toggle' type='button' onClick={toggleSidePanel}>
+					<span className="open">open</span>
+					<span className="close">close</span>
+				</button>
+
+				<div className='main'>
+					<div className = "wrapper">
+						<Column title="Backing">
+							<div>
+								<NoteCard title="Title" description="description..." time="time"></NoteCard>
+							</div>
+						</Column>
+						<Column title="Design"></Column>
+						<Column title="To Do"></Column>
+						<Column title="Doing"></Column>
+
+					</div>
+				</div>
+			</div>
+}
+
 //Helper Functions Below:
 
 //Show User Menu
@@ -141,7 +183,7 @@ const notes = JSON.parse(localStorage.getItem("notes") || "[]")
 export function showNotes(){
 	notes.forEach((note:string) => {
 		//Add a card for each string stored in local memory.
-		//addBox!.insertAdjacentHTML("afterend", divTag);
+		
 	});
 }
 
@@ -172,3 +214,11 @@ export function addNotes(){
 	}
 }
 
+//Toggle side panel
+export function toggleSidePanel(){
+	let sidePanel = document.querySelector(".side-panel");
+	let sidePanelOpen = document.querySelector(".side-panel-toggle")
+	sidePanelOpen!.classList.toggle("side-panel-open")
+	return sidePanel!.classList.toggle("open-side-panel")
+	
+}
