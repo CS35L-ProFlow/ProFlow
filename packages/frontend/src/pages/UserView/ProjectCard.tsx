@@ -26,11 +26,12 @@ export default function ProjectCard(props: ProjectCardProps) {
 	}
 	return (
 		<div className="project-card">
-			<div id="name-role">
-				<p>{label}</p>
-				{/* {props.role && <h3>Role: {props.role}</h3>} */}
+			<div className="column">
+				<div className="card">
+					<h3>{props.name}</h3>
+					<Button className="view-proj-b" variant="outlined" size="small" sx={{ color: "black", margin: "4px" }} /* onClick={()=>navigate("/project")} */>View</Button>
+				</div>
 			</div>
-			<Button className="view-proj-b" variant="outlined" size="small" sx={{ color: "white", margin: "4px" }} /* onClick={()=>navigate("/project")} */>View</Button>
 		</div>
 	);
 }
