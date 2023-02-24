@@ -1,6 +1,6 @@
 import './ProjectCard.css';
 import React from 'react';
-// import Button from '@mui/material/Button';
+import Button from '@mui/material/Button';
 // import {useState} from 'react';
 
 export interface ProjectCardProps {
@@ -27,9 +27,10 @@ export default function ProjectCard(props: ProjectCardProps) {
 	return (
 		<div className="project-card">
 			<div id="name-role">
-				<h1>{label}</h1>
+				<p>{label}</p>
 				{/* {props.role && <h3>Role: {props.role}</h3>} */}
 			</div>
+			<Button className="view-proj-b" variant="outlined" size="small" sx={{ color: "white", margin: "4px" }} /* onClick={()=>navigate("/project")} */>View</Button>
 		</div>
 	);
 }
