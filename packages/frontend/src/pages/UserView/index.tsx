@@ -91,7 +91,7 @@ export default function UserView(props: UserViewProps) {
 
 	const projectComps = [<ProjectCard name="ProFlow"></ProjectCard>,
 	<ProjectCard name="NOOO"></ProjectCard>,
-	<ProjectCard name="YEEEAH"></ProjectCard>]
+	<ProjectCard name="YEiuhdfijshfdiushfEEH"></ProjectCard>]
 
 	const projectInvites = [<ProjectCard name="UCLA"></ProjectCard>,
 	<ProjectCard name="TEST"></ProjectCard>]
@@ -131,23 +131,23 @@ export default function UserView(props: UserViewProps) {
 
 				{
 				projExp && 
-					<div>
+					<div className='projects-row'>
 						{isLoading &&
 						<CircularProgress sx={{margin:10}}/>
 						}
-						<div className='projects-row'>
-							{projectComps /* TODO: make this variable contain all the projects */ }
-						</div>
+						
+							{projectComponents /* TODO: make this variable contain all the projects */ }
+						
 						{ 
 							createName ? 
-								<div className="projects-row"> 
+								<div style={{margin:5}}> 
 									<Button className="new-button" variant="contained" size="small" onClick={() => setCreateName(false)}> 
 										Cancel 
 									</Button> 
 									<Box
 										component="form"
 										sx={{
-											'& .MuiTextField-root': { m: 1, width: '80%' },
+											'& .MuiTextField-root': { m: 1, width: '100%' },
 										}}
 										noValidate
 										autoComplete="off"
@@ -159,7 +159,7 @@ export default function UserView(props: UserViewProps) {
 											label="Project Name"
 											defaultValue=""
 											sx={{
-												'& .MuiTextField-root': { m: 3, width: '90%' },
+												'& .MuiTextField-root': { m: 3, width: '100%' },
 											}}
 											onChange={(event) =>setNewProjectInput(event.target.value)}
 											/>

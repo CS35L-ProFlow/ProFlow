@@ -9,7 +9,7 @@
     border-radius: 10px;
     background-color:rgb(187, 234, 234); 
     /* background: linear-gradient(145deg, rgb(187, 234, 234), #0886d9); */
-    justify-content: space-around;
+    
     align-items: center;
     font-family: 'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;
 }
@@ -22,8 +22,8 @@
 }
 
 .buttons{
-    max-width: 60%;
-    margin-left:0%;
+    max-width: 70%;
+    margin:auto;
     height: 30%;
     font-family: 'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;
 }
@@ -59,14 +59,14 @@ body {
 
 .projects-row {
     box-sizing: border-box;
-    width:100%;
+    width:30%;
     margin: 0 -5px;
     font-family: 'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;
 }
 
 .projects-row2 {
     box-sizing: border-box;
-    width:50%;
+    width:30%;
     margin: 0 -5px;
     font-family: 'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;
 }
@@ -92,13 +92,25 @@ body {
 
 .new-button {
     margin: 5px;
+    font-family: 'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;
 }
 
-@media screen and (max-width: 800px) {
+@media screen and (max-width: 1080px) {
     .new-button {
-      width: 30%;
-      margin:25%;
-      margin-bottom: 20px;
-      font-size: small;
+      margin:auto;
+    }
+    .projects-row {
+        align-items: center;
+        box-sizing: border-box;
+        width:70%;
+        margin: 0 -5px;
+        font-family: 'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;
+    }
+    .projects-row2 {
+        align-items: center;
+        box-sizing: border-box;
+        width:70%;
+        margin: 0 -5px;
+        font-family: 'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;
     }
   }
