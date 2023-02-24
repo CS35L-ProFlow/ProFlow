@@ -1,0 +1,22 @@
+.project-card{
+    /* background: linear-gradient(145deg, rgb(187, 234, 234), #359de2); */
+    background: #359de2;
+    border-radius: 10px;
+    width: 200px;
+    margin:10px;
+}
+
+p {
+    font-size: larger;
+    margin: 10px;
+    color: white;
+}
+
+#name-role{
+    display: flex;
+    justify-content: space-between;
+}
+
+.view-proj-b{
+    margin: 15px;
+}
