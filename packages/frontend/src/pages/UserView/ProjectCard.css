@@ -24,11 +24,8 @@
       width: 100%;
       display: block;
       margin-bottom: 20px;
-      font-size: small;
       content: inherit;
-    }
-    h3{
-        font-size: small;
+      overflow: hidden;
     }
   }
   
@@ -50,6 +47,6 @@
 
   h3 {
     margin:auto;
-    overflow:scroll;
+    overflow:hidden;
     font-family: 'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;
   }
