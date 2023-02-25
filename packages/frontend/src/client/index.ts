@@ -119,4 +119,26 @@ export default class Client {
 			})
 		).mapErr(err => "Failed to log in: " + err);
 	}
+
+	public async signUp(email: string, password: string): Promise<Result<Session, string>> {
+		const client = init_proflow_client();
+
+		return (
+			await safe_request(async () => {
+				const res = await client.auth.authSignup({email, password})
+				this.login(email, password)
+				return new Session(email, res.user_guid, res.jwt, res.expire_sec);
+			})
+		).mapErr(err => "Failed to sign up: " + err)
+	}
 }
+
+// try {
+// 					const res = await props.client.http.auth.authSignup({ email: email_input, password: password });
+// 					props.client.authorize(res.jwt, res.expire_sec);
+// 					navigate(Pages.USER);
+// 				} catch (e) {
+// 					if (e instanceof ApiError) {
+// 						console.log("Request failed (" + e.status + ") error: " + e.body.message);
+// 					}
+// 				}
