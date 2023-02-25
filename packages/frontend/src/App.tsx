@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { SignUp } from "./SignUp";
+import { SignUp } from "./pages/SignUpView";
 import ProjectView from './pages/ProjectView';
 import UserView from './pages/UserView';
 import LoginView from "./pages/LoginView";
