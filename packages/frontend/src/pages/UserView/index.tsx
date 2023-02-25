@@ -136,7 +136,7 @@ export default function UserView(props: UserViewProps) {
 						<CircularProgress sx={{margin:10}}/>
 						}
 						
-							{projectComps /* TODO: make this variable contain all the projects */ }
+							{projectComponents /* TODO: make this variable contain all the projects */ }
 						
 						{ 
 							createName ? 
