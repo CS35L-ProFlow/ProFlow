@@ -183,7 +183,7 @@ export default function ProjectView(props: ProjectViewProps) {
 	const [projInfo, setProjInfo] = useState<GetProjectResponse>();
 
 	useEffect(() => {
-		const fetchProjects = async () => {
+		const fetchProjectInfo = async () => {
 			if (!props.guid || !props.session)
 				return;
 
@@ -196,12 +196,12 @@ export default function ProjectView(props: ProjectViewProps) {
 			setProjInfo(res.val);
 		}
 
-		if (!props.session) {
+		if (!props.session || !props.guid) {
 			navigate(Pages.LOGIN)
 			return;
 		}
 
-		fetchProjects();
+		fetchProjectInfo();
 	}, [])
 	const title = projInfo?.name;
 

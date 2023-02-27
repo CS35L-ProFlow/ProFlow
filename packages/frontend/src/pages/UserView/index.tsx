@@ -1,6 +1,12 @@
 import React from 'react';
 import './index.css';
+
+
 import Button from '@mui/material/Button';
+import TextField from "@mui/material/TextField"
+import Avatar from '@mui/material/Avatar';
+import Box from '@mui/material/Box';
+
 import avatar from '../../resources/sad-chair.jpg';
 
 import { useEffect, useState } from 'react';
@@ -20,7 +26,8 @@ export interface UserViewProps {
 
 export default function UserView(props: UserViewProps) {
 	const [projects, setProjects] = useState<Project[] | undefined>(undefined);
-	const [createName, setCreateName] = useState(false);
+	const [createName, setCreateName] = useState(true);
+	const [projExp, setProjExp] = useState(true);
 	const navigate = useNavigate();
 
 	useEffect(() => {
@@ -58,74 +65,85 @@ export default function UserView(props: UserViewProps) {
 
 	return (
 		<body className="body-of-page">
-			<div className="toppage">
-				<div className="main-user-info">
-					<img alt="logo" src={avatar} className="user-avatar-main"></img>
-					<div className="name-and-org">
-						<div className="user-name-main">Name: {props.session.email}</div>
-					</div>
-					{/* <div className="user-description">{props.description}</div> */}
+			<div className="main-user-info">
+				<Avatar alt="user-avatar" src={avatar} className="user-avatar-main"/>
+				<div className="name-and-org">
+					{/* <div className="user-name-main">Name: {props.session.email}</div> */}
+					<TextField disabled label="User Name"
+					defaultValue={props.session.email} 
+					size="small" className="Name"></TextField>
 				</div>
+				{/* <div className="user-description">{props.description}</div> */}
+			
 				<div className="buttons">
 					<Button variant="outlined" sx={{ color: "white", margin: 2 }} onClick={() => { 
 					 	// setFollowing(false); 
-						// setProjExp(!projExp); 
+						setProjExp(!projExp); 
 					 	// setContacts(false);
 					 }}>Projects</Button>
 					<Button variant="outlined" sx={{ color: "white", margin: 2 }} onClick={() => { 
 					 	// setFollowing(!following); 
-					 	// setProjExp(false); 
+					 	setProjExp(false); 
 					 	// setContacts(false); 
-					 }}>Following</Button> 
+					 }}>Invites</Button> 
 					<Button variant="outlined" sx={{ color: "white", margin: 2 }} onClick={() => { 
 					 	// setFollowing(false); 
-					 	// setProjExp(false); 
+					 	setProjExp(false); 
 					 	// setContacts(!contacts); 
 					 }}>Contact</Button> 
 				</div>
-			</div>
-			{/* { */}
-			{/* 	projExp && */}
-			<div className="involved-projects">
-				{projectComponents}
-				{ 
-					createName ? 
-				 		<div> 
-							<input id="projName" type="text" /> 
-				 			<Button variant="contained" size="small" onClick={() => setCreateName(false)}> 
-				 				Cancel 
-				 			</Button> 
-				 			<Button variant="contained" size="small" onClick={async () => { 
-				 				const name = (document.getElementById('projName') as HTMLInputElement).value; 
+				{
+					projExp && 
+				<div className="main-user-info2">
+					{projectComponents /* TODO: make this variable contain all the projects */ }
+					{/* <ProjectCard name="ProFlow" guid="test" setGuid={() => {return 0}}></ProjectCard> */}
+					{ 
+						createName ? 
+							<div className="add-new-project"> 
+								<Button variant="contained" size="small" onClick={() => setCreateName(false)}> 
+									Cancel 
+								</Button> 
+								<Box
+									component="form"
+									sx={{
+										'& .MuiTextField-root': { m: 1, width: '25ch' },
+									}}
+									noValidate
+									autoComplete="off"
+									id='projName'
+									>
+									<div>
+										<TextField
+										required
+										id="outlined-required"
+										label="Project Name"
+										defaultValue="Hello World"
+										/>
+									</div>
+									</Box>
+								<Button variant="contained" size="small" onClick={async () => { 
+				 				const name = (document.getElementById('outlined-required') as HTMLInputElement).value; 
 				 				if (name.length !== 0) { 
 									if (!props.session)
 										return;
 									await props.session.create_project(name);
 				 					setCreateName(false); 
 				 				} 
-				 			}}> 
-				 				Submit 
-				 			</Button> 
-				 		</div> : 
-				 		<Button variant="contained" size="small" onClick={() => setCreateName(true)}> 
-				 			Create New Project 
-				 		</Button> 
-				 } 
+				 			}} /* TODO: dd new project to the group and exit the addition window} */>
+									Submit 
+								</Button> 
+							</div> : 
+							<Button id="create-new-b" variant="outlined" size="small" color="success" onClick={() => setCreateName(true)}> 
+								+ New Project
+							</Button>
+					} 
+				</div>
+				}
 			</div>
-			{/* } */}
 			{/* { */}
-			{/* 	following && */}
-			{/* 	<div className="involved-projects"> */}
-			{/* 		<Project name="ProFlow2"></Project> */}
-			{/* 		<Project name="Google"></Project> */}
-			{/* 	</div> */}
-			{/* } */}
-			{/* { */}
-			{/* 	contacts && */}
-			{/* 	<div className="involved-projects"> */}
-			{/* 		<Project name="Email"></Project> */}
-			{/* 	</div> */}
-			{/* } */}
+			{/* 	projExp && */}
+			<div className="involved-projects">
+			</div>
 		</body>
 	);
 }

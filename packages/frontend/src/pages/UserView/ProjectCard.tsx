@@ -34,13 +34,17 @@ export default function ProjectCard(props: ProjectCardProps) {
 	return (
 		<div className="project-card">
 			<div id="name-role">
-				{/* <h1>{label}</h1> */}
-				<Button onClick={() => {
+				<h1>{label}</h1>
+				{/* <Button onClick={() => {
 					props.setGuid(props.guid);
 					navigate("/"+props.guid);
-				}}>{label}</Button>
+				}}>{label}</Button> */}
 				{/* {props.role && <h3>Role: {props.role}</h3>} */}
 			</div>
+			<Button className="view-proj-b" variant="outlined" size="small" sx={{ color: "white", margin: "4px" }} onClick={() => {
+					props.setGuid(props.guid);
+					navigate("/"+props.guid);
+				}} >View</Button>
 		</div>
 	);
 }
