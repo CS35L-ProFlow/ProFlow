@@ -15,6 +15,7 @@ export interface UserViewProps {
 
 	// project Info
 	session?: Session;
+	setGuid: any;
 }
 
 export default function UserView(props: UserViewProps) {
@@ -52,7 +53,7 @@ export default function UserView(props: UserViewProps) {
 
 
 	const projectComponents = projects ? projects.map(proj => {
-		return <ProjectCard key={proj.guid} name={proj.name} />
+		return <ProjectCard key={proj.guid} guid={proj.guid} name={proj.name} setGuid={props.setGuid} />
 	}) : <></>;
 
 	return (

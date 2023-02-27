@@ -1,9 +1,10 @@
 import Button from '@mui/material/Button'
-import Client from "../../client"
+import Client, { Session } from "../../client"
 import './index.css';
 import Pages from "../../pages";
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from "react-router-dom";
+import { GetProjectResponse } from '../../proflow';
 
 //This file contains the packground, drop down menu, and cards.
 
@@ -172,17 +173,44 @@ export function addNotes() {
 }
 
 export interface ProjectViewProps {
-	client: Client,
+	session: Session | undefined,
+	guid: string | undefined;
 };
 
 export default function ProjectView(props: ProjectViewProps) {
-	const { guid } = useParams();
+	// const { guid } = useParams();
+	const navigate = useNavigate();
+	const [projInfo, setProjInfo] = useState<GetProjectResponse>();
+
+	useEffect(() => {
+		const fetchProjects = async () => {
+			if (!props.guid || !props.session)
+				return;
+
+			const res = await props.session.get_project_info(props.guid);
+			if (res.err) {
+				// TODO: Show some error message to the user here!
+				console.log(res.val);
+				return;
+			}
+			setProjInfo(res.val);
+		}
+
+		if (!props.session) {
+			navigate(Pages.LOGIN)
+			return;
+		}
+
+		fetchProjects();
+	}, [])
+	const title = projInfo?.name;
 
 	return (
 		<body>
 			<div className="Main-Page">
 				<nav>
 					<img src="LOGO-HERE" className="logo"></img>
+					<h1>{title}</h1>
 					<ul>
 						<li>
 							<Link to={Pages.SIGNUP}>
@@ -200,7 +228,7 @@ export default function ProjectView(props: ProjectViewProps) {
 							}}>Login</Button> */}
 							<Link to={Pages.LOGIN}>
 								<Button variant="contained" className="Button-Design">
-									Login
+									LOG IN
 								</Button>
 							</Link>
 

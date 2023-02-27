@@ -2,6 +2,7 @@ import { BACKEND_PORT } from '../env';
 import { ProFlow, } from "../proflow/ProFlow";
 import { ApiError } from "../proflow/core/ApiError";
 import { Result, Ok, Err } from "ts-results";
+import { GetProjectResponse } from '../proflow';
 
 const init_proflow_client = (jwt?: string) => new ProFlow({
 	// http://localhost:BACKEND_PORT/route
@@ -68,6 +69,14 @@ export class Session {
 		return (
 			await safe_request(async () => {
 				return await this.client.project.projectCreate({name});
+			})
+		).mapErr(err => "Failed to get user: " + err);
+	}
+
+	public async get_project_info(guid: string): Promise<Err<string>|Ok<GetProjectResponse>> {
+		return (
+			await safe_request(async () => {
+				return await this.client.project.getProjectInfo(guid);
 			})
 		).mapErr(err => "Failed to get user: " + err);
 	}

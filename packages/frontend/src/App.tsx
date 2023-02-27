@@ -13,6 +13,7 @@ import Client, { Session } from "./client";
 
 const App = () => {
 	const [client, _] = useState(new Client());
+	const [projGuid, setProjGuid] = useState();
 	const [session, setSession] = useState<Session | undefined>(undefined);
 
 	return (
@@ -20,9 +21,9 @@ const App = () => {
 			<Routes>
 				<Route path={Pages.HOME} element={<div></div>} />
 				<Route path={Pages.SIGNUP} element={<SignUp client={client} onSignUp={setSession}/>} />
-				<Route path={Pages.USER} element={<UserView session={session} />} />
+				<Route path={Pages.USER} element={<UserView session={session} setGuid={setProjGuid} />} />
 				<Route path={Pages.LOGIN} element={<LoginView client={client} onLogin={setSession} />} />
-				<Route path={Pages.PROJECT} element={<ProjectView client={client} />} />
+				<Route path={projGuid} element={<ProjectView session={session} guid={projGuid}/>} />
 			</Routes>
 		</Router>
 	)
