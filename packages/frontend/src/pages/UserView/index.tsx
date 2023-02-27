@@ -17,24 +17,9 @@ export interface UserViewProps {
 	session?: Session;
 }
 
-
-// async function createProj(client: Client, name: string, oldNames: string[], updateProjNames: any, updateProjGuids: any, projects: any, setProjects: any) {
-// 	try {
-// 		await client.http.project.projectCreate({ name: name });
-// 		updateProjNames([...oldNames, name]);
-// 		const projGuids = (await client.http.user.getUserProjects()).project_guids;
-// 		updateProjGuids(projGuids);
-// 		setProjects([...projects, <Project key={name} name={name} />])
-// 	} catch (e) {
-// 		if (e instanceof ApiError) {
-// 			console.log("Request failed (" + e.status + ") error: " + e.body.message);
-// 		}
-// 		console.log("error");
-// 	}
-// }
-
 export default function UserView(props: UserViewProps) {
 	const [projects, setProjects] = useState<Project[] | undefined>(undefined);
+	const [createName, setCreateName] = useState(false);
 	const navigate = useNavigate();
 
 	useEffect(() => {
@@ -58,7 +43,7 @@ export default function UserView(props: UserViewProps) {
 		}
 
 		fetchProjects();
-	}, [])
+	}, [createName])
 
 
 	if (!props.session) {
@@ -81,48 +66,50 @@ export default function UserView(props: UserViewProps) {
 					{/* <div className="user-description">{props.description}</div> */}
 				</div>
 				<div className="buttons">
-					{/* <Button variant="outlined" sx={{ color: "white", margin: 2 }} onClick={() => { */}
-					{/* 	// setFollowing(false); */}
-					{/* 	// setProjExp(!projExp); */}
-					{/* 	// setContacts(false); */}
-					{/* }}>Projects</Button> */}
-					{/* <Button variant="outlined" sx={{ color: "white", margin: 2 }} onClick={() => { */}
-					{/* 	// setFollowing(!following); */}
-					{/* 	// setProjExp(false); */}
-					{/* 	// setContacts(false); */}
-					{/* }}>Following</Button> */}
-					{/* <Button variant="outlined" sx={{ color: "white", margin: 2 }} onClick={() => { */}
-					{/* 	// setFollowing(false); */}
-					{/* 	// setProjExp(false); */}
-					{/* 	// setContacts(!contacts); */}
-					{/* }}>Contact</Button> */}
+					<Button variant="outlined" sx={{ color: "white", margin: 2 }} onClick={() => { 
+					 	// setFollowing(false); 
+						// setProjExp(!projExp); 
+					 	// setContacts(false);
+					 }}>Projects</Button>
+					<Button variant="outlined" sx={{ color: "white", margin: 2 }} onClick={() => { 
+					 	// setFollowing(!following); 
+					 	// setProjExp(false); 
+					 	// setContacts(false); 
+					 }}>Following</Button> 
+					<Button variant="outlined" sx={{ color: "white", margin: 2 }} onClick={() => { 
+					 	// setFollowing(false); 
+					 	// setProjExp(false); 
+					 	// setContacts(!contacts); 
+					 }}>Contact</Button> 
 				</div>
 			</div>
 			{/* { */}
 			{/* 	projExp && */}
 			<div className="involved-projects">
 				{projectComponents}
-				{/* { */}
-				{/* 	createName ? */}
-				{/* 		<div> */}
-				{/* 			<input id="projName" type="text" /> */}
-				{/* 			<Button variant="contained" size="small" onClick={() => setCreateName(false)}> */}
-				{/* 				Cancel */}
-				{/* 			</Button> */}
-				{/* 			<Button variant="contained" size="small" onClick={async () => { */}
-				{/* 				const new_name = (document.getElementById('projName') as HTMLInputElement).value; */}
-				{/* 				if (new_name.length !== 0) { */}
-				{/* 					// createProj(props.state, new_name, props.projNames, props.updateProjNames, props.updateProjGuids, projects, setProjects); */}
-				{/* 					setCreateName(false); */}
-				{/* 				} */}
-				{/* 			}}> */}
-				{/* 				Submit */}
-				{/* 			</Button> */}
-				{/* 		</div> : */}
-				{/* 		<Button variant="contained" size="small" onClick={() => setCreateName(true)}> */}
-				{/* 			Create New Project */}
-				{/* 		</Button> */}
-				{/* } */}
+				{ 
+					createName ? 
+				 		<div> 
+							<input id="projName" type="text" /> 
+				 			<Button variant="contained" size="small" onClick={() => setCreateName(false)}> 
+				 				Cancel 
+				 			</Button> 
+				 			<Button variant="contained" size="small" onClick={async () => { 
+				 				const name = (document.getElementById('projName') as HTMLInputElement).value; 
+				 				if (name.length !== 0) { 
+									if (!props.session)
+										return;
+									await props.session.create_project(name);
+				 					setCreateName(false); 
+				 				} 
+				 			}}> 
+				 				Submit 
+				 			</Button> 
+				 		</div> : 
+				 		<Button variant="contained" size="small" onClick={() => setCreateName(true)}> 
+				 			Create New Project 
+				 		</Button> 
+				 } 
 			</div>
 			{/* } */}
 			{/* { */}

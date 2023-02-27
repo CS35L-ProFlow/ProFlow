@@ -32,7 +32,6 @@ export function SignUp(props: SignUpProps) {
 					navigate(Pages.USER);
 					return;
 				}
-
 				// TODO: Show some error message to the user here!
 				console.log(res.val);
 			}}>Sign Up!</Button>

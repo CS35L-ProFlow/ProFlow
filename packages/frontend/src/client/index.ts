@@ -64,6 +64,14 @@ export class Session {
 		).mapErr(err => "Failed to get user: " + err);
 	}
 
+	public async create_project(name: string): Promise<Result<User, string>> {
+		return (
+			await safe_request(async () => {
+				return await this.client.project.projectCreate({name});
+			})
+		).mapErr(err => "Failed to get user: " + err);
+	}
+
 	public async get_my_projects(): Promise<Result<Project[], string>> {
 		return (
 			await safe_request(async () => {
