@@ -36,7 +36,7 @@ export default function ProjectCard(props: ProjectCardProps) {
 			<div className="column">
 				<div className="card">
 					<h3>{label}</h3>
-					<Button className="view-proj-b" variant="outlined" size="small" sx={{ color: "white", margin: "4px" }} onClick={() => {
+					<Button variant="outlined" size="small" sx={{ color: "black", margin: 2 }} onClick={() => {
 					props.setGuid(props.guid);
 					navigate("/"+props.guid);
 				}} >View</Button>

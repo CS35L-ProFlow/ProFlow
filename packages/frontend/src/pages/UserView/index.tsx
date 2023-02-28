@@ -31,7 +31,7 @@ export interface UserViewProps {
 
 export default function UserView(props: UserViewProps) {
 	const [projects, setProjects] = useState<Project[] | undefined>(undefined);
-	const [createName, setCreateName] = useState(true);
+	const [createName, setCreateName] = useState(false);
 	const [projExp, setProjExp] = useState(true);
 	const navigate = useNavigate();
 
@@ -97,15 +97,12 @@ export default function UserView(props: UserViewProps) {
 				</div>
 				{
 					projExp && 
-				<div className="main-user-info2">
+				<div className="projects-main">
 					{projectComponents /* TODO: make this variable contain all the projects */ }
-					<ProjectCard name="ProFlow" guid="test" setGuid={() => {return 0}}></ProjectCard>
+					{/* <ProjectCard name="ProFlow" guid="test" setGuid={() => {return 0}}></ProjectCard> */}
 					{ 
 						createName ? 
 							<div className="add-new-project"> 
-								<Button variant="contained" size="small" onClick={() => setCreateName(false)}> 
-									Cancel 
-								</Button> 
 								<Box
 									component="form"
 									sx={{
@@ -121,22 +118,28 @@ export default function UserView(props: UserViewProps) {
 										id="outlined-required"
 										label="Project Name"
 										defaultValue="Hello World"
+										sx = {{maxWidth: `100%`}}
 										/>
 									</div>
 									</Box>
-								<Button variant="contained" size="small" onClick={async () => { 
-				 				const name = (document.getElementById('outlined-required') as HTMLInputElement).value; 
-				 				if (name.length !== 0) { 
-									if (!props.session)
-										return;
-									await props.session.create_project(name);
-				 					setCreateName(false); 
-				 				} 
-				 			}} /* TODO: dd new project to the group and exit the addition window} */>
-									Submit 
-								</Button> 
-							</div> : 
-							<Button id="create-new-b" variant="outlined" size="small" color="success" onClick={() => setCreateName(true)}> 
+								<div className="buttons2"> 
+									<Button variant="contained" size="small" sx={{ color: "white", margin: 1, maxWidth: `100%` }} onClick={async () => { 
+									const name = (document.getElementById('outlined-required') as HTMLInputElement).value; 
+									if (name.length !== 0) { 
+										if (!props.session)
+											return;
+										await props.session.create_project(name);
+										setCreateName(false); 
+									} 
+									}} /* TODO: dd new project to the group and exit the addition window} */> 
+										Submit 
+									</Button> 
+									<Button variant="contained" size="small" sx={{ color: "white", margin: 1, maxWidth: `100%` }} onClick={() => setCreateName(false)}> 
+										Cancel 
+									</Button> 
+								</div>
+							</div>  : 
+							<Button variant="outlined" size="small" color="success" sx={{ color: "black", margin: 1, maxWidth: `100%` }} onClick={() => setCreateName(true)}> 
 								+ New Project
 							</Button>
 					} 

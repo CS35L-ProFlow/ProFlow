@@ -11,10 +11,9 @@
   
   /* Float four columns side by side */
   .column {
-    float: left;
+    margin:auto;
     width: 100%;
     padding: 0 10px;
-    margin-bottom: 10px;
     font-family: 'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;
   }
   
@@ -30,13 +29,16 @@
   }
   
   /* Style the counter cards */
-  .card {
+  .project-card {
+    margin-top: 10px;
+    width: 100%;
     border-radius: 10%;
     box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2);
-    padding: 16px;
+    padding: 10px;
     text-align: center;
+    flex-direction: column;
+    justify-content: center;
     background-color: #f1f1f1;
-    margin: auto;
     font-family: 'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;
   }
 
