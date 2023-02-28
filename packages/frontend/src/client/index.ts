@@ -2,6 +2,7 @@ import { BACKEND_PORT } from '../env';
 import { ProFlow, } from "../proflow/ProFlow";
 import { ApiError } from "../proflow/core/ApiError";
 import { Result, Ok, Err } from "ts-results";
+import { GetProjectResponse } from '../proflow';
 
 const init_proflow_client = (jwt?: string) => new ProFlow({
 	// http://localhost:BACKEND_PORT/route
@@ -64,6 +65,22 @@ export class Session {
 		).mapErr(err => "Failed to get user: " + err);
 	}
 
+	public async create_project(name: string): Promise<Result<User, string>> {
+		return (
+			await safe_request(async () => {
+				return await this.client.project.projectCreate({name});
+			})
+		).mapErr(err => "Failed to get user: " + err);
+	}
+
+	public async get_project_info(guid: string): Promise<Err<string>|Ok<GetProjectResponse>> {
+		return (
+			await safe_request(async () => {
+				return await this.client.project.getProjectInfo(guid);
+			})
+		).mapErr(err => "Failed to get user: " + err);
+	}
+
 	public async get_my_projects(): Promise<Result<Project[], string>> {
 		return (
 			await safe_request(async () => {
@@ -119,4 +136,26 @@ export default class Client {
 			})
 		).mapErr(err => "Failed to log in: " + err);
 	}
+
+	public async signUp(email: string, password: string): Promise<Result<Session, string>> {
+		const client = init_proflow_client();
+
+		return (
+			await safe_request(async () => {
+				const res = await client.auth.authSignup({email, password})
+				this.login(email, password)
+				return new Session(email, res.user_guid, res.jwt, res.expire_sec);
+			})
+		).mapErr(err => "Failed to sign up: " + err)
+	}
 }
+
+// try {
+// 					const res = await props.client.http.auth.authSignup({ email: email_input, password: password });
+// 					props.client.authorize(res.jwt, res.expire_sec);
+// 					navigate(Pages.USER);
+// 				} catch (e) {
+// 					if (e instanceof ApiError) {
+// 						console.log("Request failed (" + e.status + ") error: " + e.body.message);
+// 					}
+// 				}

@@ -26,39 +26,17 @@ export interface UserViewProps {
 
 	// project Info
 	session?: Session;
+	setGuid: any;
 }
-
-
-// async function createProj(client: Client, name: string, oldNames: string[], updateProjNames: any, updateProjGuids: any, projects: any, setProjects: any) {
-// 	try {
-// 		await client.http.project.projectCreate({ name: name });
-// 		updateProjNames([...oldNames, name]);
-// 		const projGuids = (await client.http.user.getUserProjects()).project_guids;
-// 		updateProjGuids(projGuids);
-// 		setProjects([...projects, <Project key={name} name={name} />])
-// 	} catch (e) {
-// 		if (e instanceof ApiError) {
-// 			console.log("Request failed (" + e.status + ") error: " + e.body.message);
-// 		}
-// 		console.log("error");
-// 	}
-// }
-const InviteCount = 2;
 
 export default function UserView(props: UserViewProps) {
 	const [projects, setProjects] = useState<Project[] | undefined>(undefined);
+	const [createName, setCreateName] = useState(true);
 	const [projExp, setProjExp] = useState(true);
-	const [invExp, setInvExp] = useState(false);
-	const [createName, setCreateName] = useState(false);
-	const [inviteCount, setInviteCount] = useState(InviteCount); // useState({InviteCount})
-	const [isLoading, setIsLoading] = useState(false);
-	const [newProjectInput, setNewProjectInput] = useState("");
-
 	const navigate = useNavigate();
 
 	useEffect(() => {
 		const fetchProjects = async () => {
-			setIsLoading(true);
 			if (!props.session)
 				return;
 
@@ -77,8 +55,7 @@ export default function UserView(props: UserViewProps) {
 			return;
 		}
 		fetchProjects();
-		setIsLoading(false);
-	}, [])
+	}, [createName])
 
 	if (!props.session) {
 		return <body></body>;
@@ -86,15 +63,8 @@ export default function UserView(props: UserViewProps) {
 
 
 	const projectComponents = projects ? projects.map(proj => {
-		return <ProjectCard key={proj.guid} name={proj.name} />
+		return <ProjectCard key={proj.guid} guid={proj.guid} name={proj.name} setGuid={props.setGuid} />
 	}) : <></>;
-
-	const projectComps = [<ProjectCard name="ProFlow"></ProjectCard>,
-	<ProjectCard name="NOOO"></ProjectCard>,
-	<ProjectCard name="YEiuhdfijshfdiushfEEH"></ProjectCard>]
-
-	const projectInvites = [<ProjectCard name="UCLA"></ProjectCard>,
-	<ProjectCard name="TEST"></ProjectCard>]
 
 	return (
 		<body className="body-of-page">
@@ -109,75 +79,71 @@ export default function UserView(props: UserViewProps) {
 				{/* <div className="user-description">{props.description}</div> */}
 			
 				<div className="buttons">
-					<Button variant="outlined" color="primary" sx={{ color: "blue", margin: 2, active:{color:"red"} }} onClick={() => {
-						// setFollowing(false); 
+					<Button variant="outlined" sx={{ color: "white", margin: 2 }} onClick={() => { 
+					 	// setFollowing(false); 
 						setProjExp(!projExp); 
-						setInvExp(false);
-						setInviteCount(InviteCount);
-						setCreateName(false);
-						// setContacts(false); 
-					}}>Active Projects</Button>
-					<Button variant="outlined" sx={{ color: "blue", margin: 2 }} onClick={() => { 
-						// setFollowing(!following); 
-						setProjExp(false); 
-						setInvExp(!invExp);
-						// setContacts(false); */}
-						setInviteCount(0);
-					}}>
-					<Badge badgeContent={inviteCount} color="primary">
-					<MailIcon color="action"  />
-					</Badge></Button>
+					 	// setContacts(false);
+					 }}>Projects</Button>
+					<Button variant="outlined" sx={{ color: "white", margin: 2 }} onClick={() => { 
+					 	// setFollowing(!following); 
+					 	setProjExp(false); 
+					 	// setContacts(false); 
+					 }}>Invites</Button> 
+					<Button variant="outlined" sx={{ color: "white", margin: 2 }} onClick={() => { 
+					 	// setFollowing(false); 
+					 	setProjExp(false); 
+					 	// setContacts(!contacts); 
+					 }}>Contact</Button> 
 				</div>
-
 				{
-				projExp && 
-					<div className='projects-row'>
-						{isLoading &&
-						<CircularProgress sx={{margin:10}}/>
-						}
-						
-							{projectComponents /* TODO: make this variable contain all the projects */ }
-						
-						{ 
-							createName ? 
-								<div style={{margin:5}}> 
-									<Button className="new-button" variant="contained" size="small" onClick={() => setCreateName(false)}> 
-										Cancel 
-									</Button> 
-									<Box
-										component="form"
-										sx={{
-											'& .MuiTextField-root': { m: 1, width: '100%' },
-										}}
-										noValidate
-										autoComplete="off"
-										>
-										<div>
-											<TextField
-											required
-											id="outlined-required"
-											label="Project Name"
-											defaultValue=""
-											sx={{
-												'& .MuiTextField-root': { m: 3, width: '100%' },
-											}}
-											onChange={(event) =>setNewProjectInput(event.target.value)}
-											/>
-										</div>
-										</Box>
-									<Button className="new-button" variant="contained" size="small" onClick={() => {setCreateName(false); console.log(newProjectInput)}} /* TODO: dd new project to the group and exit the addition window} */>
-										Submit 
-									</Button> 
-								</div> : 
-								<Button id="create-new-b" variant="outlined" size="small" color="success" onClick={() => setCreateName(true)}> 
-									+ New Project
-								</Button>
-								
-						} 
-					</div>
+					projExp && 
+				<div className="main-user-info2">
+					{projectComponents /* TODO: make this variable contain all the projects */ }
+					<ProjectCard name="ProFlow" guid="test" setGuid={() => {return 0}}></ProjectCard>
+					{ 
+						createName ? 
+							<div className="add-new-project"> 
+								<Button variant="contained" size="small" onClick={() => setCreateName(false)}> 
+									Cancel 
+								</Button> 
+								<Box
+									component="form"
+									sx={{
+										'& .MuiTextField-root': { m: 1, width: '25ch' },
+									}}
+									noValidate
+									autoComplete="off"
+									id='projName'
+									>
+									<div>
+										<TextField
+										required
+										id="outlined-required"
+										label="Project Name"
+										defaultValue="Hello World"
+										/>
+									</div>
+									</Box>
+								<Button variant="contained" size="small" onClick={async () => { 
+				 				const name = (document.getElementById('outlined-required') as HTMLInputElement).value; 
+				 				if (name.length !== 0) { 
+									if (!props.session)
+										return;
+									await props.session.create_project(name);
+				 					setCreateName(false); 
+				 				} 
+				 			}} /* TODO: dd new project to the group and exit the addition window} */>
+									Submit 
+								</Button> 
+							</div> : 
+							<Button id="create-new-b" variant="outlined" size="small" color="success" onClick={() => setCreateName(true)}> 
+								+ New Project
+							</Button>
+					} 
+				</div>
 				}
 
-				{
+				{/* {
 					invExp && 
 					<div className='projects-row2'>
 						{isLoading &&
@@ -185,8 +151,12 @@ export default function UserView(props: UserViewProps) {
 						}
 						{projectInvites}
 					</div>
-				}
+				} */}
 				
+			</div>
+			{/* { */}
+			{/* 	projExp && */}
+			<div className="involved-projects">
 			</div>
 		</body>
 	);
