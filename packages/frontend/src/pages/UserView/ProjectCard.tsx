@@ -1,6 +1,9 @@
 import './ProjectCard.css';
 import React from 'react';
-import Button from '@mui/material/Button';
+import { useNavigate } from 'react-router';
+import Pages from '..';
+import { Button } from '@mui/material';
+// import Button from '@mui/material/Button';
 // import {useState} from 'react';
 
 export interface ProjectCardProps {
@@ -9,6 +12,8 @@ export interface ProjectCardProps {
 
 	// name
 	name: string | void;
+	guid: string | void;
+	setGuid: any;
 
 	// role ?: string;
 
@@ -18,6 +23,8 @@ export interface ProjectCardProps {
 
 export default function ProjectCard(props: ProjectCardProps) {
 	let label: string;
+	const navigate = useNavigate();
+	const guid = props.guid;
 	if (typeof props.name === "undefined") {
 		label = "error";
 	}
@@ -27,10 +34,17 @@ export default function ProjectCard(props: ProjectCardProps) {
 	return (
 		<div className="project-card">
 			<div id="name-role">
-				<p>{label}</p>
+				<h1>{label}</h1>
+				{/* <Button onClick={() => {
+					props.setGuid(props.guid);
+					navigate("/"+props.guid);
+				}}>{label}</Button> */}
 				{/* {props.role && <h3>Role: {props.role}</h3>} */}
 			</div>
-			<Button className="view-proj-b" variant="outlined" size="small" sx={{ color: "white", margin: "4px" }} /* onClick={()=>navigate("/project")} */>View</Button>
+			<Button className="view-proj-b" variant="outlined" size="small" sx={{ color: "white", margin: "4px" }} onClick={() => {
+					props.setGuid(props.guid);
+					navigate("/"+props.guid);
+				}} >View</Button>
 		</div>
 	);
 }

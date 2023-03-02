@@ -21,29 +21,13 @@ export interface UserViewProps {
 
 	// project Info
 	session?: Session;
+	setGuid: any;
 }
-
-
-// async function createProj(client: Client, name: string, oldNames: string[], updateProjNames: any, updateProjGuids: any, projects: any, setProjects: any) {
-// 	try {
-// 		await client.http.project.projectCreate({ name: name });
-// 		updateProjNames([...oldNames, name]);
-// 		const projGuids = (await client.http.user.getUserProjects()).project_guids;
-// 		updateProjGuids(projGuids);
-// 		setProjects([...projects, <Project key={name} name={name} />])
-// 	} catch (e) {
-// 		if (e instanceof ApiError) {
-// 			console.log("Request failed (" + e.status + ") error: " + e.body.message);
-// 		}
-// 		console.log("error");
-// 	}
-// }
 
 export default function UserView(props: UserViewProps) {
 	const [projects, setProjects] = useState<Project[] | undefined>(undefined);
-	const [projExp, setProjExp] = useState(true);
 	const [createName, setCreateName] = useState(true);
-
+	const [projExp, setProjExp] = useState(true);
 	const navigate = useNavigate();
 
 	useEffect(() => {
@@ -67,7 +51,7 @@ export default function UserView(props: UserViewProps) {
 		}
 
 		fetchProjects();
-	}, [])
+	}, [createName])
 
 
 	if (!props.session) {
@@ -76,7 +60,7 @@ export default function UserView(props: UserViewProps) {
 
 
 	const projectComponents = projects ? projects.map(proj => {
-		return <ProjectCard key={proj.guid} name={proj.name} />
+		return <ProjectCard key={proj.guid} guid={proj.guid} name={proj.name} setGuid={props.setGuid} />
 	}) : <></>;
 
 	return (
@@ -92,23 +76,27 @@ export default function UserView(props: UserViewProps) {
 				{/* <div className="user-description">{props.description}</div> */}
 			
 				<div className="buttons">
-					<Button variant="outlined" color="primary" sx={{ color: "blue", margin: 2 }} onClick={() => {
-						// setFollowing(false); 
+					<Button variant="outlined" sx={{ color: "white", margin: 2 }} onClick={() => { 
+					 	// setFollowing(false); 
 						setProjExp(!projExp); 
-						// setContacts(false); 
-					}}>Projects</Button>
-					<Button variant="outlined" sx={{ color: "blue", margin: 2 }} onClick={() => { 
-						// setFollowing(!following); 
-						// setProjExp(false); 
-						// setContacts(false); */}
-					}}>Invites</Button>
+					 	// setContacts(false);
+					 }}>Projects</Button>
+					<Button variant="outlined" sx={{ color: "white", margin: 2 }} onClick={() => { 
+					 	// setFollowing(!following); 
+					 	setProjExp(false); 
+					 	// setContacts(false); 
+					 }}>Invites</Button> 
+					<Button variant="outlined" sx={{ color: "white", margin: 2 }} onClick={() => { 
+					 	// setFollowing(false); 
+					 	setProjExp(false); 
+					 	// setContacts(!contacts); 
+					 }}>Contact</Button> 
 				</div>
-
 				{
 					projExp && 
 				<div className="main-user-info2">
 					{projectComponents /* TODO: make this variable contain all the projects */ }
-					<ProjectCard name="ProFlow"></ProjectCard>
+					{/* <ProjectCard name="ProFlow" guid="test" setGuid={() => {return 0}}></ProjectCard> */}
 					{ 
 						createName ? 
 							<div className="add-new-project"> 
@@ -122,6 +110,7 @@ export default function UserView(props: UserViewProps) {
 									}}
 									noValidate
 									autoComplete="off"
+									id='projName'
 									>
 									<div>
 										<TextField
@@ -132,7 +121,15 @@ export default function UserView(props: UserViewProps) {
 										/>
 									</div>
 									</Box>
-								<Button variant="contained" size="small" onClick={() => setCreateName(false)} /* TODO: dd new project to the group and exit the addition window} */>
+								<Button variant="contained" size="small" onClick={async () => { 
+				 				const name = (document.getElementById('outlined-required') as HTMLInputElement).value; 
+				 				if (name.length !== 0) { 
+									if (!props.session)
+										return;
+									await props.session.create_project(name);
+				 					setCreateName(false); 
+				 				} 
+				 			}} /* TODO: dd new project to the group and exit the addition window} */>
 									Submit 
 								</Button> 
 							</div> : 
@@ -144,18 +141,9 @@ export default function UserView(props: UserViewProps) {
 				}
 			</div>
 			{/* { */}
-			{/* 	following && */}
-			{/* 	<div className="involved-projects"> */}
-			{/* 		<Project name="ProFlow2"></Project> */}
-			{/* 		<Project name="Google"></Project> */}
-			{/* 	</div> */}
-			{/* } */}
-			{/* { */}
-			{/* 	contacts && */}
-			{/* 	<div className="involved-projects"> */}
-			{/* 		<Project name="Email"></Project> */}
-			{/* 	</div> */}
-			{/* } */}
+			{/* 	projExp && */}
+			<div className="involved-projects">
+			</div>
 		</body>
 	);
 }
