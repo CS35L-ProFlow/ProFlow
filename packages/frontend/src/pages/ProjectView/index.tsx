@@ -114,7 +114,43 @@ export function PopupBox() {
 		</div>
 	</div>
 }
+export interface PanelProps{
+    ProjectTitle1: string;
+	ProjectTitle2: string;
+	children?: React.ReactNode,
+}
 
+export function SidePanel(props:PanelProps){
+	return 	<div className='side-wrapper'>
+				<div className='side-panel'>
+					<h2>
+						Project
+						<hr></hr>
+						<Button>{props.ProjectTitle1}</Button>
+						<Button>{props.ProjectTitle2}</Button>
+
+					</h2>
+				</div>
+				<button className='side-panel-toggle' type='button' onClick={toggleSidePanel}>
+					<span className="open">open</span>
+					<span className="close">close</span>
+				</button>
+
+				<div className='main'>
+					<div className = "wrapper">
+						<Column title="Backing">
+							<div>
+								<NoteCard title="Title" description="description..." time="time"></NoteCard>
+							</div>
+						</Column>
+						<Column title="Design"></Column>
+						<Column title="To Do"></Column>
+						<Column title="Doing"></Column>
+
+					</div>
+				</div>
+			</div>
+}
 //Helper Functions Below:
 
 //Show User Menu
@@ -169,6 +205,15 @@ export function addNotes() {
 		localStorage.setItem("notes", JSON.stringify(notes));
 		closeAddNotesIcon();
 	}
+}
+
+//Toggle side panel
+export function toggleSidePanel(){
+	let sidePanel = document.querySelector(".side-panel");
+	let sidePanelOpen = document.querySelector(".side-panel-toggle")
+	sidePanelOpen!.classList.toggle("side-panel-open")
+	return sidePanel!.classList.toggle("open-side-panel")
+	
 }
 
 export interface ProjectViewProps {
