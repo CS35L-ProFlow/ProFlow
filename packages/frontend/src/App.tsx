@@ -29,4 +29,12 @@ const App = () => {
 	)
 }
 
+// export function toggleSidePanel(){
+// 	let sidePanel = document.querySelector(".side-panel");
+// 	let sidePanelOpen = document.querySelector(".side-panel-toggle")
+// 	sidePanelOpen!.classList.toggle("side-panel-open")
+// 	return sidePanel!.classList.toggle("open-side-panel")
+	
+// }
+
 export default App;
