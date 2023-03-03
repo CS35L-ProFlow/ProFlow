@@ -22,6 +22,7 @@ export class InviteController {
 		}
 
 		return {
+			guid: param.guid,
 			project_guid: res.project.guid,
 			project_name: res.project.name,
 			owner_guid: res.project.owner.guid,
