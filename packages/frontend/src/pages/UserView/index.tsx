@@ -3,7 +3,7 @@ import './index.css';
 
 
 import Button from '@mui/material/Button';
-import TextField from "@mui/material/TextField"
+import TextField from "@mui/material/TextField";
 import Avatar from '@mui/material/Avatar';
 import Box from '@mui/material/Box';
 import Badge from '@mui/material/Badge';

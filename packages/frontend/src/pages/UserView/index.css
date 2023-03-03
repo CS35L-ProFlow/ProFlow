@@ -2,6 +2,7 @@
 .main-user-info {
     margin: auto;
     margin-top: 20px;
+    margin-bottom: 20px;
     display: flex;
     width: 35%;
     flex-direction: column;
@@ -17,7 +18,7 @@
 .main-user-info > .user-avatar-main {
     margin: 3%;
     width: 25%;
-    height: 25%;
+    height: 30%;
     border-radius: 50%;
 }
 
