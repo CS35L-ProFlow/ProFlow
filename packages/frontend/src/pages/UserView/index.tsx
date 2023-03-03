@@ -117,7 +117,7 @@ export default function UserView(props: UserViewProps) {
 										required
 										id="outlined-required"
 										label="Project Name"
-										defaultValue="Hello World"
+										defaultValue=""
 										sx = {{maxWidth: `100%`}}
 										/>
 									</div>
