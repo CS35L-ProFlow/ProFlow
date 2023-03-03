@@ -2,13 +2,7 @@ import React from 'react';
 import './index.css';
 
 
-import Button from '@mui/material/Button';
-import TextField from "@mui/material/TextField";
-import Avatar from '@mui/material/Avatar';
-import Box from '@mui/material/Box';
-import Badge from '@mui/material/Badge';
-import MailIcon from '@mui/icons-material/Mail';
-import CircularProgress from '@mui/material/CircularProgress';
+import {Button, TextField, Avatar , Box, Badge, CircularProgress, Typography}  from '@mui/material/';
 
 import avatar from '../../resources/sad-chair.jpg';
 
@@ -98,6 +92,7 @@ export default function UserView(props: UserViewProps) {
 				{
 					projExp && 
 				<div className="projects-main">
+					<Typography variant="button" align="center" fontSize="1.5vw">Your projects</Typography>
 					{projectComponents /* TODO: make this variable contain all the projects */ }
 					{/* <ProjectCard name="ProFlow" guid="test" setGuid={() => {return 0}}></ProjectCard> */}
 					{ 

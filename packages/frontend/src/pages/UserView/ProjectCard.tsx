@@ -60,6 +60,7 @@ export default function ProjectCard(props: ProjectCardProps) {
 							sx = {{maxWidth: `100%`, margin: 3}}
 							onFocus = {() => setSuccess(false)}
 							/>
+						<div className='submit-cancel'>
 						<Button variant="outlined" type="submit" size="small" sx={{ color: "black", margin: 1 }} onClick={() => {
 							const name = (document.getElementById('outlined-required-invite') as HTMLInputElement).value; 
 							if (name.length >= 3) { 
@@ -74,6 +75,11 @@ export default function ProjectCard(props: ProjectCardProps) {
 								setSeverityMessage("Failed to sent");
 							}
 						}} >Submit</Button>
+						<Button variant="outlined" size="small" sx={{ color: "black", margin: 1 }} onClick={() => {
+								setInvite(false);
+								setSuccess(false);
+							}} >Cancel</Button>
+						</div>
 					</div>
 				}
 				{

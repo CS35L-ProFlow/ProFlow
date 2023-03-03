@@ -118,7 +118,7 @@ body {
 
   .projects-main{
     margin: auto;
-    margin-top: 20px;
+    margin-top: 10px;
     display: flex;
     width: 35%;
     flex-direction: column;
