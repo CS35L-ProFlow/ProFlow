@@ -148,6 +148,7 @@
   
   .drop-down-link p{
     width: 100%;
+    color: #000;
   }
   
   .drop-down-link:hover p{
@@ -162,28 +163,34 @@
   }
   
   .wrapper li{
-    height: 350px;
+    min-height: 150px;
+    height: fit-content;
+    overflow: hidden;
     list-style: none;
     background: #ececec;
     border-radius: 5px;
     padding: 15px 20px 20px;
+    overflow-x: scroll;
   }
   
   .wrapper .note .note-card{
     display: flex;
     flex-direction: column;
     justify-content: space-between;
-    padding: 0px 10px 0px;
+    padding: 0px 20px 0px;
   }
   
   
   .note p{
     font-size: 22px;
     font-weight: 500;
+    color: #000;
   }
   
   .note-card{
     background: #fff;
+    margin-bottom: 20px;
+
   
   }
   
@@ -192,6 +199,7 @@
     font-weight: 400;
   }
   
+
   .note-card span{
     display: block;
     margin-top: 5px;
@@ -202,6 +210,9 @@
     align-items: bottom;
   }
   
+  .wrapper .card-layout{
+    padding: 10px;
+  }
   .add-button{
     padding-top: 10px;
     border-top: 1px solid #ccc;
@@ -416,3 +427,5 @@
   .side-panel-open .close {
     display: initial !important;
   }
+
+
