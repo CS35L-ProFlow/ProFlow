@@ -1,12 +1,13 @@
 import './ProjectCard.css';
 import React from 'react';
 import { useNavigate } from 'react-router';
-import TextField from "@mui/material/TextField";
 import Pages from '..';
-import { Button } from '@mui/material';
-// import Button from '@mui/material/Button';
+import { Button, Alert, TextField, AlertColor } from '@mui/material';
 import {useState} from 'react';
-import { Session } from '../../client';
+
+import { Session, Project } from '../../client';
+
+import DeleteIcon from '@mui/icons-material/Delete';
 
 export interface ProjectCardProps {
 	// add an image to the interface to the user from API
@@ -32,6 +33,10 @@ export default function ProjectCard(props: ProjectCardProps) {
 	const navigate = useNavigate();
 	const guid = props.guid;
 	const [invite, setInvite] = useState(false);
+	const [success, setSuccess] = useState(false);
+	const [severity, setSeverity] = useState<AlertColor | undefined>("error");
+	const [severityMessage, setSeverityMessage] = useState("Failed to sent");
+
 	if (props.owner == props.user) 
 		owner = "me";
 	else
@@ -53,47 +58,64 @@ export default function ProjectCard(props: ProjectCardProps) {
 					navigate("/"+props.guid);
 				}} >View</Button>
 				<Button variant="outlined" size="small" sx={{ color: "black", margin: 1 }} onClick={() => {
+					setInvite(!invite);
+					setSuccess(false);
 					setInvite(true);
 				}} >Invite a person</Button>
 				{
 					owner === "me" && 
-					<Button variant="outlined" size="small" sx={{ color: "black", margin: 1 }} onClick={async () => {
+					<Button variant="outlined" size="small" startIcon={<DeleteIcon />} sx={{ color: "black", margin: 1 }} onClick={async () => {
 						if (!props.session || !props.guid){
 							return;
 						}
 						await props.session.delete_proj(props.guid);
 						props.recordDelete(true);
 						return;
-					}} >Delete Project</Button>
+						}} >Delete</Button>
 				}
 				{
 					invite &&
 					<div>
 						<TextField
 							required
-							id="outlined-required"
+							id="outlined-required-invite"
 							label="Email"
 							defaultValue=""
 							sx = {{maxWidth: `100%`, margin: 3}}
+							onFocus = {() => setSuccess(false)}
 							/>
-							<Button variant="contained" size="small" sx={{ color: "white", margin: 1, maxWidth: `100%` }} onClick = { async () => {
+						<div className='submit-cancel'>
+						<Button variant="contained" type="submit" size="small" sx={{ color: "white", margin: 1 }} onClick = { async () => {
 								if (!props.session || !guid) {
+									setSuccess(true);
+									setSeverity("error");
+									setSeverityMessage("Failed to sent");
 									return;
 								}
-								const invitee = (document.getElementById('outlined-required') as HTMLInputElement).value; 
+								const invitee = (document.getElementById('outlined-required-invite') as HTMLInputElement).value; 
 								if (invitee.length === 0) 
 									return;
 								await props.session.send_invite(invitee, guid);
 								setInvite(false);
 								// TODO: Display status of invite 
+								setInvite(false);
+								setSuccess(true);
+								setSeverity("success");
+								setSeverityMessage("Invite sent");
 								console.log("Invite Successful");
 							}} > 
-								Send Invite! 
+								Send Invite
 							</Button> 
-							<Button variant="contained" size="small" sx={{ color: "white", margin: 1, maxWidth: `100%` }} onClick={() => setInvite(false)}> 
-								Cancel 
-							</Button> 
+						<Button variant="contained" size="small" sx={{ color: "white", margin: 1 }} onClick={() => {
+								setInvite(false);
+								setSuccess(false);
+							}} >Cancel</Button>
+						</div>
 					</div>
+				}
+				{
+					success &&
+						<Alert severity={severity}>{severityMessage}</Alert>
 				}
 				</div>
 			</div>

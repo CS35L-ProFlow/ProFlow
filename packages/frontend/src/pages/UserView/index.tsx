@@ -2,13 +2,7 @@ import React from 'react';
 import './index.css';
 
 
-import Button from '@mui/material/Button';
-import TextField from "@mui/material/TextField";
-import Avatar from '@mui/material/Avatar';
-import Box from '@mui/material/Box';
-import Badge from '@mui/material/Badge';
-import MailIcon from '@mui/icons-material/Mail';
-import CircularProgress from '@mui/material/CircularProgress';
+import {Button, TextField, Avatar , Box, Badge, CircularProgress, Typography, Alert}  from '@mui/material/';
 
 import avatar from '../../resources/sad-chair.jpg';
 
@@ -33,6 +27,8 @@ export interface UserViewProps {
 }
 
 export default function UserView(props: UserViewProps) {
+	let InviteCount = 12;
+
 	const [projects, setProjects] = useState<Project[] | undefined>(undefined);
 	const [inInvites, setInInvites] = useState<Invite[] | undefined>(undefined);
 	const [createProj, setCreateProj] = useState(false);
@@ -40,6 +36,9 @@ export default function UserView(props: UserViewProps) {
 	const [projDisp, setProjDisp] = useState(true);
 	const [inInviteDisp, setInInviteDisp] = useState(false);
 	const [inviteAccepted, setInviteAccepted] = useState(false);
+
+	const [progress, setProgress] = useState(false);
+
 	const navigate = useNavigate();
 
 	useEffect(() => {
@@ -47,12 +46,15 @@ export default function UserView(props: UserViewProps) {
 			if (!props.session)
 				return;
 
+			
+			setProgress(true);
 			const res = await props.session.get_my_projects();
 			if (res.err) {
 				// TODO: Show some error message to the user here!
 				console.log(res.val);
 				return;
 			}
+			setProgress(false);
 
 			setProjects(res.val);
 			setDeleteProj(false);
@@ -61,14 +63,14 @@ export default function UserView(props: UserViewProps) {
 		const fetchInvites = async () => {
 			if (!props.session)
 				return;
-			
+				setProgress(true);
 				const res = await props.session.get_my_invites();
 				if (res.err) {
 					// TODO: Sho some error message to the user here!
 					console.log(res.val);
 					return;
 				}
-
+				setProgress(false);
 				setInInvites(res.val);
 				setInviteAccepted(false);
 		}
@@ -77,8 +79,10 @@ export default function UserView(props: UserViewProps) {
 			navigate(Pages.LOGIN)
 			return;
 		}
+		setProgress(true);
 		fetchProjects();
 		fetchInvites();
+		setProgress(false);
 	}, [createProj, deleteProj, inviteAccepted])
 
 	if (!props.session) {
@@ -88,10 +92,10 @@ export default function UserView(props: UserViewProps) {
 
 	const projectComponents = (projects && projects.length !== 0) ? projects.map(proj => {
 		return <ProjectCard key={proj.guid} guid={proj.guid} name={proj.name} user={props.session ? props.session.email : "N\\A"} owner={proj.owner.email} setGuid={props.setGuid} session={props.session} recordDelete={setDeleteProj} />
-	}) : <h1>No Projects Found. Press "NEW PROJECT" to create a new one!</h1>;
+	}) : <Alert variant="outlined" severity="info" sx={{margin:2, maxWidth: "100%", textAlign: "left"}}>No Projects Found. Press "NEW PROJECT" to create a new one</Alert>;
 	const inInviteComponents = (inInvites && inInvites.length !== 0) ? inInvites.map(invite => {
 		return <InviteCard key={invite.guid} updateAccept={setInviteAccepted} session={props.session} guid={invite.guid} name={invite.project_name} owner_email={invite.owner_email} />
-	}) : <h1>No Invites Found</h1>;
+	}) : <Alert variant="outlined" severity="info" sx={{margin:2}}>No Invites found</Alert>;
 
 	return (
 		<body className="body-of-page">
@@ -101,22 +105,24 @@ export default function UserView(props: UserViewProps) {
 					{/* <div className="user-name-main">Name: {props.session.email}</div> */}
 					<TextField disabled label="User Name"
 					defaultValue={props.session.email} 
-					size="small" className="Name"></TextField>
+					size="small" className="Name" inputProps={{min: 0, style: { textAlign: 'center' }}}  sx={{ color: "white", margin: "auto", maxWidth: "100%" }}></TextField>
 				</div>
 				{/* <div className="user-description">{props.description}</div> */}
 			
 				<div className="buttons">
-					<Button variant="outlined" sx={{ color: "white", margin: 2 }} onClick={() => { 
+					<Button variant="outlined" sx={{ color: "white", margin: 1, maxWidth: "100%" }} onClick={() => { 
 					 	setInInviteDisp(false)
 						setProjDisp(true); 
 					 	// setContacts(false);
-					 }}>Projects</Button>
-					<Button variant="outlined" sx={{ color: "white", margin: 2 }} onClick={() => { 
-					 	setInInviteDisp(true);
-					 	setProjDisp(false); 
-					 	// setContacts(false); 
-					 }}>Incoming Invites</Button> 
-					<Button variant="outlined" sx={{ color: "white", margin: 2 }} onClick={() => { 
+					 }}>Your Projects</Button>
+					<Badge badgeContent={InviteCount} color="secondary" sx={{margin:1 }}>
+							<Button variant="outlined" sx={{ color: "white", maxWidth: "100%" }} onClick={() => { 
+							setInInviteDisp(true);
+							setProjDisp(false); 
+							// setContacts(false); 
+						}}>Incoming invites</Button>
+					</Badge>
+					<Button variant="outlined" sx={{ color: "white", margin: 1, maxWidth: "100%"}} onClick={() => { 
 					 	setInInviteDisp(false);
 					 	setProjDisp(false); 
 					 	// setContacts(!contacts); 
@@ -125,7 +131,10 @@ export default function UserView(props: UserViewProps) {
 				{
 					projDisp && 
 				<div className="projects-main">
-					{projectComponents}
+					{progress &&
+						<CircularProgress/>}
+					{projectComponents /* TODO: make this variable contain all the projects */ }
+					{/* <ProjectCard name="ProFlow" guid="test" setGuid={() => {return 0}}></ProjectCard> */}
 					{ 
 						createProj ? 
 							<div className="add-new-project"> 
@@ -143,7 +152,7 @@ export default function UserView(props: UserViewProps) {
 										required
 										id="outlined-required"
 										label="Project Name"
-										defaultValue="Hello World"
+										defaultValue=""
 										sx = {{maxWidth: `100%`}}
 										/>
 									</div>

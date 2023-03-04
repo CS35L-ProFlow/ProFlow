@@ -4,7 +4,7 @@
     margin-top: 20px;
     margin-bottom: 20px;
     display: flex;
-    width: 35%;
+    width: 40%;
     flex-direction: column;
     color: black; 
     border-radius: 10px;
@@ -17,13 +17,13 @@
 
 .main-user-info > .user-avatar-main {
     margin: 3%;
-    width: 25%;
-    height: 30%;
+    width: 20%;
+    height: 20%;
     border-radius: 50%;
 }
 
 .buttons{
-    max-width: 70%;
+    max-width: 100%;
     margin:auto;
     height: 30%;
     font-family: 'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;
@@ -118,7 +118,7 @@ body {
 
   .projects-main{
     margin: auto;
-    margin-top: 20px;
+    margin-top: 10px;
     display: flex;
     width: 35%;
     flex-direction: column;
@@ -129,12 +129,10 @@ body {
   }
 
   .buttons2{
-    max-width: 70%;
-    margin:auto;
+    max-width: 100%;
+    margin-left:10%;
     height: 30%;
     font-family: 'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;
-    display: flex;
-    flex-direction: row;
   }
   
   .add-new-b{
