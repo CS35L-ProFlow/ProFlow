@@ -279,4 +279,9 @@ export class GetInvitationResponse {
 	 * The owner's email of the project that the invite is for.
 	 */
 	owner_email: string;
+
+	/*
+	 * Guid of project returned
+	 */
+	guid: string;
 }
