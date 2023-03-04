@@ -1,20 +1,21 @@
 import Button from '@mui/material/Button'
-import Client, { Session } from "../../client"
+import { Session } from "../../client"
 import './index.css';
 import Pages from "../../pages";
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { GetProjectResponse } from '../../proflow';
+import { CircularProgress } from "@mui/material";
 
 //This file contains the packground, drop down menu, and cards.
 
 //New column
-export interface ColumnProps {
+interface ColumnProps {
 	title: string;
 	children?: React.ReactNode,
 }
 
-export function Column(props: ColumnProps) {
+function Column(props: ColumnProps) {
 	return <li className="note">
 		<div className="details">
 			<p>{props.title}</p>
@@ -28,13 +29,14 @@ export function Column(props: ColumnProps) {
 }
 
 //User Profile
-export interface ProfileOptions {
+interface ProfileOptions {
 	//User Name is probabily the only custmizable object here. 
 	UserName: string;
 	children?: React.ReactNode,
 
 }
-export function Profile(props: ProfileOptions) {
+
+function Profile(props: ProfileOptions) {
 	return <div><img src="User-Image-Here" className="user-pic" onClick={toggleMenu}></img>
 		<div className="drop-down-menu" id="subMenu">
 			<div className="drop-down">
@@ -68,13 +70,14 @@ export function Profile(props: ProfileOptions) {
 }
 
 //Small Node Card
-export interface NoteProps {
+interface NoteProps {
 	title: string;
 	description: string;
 	time: string;
 	children?: React.ReactNode,
 }
-export function NoteCard(props: NoteProps) {
+
+function NoteCard(props: NoteProps) {
 	return <div className="note-card">
 		<p>{props.title}</p>
 		<span>{props.description}</span>
@@ -92,7 +95,7 @@ export function NoteCard(props: NoteProps) {
 }
 
 //Popup Box:
-export function PopupBox() {
+function PopupBox() {
 	return <div className="popup-box">
 		<div className="popup">
 			<div className="content">
@@ -115,66 +118,67 @@ export function PopupBox() {
 		</div>
 	</div>
 }
-export interface PanelProps{
-    ProjectTitle1: string;
+
+interface PanelProps {
+	ProjectTitle1: string;
 	ProjectTitle2: string;
 	children?: React.ReactNode,
 }
 
-export function SidePanel(props:PanelProps){
-	return 	<div className='side-wrapper'>
-				<div className='side-panel'>
-					<h2>
-						Project
-						<hr></hr>
-						<Button>{props.ProjectTitle1}</Button>
-						<Button>{props.ProjectTitle2}</Button>
+function SidePanel(props: PanelProps) {
+	return <div className='side-wrapper'>
+		<div className='side-panel'>
+			<h2>
+				Project
+				<hr></hr>
+				<Button>{props.ProjectTitle1}</Button>
+				<Button>{props.ProjectTitle2}</Button>
 
-					</h2>
-				</div>
-				<button className='side-panel-toggle' type='button' onClick={toggleSidePanel}>
-					<span className="open">open</span>
-					<span className="close">close</span>
-				</button>
+			</h2>
+		</div>
+		<button className='side-panel-toggle' type='button' onClick={toggleSidePanel}>
+			<span className="open">open</span>
+			<span className="close">close</span>
+		</button>
 
-				<div className='main'>
-					<div className = "wrapper">
-						<Column title="Backing">
-							<div>
-								<NoteCard title="Title" description="description..." time="time"></NoteCard>
-							</div>
-						</Column>
-						<Column title="Design"></Column>
-						<Column title="To Do"></Column>
-						<Column title="Doing"></Column>
-
+		<div className='main'>
+			<div className="wrapper">
+				<Column title="Backing">
+					<div>
+						<NoteCard title="Title" description="description..." time="time"></NoteCard>
 					</div>
-				</div>
+				</Column>
+				<Column title="Design"></Column>
+				<Column title="To Do"></Column>
+				<Column title="Doing"></Column>
+
 			</div>
+		</div>
+	</div>
 }
 //Helper Functions Below:
 
 //Show User Menu
-export function toggleMenu() {
+function toggleMenu() {
 	let subMenu = document.getElementById("subMenu");
 	return subMenu!.classList.toggle("open-menu");
 }
 
 //Show ADD NEW NOTES popup
 const addBox = document.getElementById("add-note-button");
-export function addNotesButton() {
+function addNotesButton() {
 	let popupBox = document.querySelector(".popup-box");
 	return popupBox!.classList.add("show");
 }
 
 //Hide ADD NEW NOTES popup
-export function closeAddNotesIcon() {
+function closeAddNotesIcon() {
 	let popupBox = document.querySelector(".popup-box");
 	return popupBox!.classList.remove("show");
 }
 const notes = JSON.parse(localStorage.getItem("notes") || "[]")
 //TODO: Show all the notes in localStorage
-export function showNotes() {
+function showNotes() {
 	notes.forEach((note: string) => {
 		//Add a card for each string stored in local memory.
 		//addBox!.insertAdjacentHTML("afterend", divTag);
@@ -182,7 +186,7 @@ export function showNotes() {
 }
 
 //Add new notes
-export function addNotes() {
+function addNotes() {
 	let addButton = document.getElementById("save-note-button")
 	let titleTag = document.querySelector("input")
 	let descriptionTag = document.querySelector("textarea")
@@ -209,30 +213,29 @@ export function addNotes() {
 }
 
 //Toggle side panel
-export function toggleSidePanel(){
+function toggleSidePanel() {
 	let sidePanel = document.querySelector(".side-panel");
 	let sidePanelOpen = document.querySelector(".side-panel-toggle")
 	sidePanelOpen!.classList.toggle("side-panel-open")
 	return sidePanel!.classList.toggle("open-side-panel")
-	
+
 }
 
-export interface ProjectViewProps {
+interface ProjectViewProps {
 	session: Session | undefined,
-	guid: string | undefined;
 };
 
 export default function ProjectView(props: ProjectViewProps) {
-	// const { guid } = useParams();
+	const { guid } = useParams();
 	const navigate = useNavigate();
-	const [projInfo, setProjInfo] = useState<GetProjectResponse>();
+	const [projInfo, setProjInfo] = useState<GetProjectResponse | undefined>(undefined);
 
 	useEffect(() => {
 		const fetchProjectInfo = async () => {
-			if (!props.guid || !props.session)
+			if (!guid || !props.session)
 				return;
 
-			const res = await props.session.get_project_info(props.guid);
+			const res = await props.session.get_project_info(guid);
 			if (res.err) {
 				// TODO: Show some error message to the user here!
 				console.log(res.val);
@@ -241,7 +244,7 @@ export default function ProjectView(props: ProjectViewProps) {
 			setProjInfo(res.val);
 		}
 
-		if (!props.session || !props.guid) {
+		if (!props.session || !guid) {
 			navigate(Pages.LOGIN)
 			return;
 		}
@@ -249,6 +252,10 @@ export default function ProjectView(props: ProjectViewProps) {
 		fetchProjectInfo();
 	}, [])
 	const title = projInfo?.name;
+
+	if (!projInfo)
+		// TODO: Style this progress indicator correctly!
+		return <CircularProgress />;
 
 	return (
 		<body>
