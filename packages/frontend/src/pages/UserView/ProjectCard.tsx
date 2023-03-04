@@ -115,7 +115,7 @@ export default function ProjectCard(props: ProjectCardProps) {
 				}
 				{
 					success &&
-						<Alert severity={severity}>{severityMessage}</Alert>
+					<Alert severity={severity}>{severityMessage}</Alert>
 				}
 				</div>
 			</div>
