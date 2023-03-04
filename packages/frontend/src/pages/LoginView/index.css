@@ -95,3 +95,8 @@ h1{
 .input-group{
   margin: 20px;
 }
+
+.fixError
+{
+  margin-bottom: 10px;
+}

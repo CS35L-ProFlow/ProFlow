@@ -1,4 +1,4 @@
-import { Button, TextField } from "@mui/material"
+import { Button, TextField, Alert } from "@mui/material"
 import { useRef, useState } from 'react';
 import Client from "../../client";
 import { useNavigate } from "react-router-dom";
@@ -24,11 +24,20 @@ again, this is just a preference, feel free to do as you please!
 
 export function SignUp(props: SignUpProps) {
 	const [email, setEmail] = useState("");
-	const [password, setPassword] = useState("");
+	const [password1, setPassword1] = useState("");
+	const [password2, setPassword2] = useState("");
+	const [checkSuccess, setCheckSuccess] = useState(false);
 	const navigate = useNavigate();
 	const [errorLOL, errorChange] = useState(false);
 	const[ErrorString, AlterString] = useState<string | undefined>(undefined);
 
+	const handleChange = () =>{
+		if (password1 === password2) {
+			setCheckSuccess(false);
+		} else {
+			setCheckSuccess(true);
+		}
+	}
 	return (
 		<div className="container1">
 			<h1>
@@ -38,13 +47,19 @@ export function SignUp(props: SignUpProps) {
 				<TextField label="Enter your Email" value={email} error={errorLOL} helperText={ErrorString} onChange={e => setEmail(e.target.value)} />
 			</div>
 			<div className="input-group">
-				<TextField type="Password" label="Password" value={password} onChange={e => setPassword(e.target.value)} />
+				<TextField type="Password" label="Password" value={password1} onChange={e => setPassword1(e.target.value)} />
 			</div>
 			<div className="input-group">
-				<TextField type="Password" label="Confirm password" value={password}/>
+				<TextField type="Password" label="Confirm password" value={password2} onChange={e => setPassword2(e.target.value)}/>
 			</div>
 			{/* <Button id="LOGIN" variant="contained" onKeyDown={handleEnter} onClick={signUp}>Sign Up!</Button> */}
-			<Button className="clickMe" id="LOGIN" variant="contained" >Sign Up!</Button>
+			<div className="fixError">
+			<Button className="clickMe" id="LOGIN" variant="contained" onClick={handleChange} >Sign Up!</Button> 
+			</div>
+			{
+				checkSuccess && 
+					<Alert severity="error" sx={{textAlign: "center", margin: "auto", width: "70%"}}>Uh oh, your passwords don't match </Alert>
+			}
 		</div>
     
     //Old sign up code, just leaving this here as a reference
