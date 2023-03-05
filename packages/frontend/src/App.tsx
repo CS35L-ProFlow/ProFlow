@@ -20,7 +20,7 @@ const App = () => {
 		<Router>
 			<Routes>
 				<Route path={Pages.HOME} element={<div></div>} />
-				<Route path={Pages.SIGNUP} element={<SignUp client={client}/>} /> 
+				<Route path={Pages.SIGNUP} element={<SignUp client={client} onLogin={setSession}/>} /> 
 				<Route path={Pages.USER} element={<UserView session={session} setGuid={setProjGuid} />} />
 				<Route path={Pages.LOGIN} element={<LoginView client={client} onLogin={setSession} />} />
 				<Route path={projGuid} element={<ProjectView session={session} guid={projGuid}/>} />
