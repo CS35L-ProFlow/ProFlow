@@ -23,14 +23,22 @@ async function safe_request<T>(fn: () => Promise<T>): Promise<Result<T, string>>
 	}
 }
 
+export type ErrorMessage = string;
+
+export type UserGuid = string;
+export type ProjectGuid = string;
+export type ProjectColumnGuid = string;
+export type SubProjectGuid = string;
+export type InviteGuid = string;
+export type CardGuid = string;
 export interface User {
-	guid: string,
+	guid: UserGuid,
 
 	email: string,
 }
 
 export interface Project {
-	guid: string,
+	guid: ProjectGuid,
 
 	name: string,
 
@@ -38,13 +46,13 @@ export interface Project {
 }
 
 export interface ProjectColumn {
-	guid: string,
+	guid: ProjectColumnGuid,
 
 	name: string,
 }
 
 export interface SubProject {
-	guid: string,
+	guid: SubProjectGuid,
 
 	name: string,
 
@@ -52,7 +60,7 @@ export interface SubProject {
 }
 
 export interface ProjectInfo {
-	guid: string,
+	guid: ProjectGuid,
 
 	name: string,
 
@@ -66,11 +74,13 @@ export interface ProjectInfo {
 }
 
 export interface Invite {
-	guid: string,
-	project_guid: string,
+	guid: InviteGuid,
+
+	project_guid: ProjectGuid,
+
 	project_name: string,
-	owner_guid: string,
-	owner_email: string,
+
+	owner: User,
 }
 
 export interface Card {
@@ -79,14 +89,14 @@ export interface Card {
 	description: string,
 	assignee?: User,
 	column_guid: string,
-	date_created: Date,
-	date_modified: Date,
+	// date_created: Date,
+	// date_modified: Date,
 	priority: number,
 }
 
 export interface SubProjectColumnCards {
 	guid: string,
-	cards: Map<ProjectColumn, Card[]>,
+	cards: Map<ProjectColumnGuid, Card[]>,
 }
 
 export class Session {
@@ -158,12 +168,35 @@ export class Session {
 		).mapErr(err => "Failed to get user: " + err);
 	}
 
-	// public async get_sub_project_cards(guid: string): Promise<Result<SubProjectColumnCards, string>> {
-	// 	return (
-	// 		await safe_request(async () => {
-	// 		});
-	// 	).mapErr(err => "Failed to get cards: " + err);
-	// }
+	public async get_sub_project_cards(project: ProjectInfo, sub_project_guid: string, assignee_guid?: string): Promise<Result<SubProjectColumnCards, string>> {
+		return (
+			await safe_request(async () => {
+				const res = await Promise.all(project.columns.map(c => this.client.subProject.getCards(c.guid, sub_project_guid, assignee_guid)));
+
+
+				const cards = new Map(res.map(res => [
+					res.column,
+					res.cards.map(c => {
+						return {
+							guid: c.guid,
+							title: c.title,
+							description: c.description,
+							column_guid: res.column,
+							assignee: c.assignee ? project.members.find(m => m.guid == c.assignee) : undefined,
+							// date_created: c.date_created,
+							// date_modified: c.date_modified,
+							priority: c.priority,
+						}
+					})
+				]))
+
+				return {
+					guid: sub_project_guid,
+					cards,
+				};
+			})
+		).mapErr(err => "Failed to get cards: " + err);
+	}
 
 	public async get_my_projects(): Promise<Result<Project[], string>> {
 		return (
@@ -207,7 +240,15 @@ export class Session {
 				const invite_responses = await Promise.all(promises);
 
 				return await Promise.all(invite_responses.map(async (res): Promise<Invite> => {
-					return { guid: res.guid, project_name: res.project_name, project_guid: res.project_guid, owner_guid: res.owner_guid, owner_email: res.owner_email }
+					return {
+						guid: res.guid,
+						project_name: res.project_name,
+						project_guid: res.project_guid,
+						owner: {
+							guid: res.owner_guid,
+							email: res.owner_email
+						}
+					}
 				}))
 			})
 		).mapErr(err => "Failed to get projects: " + err);
