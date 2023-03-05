@@ -40,6 +40,7 @@ export function SignUp(props: SignUpProps) {
 		}
 	}
 	return (
+		<div>
 		<div className="container1">
 			<h1>
 				Welcome, Let's Get Started
@@ -62,7 +63,13 @@ export function SignUp(props: SignUpProps) {
 					<Alert severity="error" sx={{textAlign: "center", margin: "auto", width: "70%"}}>Uh oh, your passwords don't match </Alert>
 			}
 		</div>
-    
+		<div className="alternative">
+		<p className="promptAlt">Already have an account? 
+		<p>   </p>
+		<a className="altLink" href={"http://localhost:3000/login"}>{"Login"}</a>
+		</p>
+		</div>
+    </div>
     //Old sign up code, just leaving this here as a reference
 		// <div>
 		// 	<h1>Welcome!</h1>

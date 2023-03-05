@@ -45,6 +45,7 @@ export default function Login(props: LoginProps) {
   }
 
 	return (
+		<div>
 		<div className="container2">
 			<h1>
 				Login
@@ -57,6 +58,13 @@ export default function Login(props: LoginProps) {
 			</div>
 			{/* <Button id="LOGIN" variant="contained" onKeyDown={handleEnter} onClick={login}>Login</Button> */}
 			<Button className="clickMe" id="LOGIN" variant="contained" onKeyDown={(event) => handleEnter(event)} onClick={(event) => login()}>Login</Button>
+		</div>
+		<div className="alternative">
+		<p className="promptAlt">Don't have an account? 
+		<p>   </p>
+		<a className="altLink" href={"http://localhost:3000/signup"}>{"Sign Up"}</a>
+		</p>
+		</div>
 		</div>
 	);
 }
