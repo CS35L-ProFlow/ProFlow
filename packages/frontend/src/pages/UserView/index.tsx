@@ -2,7 +2,8 @@ import React from 'react';
 import './index.css';
 
 
-import {Button, TextField, Avatar , Box, Badge, CircularProgress, Typography, Alert}  from '@mui/material/';
+import {Button, TextField, Avatar , Box, Badge, CircularProgress, Typography, Alert, InputAdornment}  from '@mui/material/';
+import AccountCircle from '@mui/icons-material/AccountCircle';
 
 import avatar from '../../resources/sad-chair.jpg';
 
@@ -98,43 +99,42 @@ export default function UserView(props: UserViewProps) {
 	}) : <Alert variant="outlined" severity="info" sx={{margin:2}}>No Invites found</Alert>;
 
 	return (
-		<body className="body-of-page">
-			<div className="main-user-info">
-				<Avatar alt="user-avatar" src={avatar} className="user-avatar-main"/>
+		<div className="body-of-page">
 				<div className="name-and-org">
 					{/* <div className="user-name-main">Name: {props.session.email}</div> */}
-					<TextField disabled label="User Name"
-					defaultValue={props.session.email} 
-					size="small" className="Name" inputProps={{min: 0, style: { textAlign: 'center' }}}  sx={{ color: "white", margin: "auto", maxWidth: "100%" }}></TextField>
+					<Typography sx={{margin:3}}fontSize={"large"} variant='overline'>{props.session.email}</Typography>
 				</div>
+				<hr></hr>
 				{/* <div className="user-description">{props.description}</div> */}
 			
-				<div className="buttons">
-					<Button variant="outlined" sx={{ color: "white", margin: 1, maxWidth: "100%" }} onClick={() => { 
-					 	setInInviteDisp(false)
+				<div className='buttons'>
+					<Button variant="contained" sx={{ color: "white", margin: 1, maxWidth: "100%" }} onClick={() => { 
+						setInInviteDisp(false)
 						setProjDisp(true); 
-					 	// setContacts(false);
-					 }}>Your Projects</Button>
+						// setContacts(false);
+					}}>Your Projects</Button>
 					<Badge badgeContent={InviteCount} color="secondary" sx={{margin:1 }}>
-							<Button variant="outlined" sx={{ color: "white", maxWidth: "100%" }} onClick={() => { 
+							<Button variant="contained" sx={{ color: "white", maxWidth: "100%" }} onClick={() => { 
 							setInInviteDisp(true);
 							setProjDisp(false); 
+
 							// setContacts(false); 
 						}}>Incoming invites</Button>
 					</Badge>
-					<Button variant="outlined" sx={{ color: "white", margin: 1, maxWidth: "100%"}} onClick={() => { 
-					 	setInInviteDisp(false);
-					 	setProjDisp(false); 
-					 	// setContacts(!contacts); 
-					 }}>Outgoing Invites</Button> 
+					<Button variant="contained" sx={{ color: "white", margin: 1, maxWidth: "100%"}} onClick={() => { 
+						setInInviteDisp(false);
+						setProjDisp(false); 
+						// setContacts(!contacts); 
+					}}>Outgoing Invites</Button> 
 				</div>
 				{
 					projDisp && 
 				<div className="projects-main">
 					{progress &&
 						<CircularProgress/>}
-					{projectComponents /* TODO: make this variable contain all the projects */ }
-					{/* <ProjectCard name="ProFlow" guid="test" setGuid={() => {return 0}}></ProjectCard> */}
+					<div className="project-card-list" >
+						{projectComponents}		
+					</div>
 					{ 
 						createProj ? 
 							<div className="add-new-project"> 
@@ -194,9 +194,7 @@ export default function UserView(props: UserViewProps) {
 					
 				}
 				
-			</div>
-			<div className="involved-projects">
-			</div>
-		</body>
+			
+		</div>
 	);
 }
