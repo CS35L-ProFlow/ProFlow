@@ -37,7 +37,7 @@ export default function ProjectCard(props: ProjectCardProps) {
 	const [severity, setSeverity] = useState<AlertColor | undefined>("error");
 	const [severityMessage, setSeverityMessage] = useState("Failed to sent");
 
-	if (props.owner == props.user) 
+	if (props.owner === props.user) 
 		owner = "me";
 	else
 		owner = props.owner;
