@@ -99,32 +99,29 @@ export default function UserView(props: UserViewProps) {
 	}) : <Alert variant="outlined" severity="info" sx={{margin:2}}>No Invites found</Alert>;
 
 	return (
-		<body className="body-of-page">
-			
-			<div className="main-user-info">
-				<Avatar alt="user-avatar" src={avatar} className="user-avatar-main"/>
+		<div className="body-of-page">
 				<div className="name-and-org">
 					{/* <div className="user-name-main">Name: {props.session.email}</div> */}
-					<TextField disabled label="User Name"
-					defaultValue={props.session.email}
-					size="small" className="Name" inputProps={{min: 0, style: { textAlign: 'center' }, }}  sx={{ color: "white", margin: "auto", maxWidth: "100%" }}></TextField>
+					<Typography sx={{margin:3}}fontSize={"large"} variant='overline'>{props.session.email}</Typography>
 				</div>
+				<hr></hr>
 				{/* <div className="user-description">{props.description}</div> */}
+			
 				<div className='buttons'>
-					<Button variant="outlined" sx={{ color: "black", margin: 1, maxWidth: "100%" }} onClick={() => { 
+					<Button variant="contained" sx={{ color: "white", margin: 1, maxWidth: "100%" }} onClick={() => { 
 						setInInviteDisp(false)
 						setProjDisp(true); 
 						// setContacts(false);
 					}}>Your Projects</Button>
 					<Badge badgeContent={InviteCount} color="secondary" sx={{margin:1 }}>
-							<Button variant="outlined" sx={{ color: "black", maxWidth: "100%" }} onClick={() => { 
+							<Button variant="contained" sx={{ color: "white", maxWidth: "100%" }} onClick={() => { 
 							setInInviteDisp(true);
 							setProjDisp(false); 
 
 							// setContacts(false); 
 						}}>Incoming invites</Button>
 					</Badge>
-					<Button variant="outlined" sx={{ color: "black", margin: 1, maxWidth: "100%"}} onClick={() => { 
+					<Button variant="contained" sx={{ color: "white", margin: 1, maxWidth: "100%"}} onClick={() => { 
 						setInInviteDisp(false);
 						setProjDisp(false); 
 						// setContacts(!contacts); 
@@ -135,7 +132,9 @@ export default function UserView(props: UserViewProps) {
 				<div className="projects-main">
 					{progress &&
 						<CircularProgress/>}
-					{projectComponents}
+					<div className="project-card-list" >
+						{projectComponents}		
+					</div>
 					{ 
 						createProj ? 
 							<div className="add-new-project"> 
@@ -195,9 +194,7 @@ export default function UserView(props: UserViewProps) {
 					
 				}
 				
-			</div>
-			<div className="involved-projects">
-			</div>
-		</body>
+			
+		</div>
 	);
 }
