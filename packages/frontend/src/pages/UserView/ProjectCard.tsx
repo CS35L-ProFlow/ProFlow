@@ -38,8 +38,8 @@ export default function ProjectCard(props: ProjectCardProps) {
 	const [severityMessage, setSeverityMessage] = useState("Failed to sent");
 
 	const[invitee, setInvitee] = useState("");
-
-	if (props.owner == props.user) 
+  
+	if (props.owner === props.user) 
 		owner = "me";
 	else
 		owner = props.owner;
