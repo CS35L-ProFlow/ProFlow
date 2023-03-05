@@ -1,17 +1,18 @@
-import Button from '@mui/material/Button'
-import { Session } from "../../client"
+import { Button, TextField } from '@mui/material/'
+import { Session, ProjectInfo, SubProject } from "../../client"
 import './index.css';
 import Pages from "../../pages";
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { Link, useNavigate, useParams } from "react-router-dom";
-import { GetProjectResponse } from '../../proflow';
 import { CircularProgress } from "@mui/material";
+import { Result, Ok } from "ts-results";
 
 //This file contains the packground, drop down menu, and cards.
 
 //New column
 interface ColumnProps {
 	title: string;
+	onOpenPopup: () => void;
 	children?: React.ReactNode,
 }
 
@@ -23,7 +24,7 @@ function Column(props: ColumnProps) {
 		</div>
 		{props.children}
 		<div className="add-buttom">
-			<Button id="add-note-button" onClick={addNotesButton}>Add new Notes</Button>
+			<Button id="add-note-button" onClick={props.onOpenPopup}>Add new Notes</Button>
 		</div>
 	</li>;
 }
@@ -95,29 +96,6 @@ function NoteCard(props: NoteProps) {
 }
 
 //Popup Box:
-function PopupBox() {
-	return <div className="popup-box">
-		<div className="popup">
-			<div className="content">
-				<header>
-					<p>Add a New Note</p>
-					<i onClick={closeAddNotesIcon}>x</i>
-				</header>
-				<form action='#'>
-					<div className="row">
-						<label>Title</label>
-						<input type="text"></input>
-					</div>
-					<div className="row description">
-						<label>Description</label>
-						<textarea></textarea>
-					</div>
-					<Button id="save-note-button" onClick={addNotes}>Add Note</Button>
-				</form>
-			</div>
-		</div>
-	</div>
-}
 
 interface PanelProps {
 	ProjectTitle1: string;
@@ -143,14 +121,14 @@ function SidePanel(props: PanelProps) {
 
 		<div className='main'>
 			<div className="wrapper">
-				<Column title="Backing">
-					<div>
-						<NoteCard title="Title" description="description..." time="time"></NoteCard>
-					</div>
-				</Column>
-				<Column title="Design"></Column>
-				<Column title="To Do"></Column>
-				<Column title="Doing"></Column>
+				{/* <Column title="Backing"> */}
+				{/* 	<div> */}
+				{/* 		<NoteCard title="Title" description="description..." time="time"></NoteCard> */}
+				{/* 	</div> */}
+				{/* </Column> */}
+				{/* <Column title="Design"></Column> */}
+				{/* <Column title="To Do"></Column> */}
+				{/* <Column title="Doing"></Column> */}
 
 			</div>
 		</div>
@@ -165,52 +143,28 @@ function toggleMenu() {
 }
 
 //Show ADD NEW NOTES popup
-const addBox = document.getElementById("add-note-button");
-function addNotesButton() {
-	let popupBox = document.querySelector(".popup-box");
-	return popupBox!.classList.add("show");
-}
+// function addNotesButton() {
+// 	let popupBox = document.querySelector(".popup-box");
+// 	return popupBox!.classList.add("show");
+// }
 
 //Hide ADD NEW NOTES popup
-function closeAddNotesIcon() {
-	let popupBox = document.querySelector(".popup-box");
-	return popupBox!.classList.remove("show");
-}
-const notes = JSON.parse(localStorage.getItem("notes") || "[]")
-//TODO: Show all the notes in localStorage
-function showNotes() {
-	notes.forEach((note: string) => {
-		//Add a card for each string stored in local memory.
-		//addBox!.insertAdjacentHTML("afterend", divTag);
-	});
-}
+// function closeAddNotesIcon() {
+// 	let popupBox = document.querySelector(".popup-box");
+// 	return popupBox!.classList.remove("show");
+// }
 
 //Add new notes
-function addNotes() {
-	let addButton = document.getElementById("save-note-button")
-	let titleTag = document.querySelector("input")
-	let descriptionTag = document.querySelector("textarea")
-	let noteTitle = titleTag?.value;
-	let noteDescription = descriptionTag?.value;
-	const monthArray = ["January", "February", "March", "April", "May", "June", "July",
-		"August", "September", "October", "November", "December"];
+// function addNotes(session: Session, guid: string) {
+// 	let titleTag = document.querySelector("input")
+// 	let descriptionTag = document.querySelector("textarea")
+// 	let noteTitle = titleTag?.value;
+// 	let noteDescription = descriptionTag?.value;
 
-	if (noteTitle || noteDescription) {
-		let date = new Date();
-		const day = date.getDate();
-		const month = monthArray[date.getMonth()];
-		const year = date.getFullYear();
-
-		let noteInfo = {
-			title: noteTitle,
-			description: noteDescription,
-			time: `${month} ${day} ${year}`
-		}
-		notes.push(noteInfo);
-		localStorage.setItem("notes", JSON.stringify(notes));
-		closeAddNotesIcon();
-	}
-}
+// 	if (noteTitle || noteDescription) {
+// 		closeAddNotesIcon();
+// 	}
+// }
 
 //Toggle side panel
 function toggleSidePanel() {
@@ -228,22 +182,36 @@ interface ProjectViewProps {
 export default function ProjectView(props: ProjectViewProps) {
 	const { guid } = useParams();
 	const navigate = useNavigate();
-	const [projInfo, setProjInfo] = useState<GetProjectResponse | undefined>(undefined);
+	const [projInfo, setProjInfo] = useState<ProjectInfo | undefined>(undefined);
+	const [currentSubProject, setCurrentSubProject] = useState<SubProject | undefined>(undefined);
+
+	const [newColumnName, setNewColumnName] = useState<string | undefined>(undefined);
+
+	// TODO: Maybe group these state objects together since they're all related to creating a new card?
+	const [currentColumnGuid, setCurrentColumnGuid] = useState<string | undefined>(undefined);
+	const [newNoteTitle, setNewNoteTitle] = useState<string | undefined>(undefined);
+	const [newNoteDescription, setNewNoteDescription] = useState<string | undefined>(undefined);
+
+	// const [cards, setCards] = useState<Map<ColumnGuid, Card[]> | undefined>(undefined);
+
+	const fetchProjectInfo = async () => {
+		if (!guid || !props.session)
+			return;
+
+		const res = await props.session.get_project_info(guid);
+		if (res.err) {
+			// TODO: Show some error message to the user here!
+			console.log(res.val);
+			return;
+		}
+		setProjInfo(res.val);
+
+		if (!currentSubProject && res.val.sub_projects.length > 0) {
+			setCurrentSubProject(res.val.sub_projects[0]);
+		}
+	}
 
 	useEffect(() => {
-		const fetchProjectInfo = async () => {
-			if (!guid || !props.session)
-				return;
-
-			const res = await props.session.get_project_info(guid);
-			if (res.err) {
-				// TODO: Show some error message to the user here!
-				console.log(res.val);
-				return;
-			}
-			setProjInfo(res.val);
-		}
-
 		if (!props.session || !guid) {
 			navigate(Pages.LOGIN)
 			return;
@@ -251,11 +219,75 @@ export default function ProjectView(props: ProjectViewProps) {
 
 		fetchProjectInfo();
 	}, [])
+
 	const title = projInfo?.name;
+
+	if (!props.session)
+		return <body></body>;
 
 	if (!projInfo)
 		// TODO: Style this progress indicator correctly!
 		return <CircularProgress />;
+
+	if (!currentSubProject) {
+		return <body>
+			<Button onClick={async () => {
+				if (!props.session)
+					return;
+				// TODO: This is simply a placeholder until we actually have the UI for adding/viewing subprojects.
+				const res = await props.session.create_sub_project(guid!, "ROOT");
+				if (res.err) {
+					console.log(res.val);
+					return;
+				}
+				fetchProjectInfo();
+			}}>Create Root Sub-Project</Button>
+		</body>
+	}
+
+	const popupBox = () => {
+		if (!currentColumnGuid)
+			return <></>;
+
+		return <div className="popup-box">
+			<div className="popup">
+				<div className="content">
+					<header>
+						<p>Add a New Note</p>
+						<i onClick={() => setCurrentColumnGuid(undefined)}>x</i>
+					</header>
+					<form action='#'>
+						<TextField label="Title" onChange={e => setNewNoteTitle(e.target.value)} value={newNoteTitle} />
+						<TextField label="Description" onChange={e => setNewNoteDescription(e.target.value)} value={newNoteDescription} multiline />
+						<Button id="save-note-button" onClick={async () => {
+							if (!props.session || !currentSubProject || !currentColumnGuid)
+								return;
+
+							if (!newNoteDescription || !newNoteTitle) {
+								// TODO: Show this error to the user!
+								console.log("No title or description provided!")
+								return;
+							}
+
+							// TODO: Display a progress bar when these requests are made!
+							const res = await props.session.add_sub_project_card(currentSubProject.guid, currentColumnGuid, newNoteTitle, newNoteDescription);
+							if (res.err) {
+								// TODO: Show this error to the user!
+								console.log("Failed to create new note: " + res.val);
+								return;
+							}
+
+							await fetchProjectInfo();
+
+							setNewNoteTitle(undefined);
+							setNewNoteDescription(undefined);
+							setCurrentColumnGuid(undefined);
+						}}>Add Note</Button>
+					</form>
+				</div>
+			</div>
+		</div>
+	}
 
 	return (
 		<body>
@@ -264,54 +296,45 @@ export default function ProjectView(props: ProjectViewProps) {
 					<img src="LOGO-HERE" className="logo"></img>
 					<h1>{title}</h1>
 					<ul>
-						<li>
-							<Link to={Pages.SIGNUP}>
-								<Button variant="contained" className="Button-Design">
-									Signup
-								</Button>
-							</Link>
-						</li>
-
-						<li>
-							{/* <Button variant="contained" onClick={async () => {
-								const res = await state.client.auth.authLogin({ email: login_email, password: login_password });
-								console.log("Logged in " + res.jwt)
-								state.authorize(res.jwt, res.expire_sec);
-							}}>Login</Button> */}
-							<Link to={Pages.LOGIN}>
-								<Button variant="contained" className="Button-Design">
-									LOG IN
-								</Button>
-							</Link>
-
-						</li>
-						<li>
-							<Button variant="contained" onClick={async () => {
-								// const res = await props.client.http.user.getUserProjects();
-								// console.log("Get projects " + res.project_guids)
-							}}>Get Projects</Button>
-						</li>
-
 
 					</ul>
 					<Profile UserName='[NAME HERE]'></Profile>
 
 				</nav>
-				<PopupBox></PopupBox>
+				{popupBox()}
 
 				<div className="wrapper">
-					<Column title="Backing">
-						<div>
-							<NoteCard title="Title" description="description..." time="time"></NoteCard>
-						</div>
-					</Column>
-					<Column title="Design"></Column>
-					<Column title="To Do"></Column>
-					<Column title="Doing"></Column>
+					{projInfo.columns.map(c => <Column key={c.guid} title={c.name} onOpenPopup={() => setCurrentColumnGuid(c.guid)}></Column>)}
+
+					<div style={{ display: 'flex', flexDirection: 'column', alignItems: 'start' }}>
+						<TextField label="Column Name" onChange={e => setNewColumnName(e.target.value)} value={newColumnName} />
+						<Button onClick={async () => {
+							if (!newColumnName || !props.session)
+								return;
+
+							console.log(newColumnName);
+							const res = await props.session.add_project_column(currentSubProject.guid, newColumnName);
+							if (res.err) {
+								// TODO: Show some error message to the user here!
+								console.log(res.val);
+								return;
+							}
+
+							await fetchProjectInfo();
+						}}>Create column</Button>
+					</div>
+					{/* <Column title="Backing"> */}
+					{/* 	<div> */}
+					{/* 		<NoteCard title="Title" description="description..." time="time"></NoteCard> */}
+					{/* 	</div> */}
+					{/* </Column> */}
+					{/* <Column title="Design"></Column> */}
+					{/* <Column title="To Do"></Column> */}
+					{/* <Column title="Doing"></Column> */}
 
 				</div>
 			</div>
-		</body>
+		</body >
 
 	);
 }

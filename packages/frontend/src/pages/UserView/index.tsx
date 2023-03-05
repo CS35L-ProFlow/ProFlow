@@ -88,7 +88,7 @@ export default function UserView(props: UserViewProps) {
 			return <Alert variant="outlined" severity="info" sx={{ margin: 2, maxWidth: "100%", textAlign: "left" }}>No Projects Found. Press "NEW PROJECT" to create a new one</Alert>;
 
 		return projects.map(proj => {
-			return <ProjectCard key={proj.guid} guid={proj.guid} name={proj.name} user={props.session ? props.session.email : "N\\A"} owner={proj.owner.email} session={props.session} recordDelete={setDeleteProj} />
+			return <ProjectCard key={proj.guid} guid={proj.guid} name={proj.name} user={props.session!.email} owner={proj.owner.email} session={props.session} recordDelete={setDeleteProj} />
 		});
 	}
 

@@ -39,5 +39,4 @@ export class SubProjectController {
 			throw new ForbiddenException(res.val);
 		}
 	}
-
 }

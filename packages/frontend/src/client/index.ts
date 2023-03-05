@@ -2,7 +2,7 @@ import { BACKEND_PORT } from '../env';
 import { ProFlow, } from "../proflow/ProFlow";
 import { ApiError } from "../proflow/core/ApiError";
 import { Result, Ok, Err } from "ts-results";
-import { GetProjectResponse } from '../proflow';
+import { SubProjectResponse } from '../proflow';
 
 const init_proflow_client = (jwt?: string) => new ProFlow({
 	// http://localhost:BACKEND_PORT/route
@@ -24,9 +24,9 @@ async function safe_request<T>(fn: () => Promise<T>): Promise<Result<T, string>>
 }
 
 export interface User {
-	email: string,
-
 	guid: string,
+
+	email: string,
 }
 
 export interface Project {
@@ -37,12 +37,56 @@ export interface Project {
 	owner: User,
 }
 
+export interface ProjectColumn {
+	guid: string,
+
+	name: string,
+}
+
+export interface SubProject {
+	guid: string,
+
+	name: string,
+
+	children: SubProject[],
+}
+
+export interface ProjectInfo {
+	guid: string,
+
+	name: string,
+
+	owner: User,
+
+	columns: ProjectColumn[],
+
+	members: User[],
+
+	sub_projects: SubProject[],
+}
+
 export interface Invite {
-	guid : string,
-	project_guid : string,
-	project_name : string,
-	owner_guid : string,
-	owner_email : string,
+	guid: string,
+	project_guid: string,
+	project_name: string,
+	owner_guid: string,
+	owner_email: string,
+}
+
+export interface Card {
+	guid: string,
+	title: string,
+	description: string,
+	assignee?: User,
+	column_guid: string,
+	date_created: Date,
+	date_modified: Date,
+	priority: number,
+}
+
+export interface SubProjectColumnCards {
+	guid: string,
+	cards: Map<ProjectColumn, Card[]>,
 }
 
 export class Session {
@@ -84,18 +128,42 @@ export class Session {
 	public async create_project(name: string): Promise<Result<User, string>> {
 		return (
 			await safe_request(async () => {
-				return await this.client.project.projectCreate({name});
+				return await this.client.project.projectCreate({ name });
 			})
 		).mapErr(err => "Failed to get user: " + err);
 	}
 
-	public async get_project_info(guid: string): Promise<Err<string>|Ok<GetProjectResponse>> {
+	public async get_project_info(guid: string): Promise<Result<ProjectInfo, string>> {
 		return (
 			await safe_request(async () => {
-				return await this.client.project.getProjectInfo(guid);
+				const res = await this.client.project.getProjectInfo(guid);
+				const sub_projects_res = await this.client.project.getSubProjects(guid);
+
+				const convert_sub_project_response = (res: SubProjectResponse): SubProject => {
+					return {
+						guid: res.guid,
+						name: res.name,
+						children: res.children.map(convert_sub_project_response)
+					}
+				}
+				return {
+					guid: res.guid,
+					name: res.name,
+					owner: await this.get_user_throwable(res.owner),
+					columns: res.columns.map(c => { return { name: c.name, guid: c.guid }; }),
+					members: await Promise.all(res.members.map(guid => this.get_user_throwable(guid))),
+					sub_projects: sub_projects_res.sub_projects.map(convert_sub_project_response)
+				};
 			})
 		).mapErr(err => "Failed to get user: " + err);
 	}
+
+	// public async get_sub_project_cards(guid: string): Promise<Result<SubProjectColumnCards, string>> {
+	// 	return (
+	// 		await safe_request(async () => {
+	// 		});
+	// 	).mapErr(err => "Failed to get cards: " + err);
+	// }
 
 	public async get_my_projects(): Promise<Result<Project[], string>> {
 		return (
@@ -113,18 +181,18 @@ export class Session {
 		).mapErr(err => "Failed to get projects: " + err);
 	}
 
-	public async send_invite(invitee: string, guid: string): Promise<Result<User, string>> {
+	public async send_invite(invitee: string, guid: string): Promise<Result<void, string>> {
 		return (
 			await safe_request(async () => {
-				return await this.client.project.projectInviteMember(invitee, guid);
+				await this.client.project.projectInviteMember(invitee, guid);
 			})
 		).mapErr(err => "Failed to get user: " + err);
 	}
 
-	public async accept_invite(guid: string): Promise<Result<User, string>> {
+	public async accept_invite(guid: string): Promise<Result<void, string>> {
 		return (
 			await safe_request(async () => {
-				return await this.client.invite.projectAcceptInvitation(guid);
+				await this.client.invite.projectAcceptInvitation(guid);
 			})
 		).mapErr(err => "Failed to get user: " + err);
 	}
@@ -139,10 +207,34 @@ export class Session {
 				const invite_responses = await Promise.all(promises);
 
 				return await Promise.all(invite_responses.map(async (res): Promise<Invite> => {
-					return {guid: res.guid, project_name: res.project_name, project_guid: res.project_guid, owner_guid: res.owner_guid, owner_email: res.owner_email }
+					return { guid: res.guid, project_name: res.project_name, project_guid: res.project_guid, owner_guid: res.owner_guid, owner_email: res.owner_email }
 				}))
 			})
 		).mapErr(err => "Failed to get projects: " + err);
+	}
+
+	public async add_project_column(guid: string, name: string): Promise<Result<void, string>> {
+		return (
+			await safe_request(async () => {
+				await this.client.project.addColumn(guid, { name });
+			})
+		).mapErr(err => "Failed to add column: " + err);
+	}
+
+	public async create_sub_project(guid: string, name: string): Promise<Result<void, string>> {
+		return (
+			await safe_request(async () => {
+				await this.client.project.createSubProject(guid, { name });
+			})
+		).mapErr(err => "Failed to create sub-project: " + err);
+	}
+
+	public async add_sub_project_card(guid: string, column: string, title: string, description: string): Promise<Result<void, string>> {
+		return (
+			await safe_request(async () => {
+				await this.client.subProject.addCard(guid, { column, title, description });
+			})
+		).mapErr(err => "Failed to add card: " + err);
 	}
 
 	private async get_user_throwable(guid: string): Promise<User> {
@@ -190,7 +282,7 @@ export default class Client {
 
 		return (
 			await safe_request(async () => {
-				const res = await client.auth.authSignup({email, password})
+				const res = await client.auth.authSignup({ email, password })
 				this.login(email, password)
 				return new Session(email, res.user_guid, res.jwt, res.expire_sec);
 			})
