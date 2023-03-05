@@ -117,18 +117,18 @@ export class Session {
 		).mapErr(err => "Failed to get user: " + err);
 	}
 
-	public async delete_proj(guid: string): Promise<Result<User, string>> {
+	public async delete_proj(guid: string): Promise<Result<void, string>> {
 		return (
 			await safe_request(async () => {
-				return await this.client.project.projectDelete(guid);
+				await this.client.project.projectDelete(guid);
 			})
 		).mapErr(err => "Failed to get user: " + err);
 	}
 
-	public async create_project(name: string): Promise<Result<User, string>> {
+	public async create_project(name: string): Promise<Result<void, string>> {
 		return (
 			await safe_request(async () => {
-				return await this.client.project.projectCreate({ name });
+				await this.client.project.projectCreate({ name });
 			})
 		).mapErr(err => "Failed to get user: " + err);
 	}
