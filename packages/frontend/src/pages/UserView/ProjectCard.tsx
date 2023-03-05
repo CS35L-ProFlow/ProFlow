@@ -61,10 +61,12 @@ export default function ProjectCard(props: ProjectCardProps) {
 					setInvite(!invite);
 					setSuccess(false);
 					setInvite(true);
-				}} >Invite a person</Button>
+				}} >Send invite</Button>
 				{
 					owner === "me" && 
-					<Button variant="outlined" size="small" startIcon={<DeleteIcon />} sx={{ color: "black", margin: 1 }} onClick={async () => {
+					<Button variant="outlined" size="small" startIcon={<DeleteIcon sx={{ color: "black", margin: 1, maxWidth: "100%", textOverflow: "hidden" }} />} 
+					sx={{ color: "black", margin: 1, maxWidth: "100%", textOverflow: "hidden" }}
+					onClick={async () => {
 						if (!props.session || !props.guid){
 							return;
 						}
@@ -93,18 +95,17 @@ export default function ProjectCard(props: ProjectCardProps) {
 									return;
 								}
 								const invitee = (document.getElementById('outlined-required-invite') as HTMLInputElement).value; 
-								if (invitee.length === 0) 
-									return;
+								if (invitee.length !== 0) 
+									return; // TODO: check if the user exists
 								await props.session.send_invite(invitee, guid);
 								setInvite(false);
-								// TODO: Display status of invite 
 								setInvite(false);
 								setSuccess(true);
 								setSeverity("success");
 								setSeverityMessage("Invite sent");
 								console.log("Invite Successful");
 							}} > 
-								Send Invite
+								Send
 							</Button> 
 						<Button variant="contained" size="small" sx={{ color: "white", margin: 1 }} onClick={() => {
 								setInvite(false);

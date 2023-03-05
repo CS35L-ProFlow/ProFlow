@@ -141,3 +141,55 @@ body {
     max-width:100%;
     font-family: 'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;
 }
+
+@media screen and (max-width: 1300px) {
+    .main-user-info {
+      width: 49%;
+    }
+  
+    .user-avatar-main {
+      width: 40%;
+      height: 40%;
+    }
+
+    .buttons{
+        display: grid; 
+        place-items: "center";
+        max-width: 100%;
+        margin:auto;
+        height: 30%;
+        font-family: 'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;
+    }
+  
+    .name-and-org {
+      font-size: 0.8rem;
+    }
+  
+    .Name {
+      font-size: 1.2rem;
+    }
+  
+    .add-new-project {
+      margin-bottom: 5%;
+      margin-top: 5%;
+      font-size: 0.8rem;
+    }
+  
+    #create-new-b {
+      margin-bottom: 5px;
+      margin-left: 5px;
+      font-size: 0.8rem;
+    }
+  
+    .projects-main {
+      width: 50%;
+    }
+  
+    .buttons2 {
+      margin-left: 0;
+    }
+  
+    .add-new-b {
+      font-size: 0.8rem;
+    }
+  }

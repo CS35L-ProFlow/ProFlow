@@ -110,13 +110,12 @@ export default function UserView(props: UserViewProps) {
 					size="small" className="Name" inputProps={{min: 0, style: { textAlign: 'center' }, }}  sx={{ color: "white", margin: "auto", maxWidth: "100%" }}></TextField>
 				</div>
 				{/* <div className="user-description">{props.description}</div> */}
-			
-				<div className="buttons">
+				<div className='buttons'>
 					<Button variant="outlined" sx={{ color: "black", margin: 1, maxWidth: "100%" }} onClick={() => { 
-					 	setInInviteDisp(false)
+						setInInviteDisp(false)
 						setProjDisp(true); 
-					 	// setContacts(false);
-					 }}>Your Projects</Button>
+						// setContacts(false);
+					}}>Your Projects</Button>
 					<Badge badgeContent={InviteCount} color="secondary" sx={{margin:1 }}>
 							<Button variant="outlined" sx={{ color: "black", maxWidth: "100%" }} onClick={() => { 
 							setInInviteDisp(true);
@@ -126,18 +125,17 @@ export default function UserView(props: UserViewProps) {
 						}}>Incoming invites</Button>
 					</Badge>
 					<Button variant="outlined" sx={{ color: "black", margin: 1, maxWidth: "100%"}} onClick={() => { 
-					 	setInInviteDisp(false);
-					 	setProjDisp(false); 
-					 	// setContacts(!contacts); 
-					 }}>Outgoing Invites</Button> 
+						setInInviteDisp(false);
+						setProjDisp(false); 
+						// setContacts(!contacts); 
+					}}>Outgoing Invites</Button> 
 				</div>
 				{
 					projDisp && 
 				<div className="projects-main">
 					{progress &&
 						<CircularProgress/>}
-					{projectComponents /* TODO: make this variable contain all the projects */ }
-					{/* <ProjectCard name="ProFlow" guid="test" setGuid={() => {return 0}}></ProjectCard> */}
+					{projectComponents}
 					{ 
 						createProj ? 
 							<div className="add-new-project"> 
