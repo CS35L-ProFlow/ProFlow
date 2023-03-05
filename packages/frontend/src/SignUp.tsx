@@ -1,3 +1,4 @@
+export default function signUp(){return;}
 // import { Button } from "@mui/material"
 // import Client, { Session } from "./client";
 // import { useNavigate } from "react-router-dom";
