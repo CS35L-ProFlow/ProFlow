@@ -1,9 +1,10 @@
 import Button from '@mui/material/Button'
-import Client from "../../client"
+import Client, { Session } from "../../client"
 import './index.css';
 import Pages from "../../pages";
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from "react-router-dom";
+import { GetProjectResponse } from '../../proflow';
 
 //This file contains the packground, drop down menu, and cards.
 
@@ -114,7 +115,43 @@ export function PopupBox() {
 		</div>
 	</div>
 }
+export interface PanelProps{
+    ProjectTitle1: string;
+	ProjectTitle2: string;
+	children?: React.ReactNode,
+}
 
+export function SidePanel(props:PanelProps){
+	return 	<div className='side-wrapper'>
+				<div className='side-panel'>
+					<h2>
+						Project
+						<hr></hr>
+						<Button>{props.ProjectTitle1}</Button>
+						<Button>{props.ProjectTitle2}</Button>
+
+					</h2>
+				</div>
+				<button className='side-panel-toggle' type='button' onClick={toggleSidePanel}>
+					<span className="open">open</span>
+					<span className="close">close</span>
+				</button>
+
+				<div className='main'>
+					<div className = "wrapper">
+						<Column title="Backing">
+							<div>
+								<NoteCard title="Title" description="description..." time="time"></NoteCard>
+							</div>
+						</Column>
+						<Column title="Design"></Column>
+						<Column title="To Do"></Column>
+						<Column title="Doing"></Column>
+
+					</div>
+				</div>
+			</div>
+}
 //Helper Functions Below:
 
 //Show User Menu
@@ -171,18 +208,54 @@ export function addNotes() {
 	}
 }
 
+//Toggle side panel
+export function toggleSidePanel(){
+	let sidePanel = document.querySelector(".side-panel");
+	let sidePanelOpen = document.querySelector(".side-panel-toggle")
+	sidePanelOpen!.classList.toggle("side-panel-open")
+	return sidePanel!.classList.toggle("open-side-panel")
+	
+}
+
 export interface ProjectViewProps {
-	client: Client,
+	session: Session | undefined,
+	guid: string | undefined;
 };
 
 export default function ProjectView(props: ProjectViewProps) {
-	const { guid } = useParams();
+	// const { guid } = useParams();
+	const navigate = useNavigate();
+	const [projInfo, setProjInfo] = useState<GetProjectResponse>();
+
+	useEffect(() => {
+		const fetchProjectInfo = async () => {
+			if (!props.guid || !props.session)
+				return;
+
+			const res = await props.session.get_project_info(props.guid);
+			if (res.err) {
+				// TODO: Show some error message to the user here!
+				console.log(res.val);
+				return;
+			}
+			setProjInfo(res.val);
+		}
+
+		if (!props.session || !props.guid) {
+			navigate(Pages.LOGIN)
+			return;
+		}
+
+		fetchProjectInfo();
+	}, [])
+	const title = projInfo?.name;
 
 	return (
 		<body>
 			<div className="Main-Page">
 				<nav>
 					<img src="LOGO-HERE" className="logo"></img>
+					<h1>{title}</h1>
 					<ul>
 						<li>
 							<Link to={Pages.SIGNUP}>
@@ -200,7 +273,7 @@ export default function ProjectView(props: ProjectViewProps) {
 							}}>Login</Button> */}
 							<Link to={Pages.LOGIN}>
 								<Button variant="contained" className="Button-Design">
-									Login
+									LOG IN
 								</Button>
 							</Link>
 

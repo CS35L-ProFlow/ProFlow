@@ -1,22 +1,62 @@
-.project-card{
-    /* background: linear-gradient(145deg, rgb(187, 234, 234), #359de2); */
-    background: #359de2;
-    border-radius: 10px;
-    width: 200px;
-    margin:10px;
-}
-
-p {
-    font-size: larger;
-    margin: 10px;
-    color: white;
-}
-
-#name-role{
-    display: flex;
-    justify-content: space-between;
-}
-
 .view-proj-b{
     margin: 15px;
+    max-width:100%;
+    font-family: 'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;
 }
+
+* {
+    box-sizing: border-box;
+    font-family: 'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;
+  }
+  
+  /* Float four columns side by side */
+  .column {
+    margin:auto;
+    width: 100%;
+    padding: 0 10px;
+    font-family: 'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;
+  }
+  
+  /* Responsive columns */
+  @media screen and (max-width: 800px) {
+    .column {
+      width: 100%;
+      display: block;
+      margin-bottom: 20px;
+      content: inherit;
+      overflow: hidden;
+    }
+  }
+  
+  /* Style the counter cards */
+  .project-card {
+    margin-top: 10px;
+    width: 100%;
+    border-radius: 10%;
+    box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2);
+    padding: 10px;
+    text-align: center;
+    flex-direction: column;
+    justify-content: center;
+    background-color: #f1f1f1;
+    font-family: 'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;
+  }
+
+  Button{
+    margin:auto;
+    font-family: 'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;
+  }
+
+  h3 {
+    font-size: 140%;
+    margin:auto;
+    overflow:hidden;
+    font-family: 'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;
+  }
+
+  .submit-cancel{
+    max-width: 70%;
+    margin:auto;
+    height: 30%;
+    font-family: 'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;
+  }

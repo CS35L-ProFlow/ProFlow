@@ -12,6 +12,7 @@ export interface SignUpProps {
 };
 
 
+
 //SOME NOTES:
 /*
 Okay so as of right now we have no functionality here, I just made the pages look sexy
