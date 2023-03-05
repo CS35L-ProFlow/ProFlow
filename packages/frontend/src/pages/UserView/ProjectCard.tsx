@@ -37,6 +37,8 @@ export default function ProjectCard(props: ProjectCardProps) {
 	const [severity, setSeverity] = useState<AlertColor | undefined>("error");
 	const [severityMessage, setSeverityMessage] = useState("Failed to sent");
 
+	const[invitee, setInvitee] = useState("");
+  
 	if (props.owner === props.user) 
 		owner = "me";
 	else
@@ -53,6 +55,7 @@ export default function ProjectCard(props: ProjectCardProps) {
 				<div className="card">
 					<h3>{label}</h3>
 					<h4>{"Owner: " + owner}</h4>
+					<hr></hr>
 					<Button variant="outlined" size="small" sx={{ color: "black", margin: 1  }} onClick={() => {
 					props.setGuid(props.guid);
 					navigate("/"+props.guid);
@@ -61,10 +64,12 @@ export default function ProjectCard(props: ProjectCardProps) {
 					setInvite(!invite);
 					setSuccess(false);
 					setInvite(true);
-				}} >Invite a person</Button>
+				}} >Send invite</Button>
 				{
 					owner === "me" && 
-					<Button variant="outlined" size="small" startIcon={<DeleteIcon />} sx={{ color: "black", margin: 1 }} onClick={async () => {
+					<Button variant="outlined" size="small" startIcon={<DeleteIcon sx={{ color: "black", margin: 1, maxWidth: "100%", textOverflow: "hidden" }} />} 
+					sx={{ color: "black", marginLeft: 6, maxWidth: "100%", textOverflow: "hidden" }}
+					onClick={async () => {
 						if (!props.session || !props.guid){
 							return;
 						}
@@ -78,35 +83,37 @@ export default function ProjectCard(props: ProjectCardProps) {
 					<div>
 						<TextField
 							required
-							id="outlined-required-invite"
+							id="required-invite"
 							label="Email"
 							defaultValue=""
-							sx = {{maxWidth: `100%`, margin: 3}}
+							sx = {{maxWidth: `100%`, margin: 2}}
+			
 							onFocus = {() => setSuccess(false)}
 							/>
 						<div className='submit-cancel'>
-						<Button variant="contained" type="submit" size="small" sx={{ color: "white", margin: 1 }} onClick = { async () => {
+						<Button variant="contained" type="submit" size="small" sx={{ color: "white", margin: 0.5 }} onClick = { async () => {
 								if (!props.session || !guid) {
 									setSuccess(true);
 									setSeverity("error");
 									setSeverityMessage("Failed to sent");
 									return;
 								}
-								const invitee = (document.getElementById('outlined-required-invite') as HTMLInputElement).value; 
+								const invitee = (document.getElementById('required-invite') as HTMLInputElement).value; 
 								if (invitee.length === 0) 
-									return;
+								{
+									return; // TODO: check if the user exists
+								}
 								await props.session.send_invite(invitee, guid);
 								setInvite(false);
-								// TODO: Display status of invite 
 								setInvite(false);
 								setSuccess(true);
 								setSeverity("success");
 								setSeverityMessage("Invite sent");
 								console.log("Invite Successful");
 							}} > 
-								Send Invite
+								Send
 							</Button> 
-						<Button variant="contained" size="small" sx={{ color: "white", margin: 1 }} onClick={() => {
+						<Button variant="contained" size="small" sx={{ color: "white" }} onClick={() => {
 								setInvite(false);
 								setSuccess(false);
 							}} >Cancel</Button>
@@ -115,7 +122,7 @@ export default function ProjectCard(props: ProjectCardProps) {
 				}
 				{
 					success &&
-						<Alert severity={severity}>{severityMessage}</Alert>
+					<Alert sx={{margin: 1}} severity={severity}>{severityMessage}</Alert>
 				}
 				</div>
 			</div>
