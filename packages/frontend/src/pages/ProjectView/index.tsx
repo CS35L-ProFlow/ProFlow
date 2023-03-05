@@ -1,5 +1,5 @@
-import { Button, TextField } from '@mui/material/'
-import { Session, ProjectInfo, SubProject } from "../../client"
+import { Button, TextField, Alert } from '@mui/material/'
+import { Session, ProjectInfo, SubProject, SubProjectColumnCards } from "../../client"
 import './index.css';
 import Pages from "../../pages";
 import React, { useEffect, useState, useRef } from 'react';
@@ -184,6 +184,7 @@ export default function ProjectView(props: ProjectViewProps) {
 	const navigate = useNavigate();
 	const [projInfo, setProjInfo] = useState<ProjectInfo | undefined>(undefined);
 	const [currentSubProject, setCurrentSubProject] = useState<SubProject | undefined>(undefined);
+	const [cards, setCards] = useState<SubProjectColumnCards | undefined>(undefined);
 
 	const [newColumnName, setNewColumnName] = useState<string | undefined>(undefined);
 
@@ -204,10 +205,23 @@ export default function ProjectView(props: ProjectViewProps) {
 			console.log(res.val);
 			return;
 		}
-		setProjInfo(res.val);
+		const proj_info = res.val;
+		setProjInfo(proj_info);
 
-		if (!currentSubProject && res.val.sub_projects.length > 0) {
-			setCurrentSubProject(res.val.sub_projects[0]);
+		let sub_proj = currentSubProject;
+		if (!currentSubProject && proj_info.sub_projects.length > 0) {
+			sub_proj = proj_info.sub_projects[0];
+			setCurrentSubProject(sub_proj);
+		}
+
+		if (sub_proj) {
+			const res = await props.session.get_sub_project_cards(proj_info, sub_proj.guid);
+			if (res.err) {
+				// TODO: Show some error message to the user here!
+				console.log(res.val);
+				return;
+			}
+			setCards(res.val);
 		}
 	}
 
@@ -273,7 +287,7 @@ export default function ProjectView(props: ProjectViewProps) {
 							const res = await props.session.add_sub_project_card(currentSubProject.guid, currentColumnGuid, newNoteTitle, newNoteDescription);
 							if (res.err) {
 								// TODO: Show this error to the user!
-								console.log("Failed to create new note: " + res.val);
+								console.log(res.val);
 								return;
 							}
 
@@ -287,6 +301,20 @@ export default function ProjectView(props: ProjectViewProps) {
 				</div>
 			</div>
 		</div>
+	}
+
+	const column_cards = (column_guid: string) => {
+		if (!cards)
+			return <CircularProgress />
+
+		const raw_cards = cards.cards.get(column_guid);
+		if (!raw_cards) {
+			// TODO: style this...
+			return <Alert key={column_guid} variant="outlined" severity="error" sx={{ margin: 2, maxWidth: "100%", textAlign: "left" }}>Failed to get cards for column that doesn't exist!</Alert>;
+		}
+		return raw_cards.map(c => {
+			return <NoteCard key={c.guid} title={c.title} description={c.description} time={"TODO"} />
+		})
 	}
 
 	return (
@@ -304,16 +332,18 @@ export default function ProjectView(props: ProjectViewProps) {
 				{popupBox()}
 
 				<div className="wrapper">
-					{projInfo.columns.map(c => <Column key={c.guid} title={c.name} onOpenPopup={() => setCurrentColumnGuid(c.guid)}></Column>)}
+					{projInfo.columns.map(c => <Column key={c.guid} title={c.name} onOpenPopup={() => setCurrentColumnGuid(c.guid)}>
+						{column_cards(c.guid)}
+					</Column>)}
 
 					<div style={{ display: 'flex', flexDirection: 'column', alignItems: 'start' }}>
 						<TextField label="Column Name" onChange={e => setNewColumnName(e.target.value)} value={newColumnName} />
 						<Button onClick={async () => {
-							if (!newColumnName || !props.session)
+							if (!newColumnName || !props.session || !guid)
 								return;
 
 							console.log(newColumnName);
-							const res = await props.session.add_project_column(currentSubProject.guid, newColumnName);
+							const res = await props.session.add_project_column(guid, newColumnName);
 							if (res.err) {
 								// TODO: Show some error message to the user here!
 								console.log(res.val);

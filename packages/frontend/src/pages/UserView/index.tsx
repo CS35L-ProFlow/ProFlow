@@ -113,7 +113,7 @@ export default function UserView(props: UserViewProps) {
 					return;
 				}
 				fetch();
-			}} name={invite.project_name} owner={invite.owner_email} />
+			}} name={invite.project_name} owner={invite.owner.email} />
 		});
 	}
 

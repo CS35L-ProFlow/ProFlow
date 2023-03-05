@@ -1,8 +1,8 @@
-import { Controller, Post, Get, Param, Body, UseGuards, ForbiddenException, Query, InternalServerErrorException } from '@nestjs/common';
+import { Controller, Post, Get, Param, Body, UseGuards, ForbiddenException, Query } from '@nestjs/common';
 import { ApiBearerAuth, ApiParam, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard, AuthUser } from "../auth/jwt.guard";
 import { User, SubProject } from "../database/entities";
-import { GetProjectResponse, GetProjectTreeResponse, SubProjectResponse, GetColumnCardsResponse } from "../dtos/dtos.entity";
+import { GetProjectResponse, GetProjectTreeResponse, SubProjectResponse } from "../dtos/dtos.entity";
 
 import { InviteMemberResult, ProjectService } from "./project.service";
 import { CreateSubProjectRequest, CreateProjectRequest, CreateProjectColumnRequest } from "../dtos/dtos.entity";
@@ -131,51 +131,6 @@ export class ProjectController {
 		const res = await this.project_service.add_column(user, param.guid, req.name);
 		if (res.err) {
 			throw new ForbiddenException(res.val);
-		}
-	}
-
-	@UseGuards(JwtAuthGuard)
-	@ApiBearerAuth()
-	@ApiParam({ name: "guid", required: true, description: "Sub-Project GUID" })
-	@ApiQuery({ name: "column", required: true, description: "The project column GUID to get the cards for" })
-	@ApiQuery({ name: "assignee", required: false, description: "The assignee user GUID of the card to search for" })
-	@Get(":guid/cards")
-	async get_cards(
-		@AuthUser() user: User,
-		@Param() param: { guid: string },
-		@Query("column") column: string,
-		@Query("assignee") assignee?: string,
-	): Promise<GetColumnCardsResponse> {
-
-		const res = await this.project_service.find_cards(user, {
-			sub_project_guid: param.guid,
-			column_guid: column,
-			assignee_guid: assignee
-		});
-		if (res.err) {
-			throw new ForbiddenException(res.val);
-		}
-		const { cards, project, project_column } = res.val;
-		if (!project_column) {
-			throw new InternalServerErrorException("Something went wrong getting the project column!");
-		}
-
-		return {
-			column,
-			column_name: project_column.name,
-			cards: cards.map(c => {
-				return {
-					guid: c.guid,
-					title: c.title,
-					description: c.description,
-					assignee: c.assignee?.guid,
-					project_guid: project.guid,
-					sub_project_guid: param.guid,
-					priority: c.priority,
-					date_created: c.date_created,
-					date_modified: c.date_modified,
-				}
-			})
 		}
 	}
 }
