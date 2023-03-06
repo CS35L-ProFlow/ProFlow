@@ -78,7 +78,7 @@ export interface NoteProps {
 	time: string;
 	children?: React.ReactNode,
 }
-export function NoteCard(props: NoteProps) {
+export function NoteCard(props: NoteProps){
 	return <div className="note-card" draggable="true">
 		<p>{props.title}</p>
 		<span>{props.description}</span>
