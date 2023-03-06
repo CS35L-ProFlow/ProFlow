@@ -16,7 +16,6 @@ export interface UserViewProps {
 }
 
 export default function UserView(props: UserViewProps) {
-	let InviteCount = 12;
 
 	const [projects, setProjects] = useState<Project[] | undefined>(undefined);
 	const [inInvites, setInInvites] = useState<Invite[] | undefined>(undefined);
@@ -132,7 +131,7 @@ export default function UserView(props: UserViewProps) {
 					setProjDisp(true);
 					// setContacts(false);
 				}}>Your Projects</Button>
-				<Badge badgeContent={InviteCount} color="secondary" sx={{ margin: 1 }}>
+				<Badge badgeContent={inInvites?.length ?? 0} color="secondary" sx={{ margin: 1 }}>
 					<Button variant="contained" sx={{ color: "white", maxWidth: "100%" }} onClick={() => {
 						setInInviteDisp(true);
 						setProjDisp(false);

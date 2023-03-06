@@ -11,6 +11,7 @@ export enum InviteMemberResult {
 	ProjectDoesNotExist = "Project does not exist or you are not the owner!",
 	UserDoesNotExist = "User does not exist!",
 	InvitationAlreadySent = "This user already has an invitation!",
+	AlreadyInProject = "This user already is a part of the project!",
 }
 
 @Injectable()
@@ -253,12 +254,16 @@ export class ProjectService {
 		}
 		const project = await this.find_owned_project(owner, project_guid);
 		if (!project) {
-			return InviteMemberResult.UserDoesNotExist;
+			return InviteMemberResult.ProjectDoesNotExist;
 		}
 
 		const invitee = await this.user_service.find_user_with_email(invitee_email);
 		if (!invitee) {
-			return InviteMemberResult.ProjectDoesNotExist;
+			return InviteMemberResult.UserDoesNotExist;
+		}
+
+		if (project.members.find(m => m.guid == invitee.guid)) {
+			return InviteMemberResult.AlreadyInProject;
 		}
 
 		if (await this.invite_repository.findOne({ where: { invitee, project }, relations: { invitee: true, project: true } })) {
