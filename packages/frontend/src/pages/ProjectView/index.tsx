@@ -103,36 +103,36 @@ export function DeleteNode(){
 
 //Popup Box:
 
-interface PanelProps {
-	ProjectTitle1: string;
-	ProjectTitle2: string;
-	children?: React.ReactNode,
-}
+// interface PanelProps {
+// 	ProjectTitle1: string;
+// 	ProjectTitle2: string;
+// 	children?: React.ReactNode,
+// }
 
-function SidePanel(props: PanelProps) {
-	return <div className='side-wrapper'>
-		<div className='side-panel'>
-			<h2>
-				Project
-				<hr></hr>
-				<Button>{props.ProjectTitle1}</Button>
-				<Button>{props.ProjectTitle2}</Button>
+// function SidePanel(props: PanelProps) {
+// 	return <div className='side-wrapper'>
+// 		<div className='side-panel'>
+// 			<h2>
+// 				Project
+// 				<hr></hr>
+// 				<Button>{props.ProjectTitle1}</Button>
+// 				<Button>{props.ProjectTitle2}</Button>
 
-			</h2>
-		</div>
-		<button className='side-panel-toggle' type='button' onClick={toggleSidePanel}>
-			<span className="open">open</span>
-			<span className="close">close</span>
-		</button>
+// 			</h2>
+// 		</div>
+// 		<button className='side-panel-toggle' type='button' onClick={toggleSidePanel}>
+// 			<span className="open">open</span>
+// 			<span className="close">close</span>
+// 		</button>
 
-				<div className='main'>
-				<div className="wrapper">
+// 				<div className='main'>
+// 				<div className="wrapper">
 
 
-				</div> 
-				</div>
-			</div>
-}
+// 				</div> 
+// 				</div>
+// 			</div>
+// }
 //Helper Functions Below:
 //Append card
 export function AppendCard(columnId:string ,NoteCard:HTMLElement){
@@ -334,40 +334,55 @@ export default function ProjectView(props: ProjectViewProps) {
 
 				</nav>
 				{popupBox()}
-
-				<div className="wrapper">
-					{projInfo.columns.map(c => <Column key={c.guid} title={c.name} onOpenPopup={() => setCurrentColumnGuid(c.guid)}>
-						{column_cards(c.guid)}
-					</Column>)}
-
-					<div style={{ display: 'flex', flexDirection: 'column', alignItems: 'start' }}>
-						<TextField label="Column Name" onChange={e => setNewColumnName(e.target.value)} value={newColumnName} />
-						<Button onClick={async () => {
-							if (!newColumnName || !props.session || !guid)
-								return;
-
-							console.log(newColumnName);
-							const res = await props.session.add_project_column(guid, newColumnName);
-							if (res.err) {
-								// TODO: Show some error message to the user here!
-								console.log(res.val);
-								return;
-							}
-
-							await fetchProjectInfo();
-						}}>Create column</Button>
+				<div className='side-wrapper'>
+					<div className='side-panel'>
+						<h2>
+							Project
+							<hr></hr>
+							<Button>Project1</Button>
+							<Button>Project2</Button>
+						</h2>
 					</div>
-					{/* <Column title="Backing"> */}
-					{/* 	<div> */}
-					{/* 		<NoteCard title="Title" description="description..." time="time"></NoteCard> */}
-					{/* 	</div> */}
-					{/* </Column> */}
-					{/* <Column title="Design"></Column> */}
-					{/* <Column title="To Do"></Column> */}
-					{/* <Column title="Doing"></Column> */}
+					<button className='side-panel-toggle' type='button' onClick={toggleSidePanel}>
+						<span className="open">open</span>
+						<span className="close">close</span>
+					</button>
+					<div className ='main'>
+						<div className="wrapper">
+							{projInfo.columns.map(c => <Column key={c.guid} title={c.name} onOpenPopup={() => setCurrentColumnGuid(c.guid)}>
+								{column_cards(c.guid)}
+							</Column>)}
 
+							<div style={{ display: 'flex', flexDirection: 'column', alignItems: 'start' }}>
+								<TextField label="Column Name" onChange={e => setNewColumnName(e.target.value)} value={newColumnName} />
+								<Button onClick={async () => {
+									if (!newColumnName || !props.session || !guid)
+										return;
+
+									console.log(newColumnName);
+									const res = await props.session.add_project_column(guid, newColumnName);
+									if (res.err) {
+										// TODO: Show some error message to the user here!
+										console.log(res.val);
+										return;
+									}
+
+									await fetchProjectInfo();
+								}}>Create column</Button>
+							</div>
+							{/* <Column title="Backing"> */}
+							{/* 	<div> */}
+							{/* 		<NoteCard title="Title" description="description..." time="time"></NoteCard> */}
+							{/* 	</div> */}
+							{/* </Column> */}
+							{/* <Column title="Design"></Column> */}
+							{/* <Column title="To Do"></Column> */}
+							{/* <Column title="Doing"></Column> */}
+
+						</div>
+					</div>
 				</div>
-			</div>
+		</div>
 		</body >
 
 	);
