@@ -9,6 +9,7 @@ import { Result, Ok } from "ts-results";
 
 //This file contains the packground, drop down menu, and cards.
 
+
 //New column
 interface ColumnProps {
 	title: string;
@@ -22,11 +23,12 @@ function Column(props: ColumnProps) {
 			<p>{props.title}</p>
 			<hr></hr>
 		</div>
-		{props.children}
 		<div className="add-buttom">
 			<Button id="add-note-button" onClick={props.onOpenPopup}>Add new Notes</Button>
 		</div>
-	</li>;
+		{props.children}
+		
+	</li>
 }
 
 //User Profile
@@ -77,22 +79,26 @@ interface NoteProps {
 	time: string;
 	children?: React.ReactNode,
 }
-
-function NoteCard(props: NoteProps) {
-	return <div className="note-card">
+export function NoteCard(props: NoteProps){
+	return <div className="note-card" draggable="true">
 		<p>{props.title}</p>
 		<span>{props.description}</span>
 		<div className="bottom-content">
 			<span>{props.time}</span>
-			<div className='settings'>
+			{/* <div className='settings'>
 				<i>Setting</i>
 				<ul className="menu">
 					<li>Edit</li>
 					<li>Delete</li>
 				</ul>
-			</div>
+			</div> */}
 		</div>
 	</div>
+	
+}
+
+export function DeleteNode(){
+	
 }
 
 //Popup Box:
@@ -119,22 +125,19 @@ function SidePanel(props: PanelProps) {
 			<span className="close">close</span>
 		</button>
 
-		<div className='main'>
-			<div className="wrapper">
-				{/* <Column title="Backing"> */}
-				{/* 	<div> */}
-				{/* 		<NoteCard title="Title" description="description..." time="time"></NoteCard> */}
-				{/* 	</div> */}
-				{/* </Column> */}
-				{/* <Column title="Design"></Column> */}
-				{/* <Column title="To Do"></Column> */}
-				{/* <Column title="Doing"></Column> */}
+				<div className='main'>
+				<div className="wrapper">
 
+
+				</div> 
+				</div>
 			</div>
-		</div>
-	</div>
 }
 //Helper Functions Below:
+//Append card
+export function AppendCard(columnId:string ,NoteCard:HTMLElement){
+	//TODO: figure out how to pass in column id. 
+}
 
 //Show User Menu
 function toggleMenu() {
@@ -143,28 +146,29 @@ function toggleMenu() {
 }
 
 //Show ADD NEW NOTES popup
-// function addNotesButton() {
-// 	let popupBox = document.querySelector(".popup-box");
-// 	return popupBox!.classList.add("show");
-// }
+function addNotesButton() {
+	let popupBox = document.querySelector(".popup-box");
+	return popupBox!.classList.add("show");
+}
 
 //Hide ADD NEW NOTES popup
-// function closeAddNotesIcon() {
-// 	let popupBox = document.querySelector(".popup-box");
-// 	return popupBox!.classList.remove("show");
-// }
+function closeAddNotesIcon() {
+	let popupBox = document.querySelector(".popup-box");
+	return popupBox!.classList.remove("show");
+}
+
 
 //Add new notes
-// function addNotes(session: Session, guid: string) {
-// 	let titleTag = document.querySelector("input")
-// 	let descriptionTag = document.querySelector("textarea")
-// 	let noteTitle = titleTag?.value;
-// 	let noteDescription = descriptionTag?.value;
+function addNotes(session: Session, guid: string) {
+	let titleTag = document.querySelector("input")
+	let descriptionTag = document.querySelector("textarea")
+	let noteTitle = titleTag?.value;
+	let noteDescription = descriptionTag?.value;
 
-// 	if (noteTitle || noteDescription) {
-// 		closeAddNotesIcon();
-// 	}
-// }
+	if (noteTitle || noteDescription) {
+		closeAddNotesIcon();
+	}
+}
 
 //Toggle side panel
 function toggleSidePanel() {
@@ -235,6 +239,7 @@ export default function ProjectView(props: ProjectViewProps) {
 	}, [])
 
 	const title = projInfo?.name;
+	DragAndDrop();
 
 	if (!props.session)
 		return <body></body>;
@@ -322,7 +327,6 @@ export default function ProjectView(props: ProjectViewProps) {
 			<div className="Main-Page">
 				<nav>
 					<img src="LOGO-HERE" className="logo"></img>
-					<h1>{title}</h1>
 					<ul>
 
 					</ul>
@@ -367,4 +371,66 @@ export default function ProjectView(props: ProjectViewProps) {
 		</body >
 
 	);
+}
+
+//Drag and Drop
+function DragAndDrop(){
+const list_items = document.querySelectorAll(".note-card") as NodeListOf<HTMLElement>;
+const lists = document.querySelectorAll(".note") as NodeListOf<HTMLElement>;
+//item we are dragging
+let draggedItem:any = null;
+for(let i = 0; i< list_items.length; i++){
+	const item = list_items[i];
+
+	item.addEventListener('dragstart', function(){
+		draggedItem = item;
+		item.classList.add('dragging')
+		setTimeout(function(){
+			draggedItem.style.display = 'none';
+		},0)
+		
+	});
+	
+	item.addEventListener('dragend', function(){
+		item.classList.remove('dragging')
+		setTimeout(function(){
+			draggedItem.style.display = 'block';
+			draggedItem = null;
+		}, 0);
+	});
+}
+	for(let j = 0; j<lists.length; j++){
+		const list = lists[j]
+		list.addEventListener('dragover', function(e){
+			e.preventDefault();
+			const afterElement = getDragAfterElement(list, e.clientY)
+			if(afterElement == null && draggedItem!=null){
+				list.append(draggedItem);
+			}else if(draggedItem!=null){
+				list.insertBefore(draggedItem, afterElement)
+			}
+
+		});
+	}
+}
+
+
+
+
+function getDragAfterElement(list:any, y:number){
+	//TODO: Figure out how to change the array dynamically. 
+	// Currently, the drag and drop features only work on the cards that are displayed when
+	// enterting the page. The newly added cards will not have this feature. 
+	const draggableElements = [...list.querySelectorAll('.note-card:not(.dragging)')]
+	return draggableElements.reduce((closest, child) =>{
+		const box = child.getBoundingClientRect()
+		const offset = y - box.top - box.height / 2
+		if(offset < 0 && offset > closest.offset){
+			return { offset: offset, element: child}
+		}else {
+			return closest
+
+			}
+		
+	},{ offset: Number.NEGATIVE_INFINITY }).element
 }
