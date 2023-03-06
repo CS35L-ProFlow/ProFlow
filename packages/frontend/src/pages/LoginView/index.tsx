@@ -2,7 +2,7 @@ import { useRef, useState } from 'react';
 import Button from '@mui/material/Button'
 import TextField from "@mui/material/TextField"
 import Client, { Session } from "../../client"
-import "./index.css"
+import "./index.css";
 import Pages from "../../pages";
 import { useNavigate } from "react-router-dom";
 
@@ -37,17 +37,15 @@ export default function Login(props: LoginProps) {
 
 				console.log(res.val);
 	}
-
-	// function handleEnter(event: KeyboardEvent<HTMLDivElement>): void {
-	// 	if (event.key === 'Enter') {
-	// 		const button = document.getElementById('LOGIN') as HTMLButtonElement;
-	// 		button.click();
-			
-	// 	}
-	// }
+	
+	function handleEnter(event: React.KeyboardEvent<HTMLButtonElement>): void {
+    if (event.key === 'Enter') {
+      login();
+    }
+  }
 
 	return (
-		<div className="container">
+		<div className="container2">
 			<h1>
 				Login
 			</h1>
@@ -57,7 +55,8 @@ export default function Login(props: LoginProps) {
 			<div className="input-group">
 				<TextField type="password" label="Password" value={password} onChange={e => setPassword(e.target.value)} />
 			</div>
-			<Button id="LOGIN" variant="contained" onClick={login}>Login</Button>
+			{/* <Button id="LOGIN" variant="contained" onKeyDown={handleEnter} onClick={login}>Login</Button> */}
+			<Button className="clickMe" id="LOGIN" variant="contained" onKeyDown={(event) => handleEnter(event)} onClick={(event) => login()}>Login</Button>
 		</div>
 	);
 }
