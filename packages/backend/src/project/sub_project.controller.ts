@@ -1,9 +1,10 @@
 import { Controller, Post, Get, Body, Param, UseGuards, ForbiddenException, Query, InternalServerErrorException } from '@nestjs/common';
 import { ApiBearerAuth, ApiParam, ApiQuery, ApiTags } from '@nestjs/swagger';
+import { RequiredQuery } from 'src/decorators';
 import { JwtAuthGuard, AuthUser } from "../auth/jwt.guard";
 import { User } from "../database/entities";
 import { AddCardRequest } from "../dtos/dtos.entity";
-import { GetColumnCardsResponse } from "../dtos/dtos.entity";
+import { GetColumnCardsResponse, EditCardRequest } from "../dtos/dtos.entity";
 
 import { ProjectService } from "./project.service";
 
@@ -83,6 +84,40 @@ export class SubProjectController {
 					date_modified: c.date_modified,
 				}
 			})
+		}
+	}
+
+	@UseGuards(JwtAuthGuard)
+	@ApiBearerAuth()
+	@ApiParam({ name: "guid", required: true, description: "Sub-Project GUID" })
+	@Post("card/:guid/edit")
+	async edit_card(@AuthUser() user: User, @Param() param: { guid: string }, @Body() req: EditCardRequest) {
+		const res = await this.project_service.edit_card(
+			user, param.guid,
+			req.guid,
+			{
+				priority: req.priority,
+				title: req.title,
+				description: req.description,
+				assignee: req.assignee,
+				column: req.column,
+			})
+
+		if (res.err) {
+			throw new ForbiddenException(res.val);
+		}
+	}
+
+	@UseGuards(JwtAuthGuard)
+	@ApiBearerAuth()
+	@ApiParam({ name: "guid", required: true, description: "Sub-Project GUID" })
+	@ApiQuery({ name: "card_guid", required: true, description: "GUID of the card to delete" })
+	@Post("card/:guid/delete")
+	async delete_card(@AuthUser() user: User, @Param() param: { guid: string }, @RequiredQuery("card_guid") card_guid: string) {
+		const res = await this.project_service.delete_card(user, param.guid, card_guid);
+
+		if (res.err) {
+			throw new ForbiddenException(res.val);
 		}
 	}
 }

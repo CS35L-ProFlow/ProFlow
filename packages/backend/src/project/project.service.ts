@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
-import { InjectRepository, } from "@nestjs/typeorm";
-import { Repository, TreeRepository, DataSource } from "typeorm";
+import { InjectRepository } from "@nestjs/typeorm";
+import { Repository, TreeRepository, DataSource, Between, EntityManager, MoreThanOrEqual, UpdateResult } from "typeorm";
 import { Project, SubProject, User, UserInvite, ProjectColumn, Card } from "../database/entities";
 import { UserService } from "../user/user.service";
 import { Ok, Err, Result } from "ts-results";
@@ -102,7 +102,14 @@ export class ProjectService {
 		});
 	}
 
-	async add_card_to_column(user: User, sub_project_guid: string, column_guid: string, title: string, description: string, assignee_guid?: string): Promise<Result<void, string>> {
+	async add_card_to_column(
+		user: User,
+		sub_project_guid: string,
+		column_guid: string,
+		title: string,
+		description: string,
+		assignee_guid?: string
+	): Promise<Result<void, string>> {
 		return await this.data_source.transaction(async manager => {
 			const sub_project = await manager.findOne(SubProject, { where: { guid: sub_project_guid }, relations: ["project", "project.members"] })
 			if (!sub_project)
@@ -133,7 +140,7 @@ export class ProjectService {
 			const highest_priority = highest_card?.priority ?? -1;
 			const priority = highest_priority + 1;
 
-			const card = await manager.save(Card, {
+			await manager.save(Card, {
 				title,
 				description,
 				sub_project,
@@ -141,11 +148,158 @@ export class ProjectService {
 				assignee,
 				priority
 			});
-			console.log("Saved card " + JSON.stringify(card));
 
 			return Ok.EMPTY;
 		});
 	}
+
+	private async fill_card_priority_hole(
+		manager: EntityManager,
+		project_column: ProjectColumn,
+		old_priority: number,
+		new_priority?: number
+	): Promise<UpdateResult | undefined> {
+		if (new_priority == undefined) {
+			return manager.createQueryBuilder()
+				.update(Card)
+				.set({ priority: () => "priority - 1" })
+				.where({
+					project_column,
+					priority: MoreThanOrEqual(old_priority),
+				}).execute();
+		}
+
+		if (old_priority == new_priority) {
+			return undefined;
+		}
+
+		if (new_priority < old_priority) {
+			return await manager.createQueryBuilder()
+				.update(Card)
+				.set({ priority: () => "priority + 1" })
+				.where({
+					project_column,
+					priority: Between(new_priority, old_priority)
+				}).execute();
+		} else {
+			return await manager.createQueryBuilder()
+				.update(Card)
+				.set({ priority: () => "priority - 1" })
+				.where({
+					project_column,
+					priority: Between(old_priority, new_priority)
+				}).execute();
+		}
+	}
+
+	async delete_card(user: User, sub_project_guid: string, guid: string): Promise<Result<void, string>> {
+		return await this.data_source.transaction(async manager => {
+			const sub_project = await manager.findOne(SubProject, { where: { guid: sub_project_guid }, relations: ["project", "project.members"] })
+			if (!sub_project)
+				return Err("Cannot add column to project that does not exist!");
+
+			if (!sub_project.project.members.find(m => m.guid == user.guid)) {
+				return Err("User is not a member of the project and cannot add a card!")
+			}
+
+			const card = await manager.findOne(Card, { where: { guid }, relations: ["project_column", "assignee"] })
+
+			if (!card) {
+				return Err("Card does not exist!");
+			}
+
+			await this.fill_card_priority_hole(manager, card.project_column, card.priority);
+
+			await manager.delete(Card, { guid });
+
+			return Ok.EMPTY;
+		});
+	}
+
+	async edit_card(
+		user: User,
+		sub_project_guid: string,
+		guid: string,
+		edits: {
+			priority?: number,
+			title?: string,
+			description?: string,
+			assignee?: string,
+			column?: string
+		}): Promise<Result<void, string>> {
+		if (edits.priority ?? 0 < 0) {
+			return Err("Priority cannot be negative!");
+		}
+
+		return await this.data_source.transaction(async manager => {
+			const sub_project = await manager.findOne(SubProject, { where: { guid: sub_project_guid }, relations: ["project", "project.members"] })
+			if (!sub_project)
+				return Err("Cannot add column to project that does not exist!");
+
+			if (!sub_project.project.members.find(m => m.guid == user.guid)) {
+				return Err("User is not a member of the project and cannot add a card!")
+			}
+
+			const card = await manager.findOne(Card, { where: { guid }, relations: ["project_column", "assignee"] })
+
+			if (!card) {
+				return Err("Card does not exist!");
+			}
+
+			if (edits.title && card.title != edits.title) {
+				card.title = edits.title;
+			}
+
+			if (edits.description && card.description != edits.description) {
+				card.description = edits.description;
+			}
+
+			if (edits.assignee && card.assignee?.guid != edits.assignee) {
+				const new_assignee = sub_project.project.members.find(m => m.guid == edits.assignee);
+
+				if (!new_assignee) {
+					return Err("Assignee is not a member of the project!");
+				}
+
+				// TODO(Brandon): Probably want to add a check to make sure that the user is actually a member of the project...
+
+				card.assignee = new_assignee;
+			}
+
+			if (edits.column && card.project_column.guid != edits.column) {
+				const column = await manager.findOne(ProjectColumn, { where: { guid: edits.column } })
+				if (!column) {
+					return Err("Column does not exist!");
+				}
+
+				await this.fill_card_priority_hole(manager, card.project_column, card.priority);
+
+				// TODO(Brandon): Probably want to add a check to make sure that the column is actually a part of the project...
+
+				card.project_column = column;
+			}
+
+			if (edits.priority != undefined && card.priority != edits.priority) {
+				await this.fill_card_priority_hole(manager, card.project_column, card.priority, edits.priority);
+
+				const highest_card = await manager
+					.createQueryBuilder(Card, "card")
+					.where({ project_column: card.project_column, })
+					.orderBy({ priority: "DESC" })
+					.limit(1)
+					.getOne();
+
+				const highest_priority = (highest_card?.priority ?? -1) + 1;
+				card.priority = Math.min(edits.priority, highest_priority);
+			}
+
+			await manager.save(card);
+
+			return Ok.EMPTY;
+		});
+	}
+
+
 	async find_cards(user: User, where: {
 		project_guid?: string,
 		sub_project_guid?: string,
