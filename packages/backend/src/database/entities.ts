@@ -110,7 +110,7 @@ export class ProjectColumn {
 	@OneToMany(() => Card, (card) => card.project_column, { onDelete: "CASCADE", onUpdate: "CASCADE" })
 	readonly cards: Card[];
 
-	@ManyToOne(() => Project, { nullable: false, onDelete: "CASCADE", onUpdate: "CASCADE" })
+	@ManyToOne(() => Project, (project) => project.project_columns, { nullable: false, onDelete: "CASCADE", onUpdate: "CASCADE" })
 	@JoinColumn({ name: "project_id" })
 	readonly project: Project;
 }
