@@ -148,7 +148,7 @@ export default function UserView(props: UserViewProps) {
 		}
 
 		if (inInvites.length === 0){
-			return <Alert variant="outlined" severity="info" sx={{ margin: 2, maxWidth: "15%" }}>No Invites found</Alert>;
+			return <Alert variant="outlined" severity="info" sx={{ margin: 2, maxWidth: "100%" }}>No Invites found</Alert>;
 		}
 		return inInvites.map(invite => {
 			return <InviteCard key={invite.guid} onAcceptInvitation={async () => {
@@ -266,7 +266,7 @@ export default function UserView(props: UserViewProps) {
 
 			{
 				inInviteDisp &&
-				<div className="projects-main">
+				<div className="invite-cards">
 					{incomingInviteComponents()}
 				</div>
 			}
