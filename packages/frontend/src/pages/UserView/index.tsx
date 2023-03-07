@@ -28,6 +28,7 @@ export default function UserView(props: UserViewProps) {
 
 	const [fetchError, setFetchError] = useState(false);
 
+	const [display, setDisplay] = useState(false);
 	const [progress, setProgress] = useState(false);
 	// const [inviteAccepted, setInviteAccepted] = useState(false);
 
@@ -65,11 +66,16 @@ export default function UserView(props: UserViewProps) {
 	}
 
 	useEffect(() => {
+		// alert("AAA");
+		const fetch = () => {
+			fetchProjects();
+			fetchInvites();
+		}
+		
 		const fetchProjects = async () => {
-			if (!props.session)
+			if (!props.session){
 				return;
-
-			
+			}
 			setProgress(true);
 			const res = await props.session.get_my_projects();
 			if (res.err) {
@@ -85,19 +91,20 @@ export default function UserView(props: UserViewProps) {
 		}
 
 		const fetchInvites = async () => {
-			if (!props.session)
+			if (!props.session){
 				return;
-				setProgress(true);
-				const res = await props.session.get_my_invites();
-				if (res.err) {
-					setFetchError(true);
-					console.log(res.val);
-					return;
-				}
-				setProgress(false);
-				setInInvites(res.val);
-				setInviteAccepted(false);
-				setFetchError(false);
+			}
+			setProgress(true);
+			const res = await props.session.get_my_invites();
+			if (res.err) {
+				setFetchError(true);
+				console.log(res.val);
+				return;
+			}
+			setProgress(false);
+			setInInvites(res.val);
+			setInviteAccepted(false);
+			setFetchError(false);
 		}
 
 		if (!props.session) {
@@ -105,7 +112,7 @@ export default function UserView(props: UserViewProps) {
 			return;
 		}
 		fetch();
-	}, [projDisp, inInviteDisp])
+	}, [projDisp, inInviteDisp, display])
 
 	if (!props.session) {
 		return <body></body>;
@@ -113,16 +120,17 @@ export default function UserView(props: UserViewProps) {
 
 
 	const projectComponents = () => {
-		if (!projects)
-			return <CircularProgress />
-		if (projects.length === 0)
+		if (!projects){
+			return <CircularProgress color='success' />
+		}
+		if (projects.length === 0){
 			return <Alert variant="outlined" severity="info" sx={{ margin: 2, maxWidth: "100%", textAlign: "left" }}>No Projects Found. Press "NEW PROJECT" to create a new one</Alert>;
-
+		}
 		return projects.map(proj => {
 			return <ProjectCard key={proj.guid} guid={proj.guid} name={proj.name} session={props.session!} owner={proj.owner} onDelete={async () => {
-				if (!props.session || !proj.guid)
+				if (!props.session || !proj.guid){
 					return;
-
+				}
 				const res = await props.session.delete_proj(proj.guid);
 				if (res.err) {
 					// TODO: Error handling and display accept success
@@ -135,11 +143,13 @@ export default function UserView(props: UserViewProps) {
 	}
 
 	const incomingInviteComponents = () => {
-		if (!inInvites)
+		if (!inInvites){
 			return <CircularProgress />;
+		}
 
-		if (inInvites.length === 0)
+		if (inInvites.length === 0){
 			return <Alert variant="outlined" severity="info" sx={{ margin: 2, maxWidth: "15%" }}>No Invites found</Alert>;
+		}
 		return inInvites.map(invite => {
 			return <InviteCard key={invite.guid} onAcceptInvitation={async () => {
 				if (!props.session)
@@ -160,7 +170,7 @@ export default function UserView(props: UserViewProps) {
 		<div className="body-of-page">
 			<div className="name-and-org">
 				{/* <div className="user-name-main">Name: {props.session.email}</div> */}
-				<Typography sx={{ margin: 3 }} fontSize={"large"} variant='overline'>{props.session.email}</Typography>
+				<Typography sx={{ margin: 3, marginLeft:6 }} fontSize={"large"} variant='overline'>{props.session.email}</Typography>
 			</div>
 			<hr></hr>
 			{/* <div className="user-description">{props.description}</div> */}
@@ -183,7 +193,7 @@ export default function UserView(props: UserViewProps) {
 				{/* 	setInInviteDisp(false); */}
 				{/* 	setProjDisp(false); */}
 				{/* 	// setContacts(!contacts);  */}
-				{/* }}>Outgoing Invites</Button> */}
+				{/* }}>Outprgoing Invites</Button> */}
 			</div>
 			{
 				projDisp &&
@@ -217,6 +227,8 @@ export default function UserView(props: UserViewProps) {
 									<Button variant="contained" size="small" sx={{ color: "white", margin: 1, maxWidth: `100%` }} onClick={async () => { 
 									const name = (document.getElementById('outlined-required') as HTMLInputElement).value; 
 									if (name.length !== 0 && props.session) { 
+										
+
 										if (projects && projects.some(proj => proj.name === name)) { 
 											setTaken(true);
 											return;
@@ -224,7 +236,7 @@ export default function UserView(props: UserViewProps) {
 										await props.session.create_project(name);
 										setCreateProj(false); 
 										setTaken(false);
-										setProjDisp(true);
+										setDisplay(!display);
 									} 
 									return;
 									}}> 
