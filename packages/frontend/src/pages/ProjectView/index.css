@@ -169,7 +169,7 @@
     list-style: none;
     background: #ececec;
     border-radius: 5px;
-    padding: 15px 20px 20px;
+    /* padding: 15px 20px 20px; */
     overflow-x: scroll;
   }
   
@@ -177,7 +177,7 @@
     display: flex;
     flex-direction: column;
     justify-content: space-between;
-    padding: 0px 20px 0px;
+    padding: 20px 20px 20px;
   }
   
   
@@ -189,9 +189,7 @@
   
   .note-card{
     background: #fff;
-    margin-bottom: 20px;
-
-  
+    /* margin-bottom: 20px; */
   }
   
   .note-card p{
@@ -202,7 +200,7 @@
 
   .note-card span{
     display: block;
-    margin-top: 5px;
+    /* margin-top: 5px; */
     color: #575757;
     font-size: 16px;
   }
