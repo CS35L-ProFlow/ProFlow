@@ -1,4 +1,4 @@
-import { IsEmail, IsNotEmpty } from "class-validator";
+import { IsEmail, IsNotEmpty, IsInt } from "class-validator";
 
 export class LoginRequest {
 	/*
@@ -85,6 +85,40 @@ export class AddCardRequest {
 	 * The user GUID that the card is assigned to.
 	 */
 	assignee?: string;
+}
+
+export class EditCardRequest {
+	/*
+	 * The GUID of the card.
+	 */
+	@IsNotEmpty()
+	guid: string;
+
+	/*
+	 * The priority index of the card. 0 is the highest priority in the column.
+	 */
+	@IsInt()
+	priority?: number;
+
+	/*
+	 * The title of the card.
+	 */
+	title?: string;
+
+	/*
+	 * The description of the card.
+	 */
+	description?: string;
+
+	/*
+	 * The user GUID that the card is assigned to.
+	 */
+	assignee?: string;
+
+	/*
+	 * The column GUID that the card belongs to.
+	 */
+	column?: string;
 }
 
 export class CreateProjectColumnRequest {
@@ -285,3 +319,4 @@ export class GetInvitationResponse {
 	 */
 	guid: string;
 }
+

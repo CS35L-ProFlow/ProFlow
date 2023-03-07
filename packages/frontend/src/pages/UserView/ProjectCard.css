@@ -35,7 +35,7 @@
     max-height: 50px;
     font-size: 140%;
     margin:auto;
-    overflow:scroll;
+    overflow:hidden;
     font-family: 'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;
   }
 
