@@ -37,6 +37,9 @@ export default function UserView(props: UserViewProps) {
 	const [projDisp, setProjDisp] = useState(true);
 	const [inInviteDisp, setInInviteDisp] = useState(false);
 	const [inviteAccepted, setInviteAccepted] = useState(false);
+	const [taken, setTaken] = useState(false);
+
+	const [fetchError, setFetchError] = useState(false);
 
 	const [progress, setProgress] = useState(false);
 
@@ -51,7 +54,7 @@ export default function UserView(props: UserViewProps) {
 			setProgress(true);
 			const res = await props.session.get_my_projects();
 			if (res.err) {
-				// TODO: Show some error message to the user here!
+				setFetchError(true);
 				console.log(res.val);
 				return;
 			}
@@ -59,6 +62,7 @@ export default function UserView(props: UserViewProps) {
 
 			setProjects(res.val);
 			setDeleteProj(false);
+			setFetchError(false);
 		}
 
 		const fetchInvites = async () => {
@@ -67,13 +71,14 @@ export default function UserView(props: UserViewProps) {
 				setProgress(true);
 				const res = await props.session.get_my_invites();
 				if (res.err) {
-					// TODO: Sho some error message to the user here!
+					setFetchError(true);
 					console.log(res.val);
 					return;
 				}
 				setProgress(false);
 				setInInvites(res.val);
 				setInviteAccepted(false);
+				setFetchError(false);
 		}
 
 		if (!props.session) {
@@ -93,13 +98,16 @@ export default function UserView(props: UserViewProps) {
 
 	const projectComponents = (projects && projects.length !== 0) ? projects.map(proj => {
 		return <ProjectCard key={proj.guid} guid={proj.guid} name={proj.name} user={props.session ? props.session.email : "N\\A"} owner={proj.owner.email} setGuid={props.setGuid} session={props.session} recordDelete={setDeleteProj} />
-	}) : <Alert variant="outlined" severity="info" sx={{margin:2, maxWidth: "100%", textAlign: "left"}}>No Projects Found. Press "NEW PROJECT" to create a new one</Alert>;
+	}) : <Alert variant="outlined" severity="info" sx={{margin:1, maxWidth: "100%", textAlign: "left"}}>No Projects Found. Press "NEW PROJECT" to create a new one</Alert>;
 	const inInviteComponents = (inInvites && inInvites.length !== 0) ? inInvites.map(invite => {
 		return <InviteCard key={invite.guid} updateAccept={setInviteAccepted} session={props.session} guid={invite.guid} name={invite.project_name} owner_email={invite.owner_email} />
-	}) : <Alert variant="outlined" severity="info" sx={{margin:2}}>No Invites found</Alert>;
+	}) : <Alert variant="outlined" severity="info" sx={{margin:1, maxWidth: "30%", textAlign: "left"}}>No Invites found</Alert>;
 
 	return (
 		<div className="body-of-page">
+			{fetchError &&
+			<Alert variant="outlined" severity="error" sx={{margin:"auto", maxWidth: "30%", textAlign: "left"}}>Unable to load data</Alert>
+			}
 				<div className="name-and-org">
 					{/* <div className="user-name-main">Name: {props.session.email}</div> */}
 					<Typography sx={{margin:3}}fontSize={"large"} variant='overline'>{props.session.email}</Typography>
@@ -161,14 +169,13 @@ export default function UserView(props: UserViewProps) {
 									<Button variant="contained" size="small" sx={{ color: "white", margin: 1, maxWidth: `100%` }} onClick={async () => { 
 									const name = (document.getElementById('outlined-required') as HTMLInputElement).value; 
 									if (name.length !== 0 && props.session) { 
-										// If project name already exists
 										if (projects && projects.some(proj => proj.name === name)) { 
-											// TODO: Display some error message to the user here
-											console.log("ERROR: Unable to create project. Project name already exists")
+											setTaken(true);
 											return;
 										}
 										await props.session.create_project(name);
 										setCreateProj(false); 
+										setTaken(false);
 									} 
 									return;
 									}}> 
@@ -178,6 +185,9 @@ export default function UserView(props: UserViewProps) {
 										Cancel 
 									</Button> 
 								</div>
+								{taken &&
+								<Alert variant="outlined" severity="error" sx={{ marginLeft:1, maxWidth: "10%", textAlign: "left"}}>Project name is taken</Alert>
+								}
 							</div>  : 
 							<Button variant="outlined" size="small" color="success" sx={{ color: "black", margin: 1, maxWidth: `100%` }} onClick={() => setCreateProj(true)}> 
 								+ New Project

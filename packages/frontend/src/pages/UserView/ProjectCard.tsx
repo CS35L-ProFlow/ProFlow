@@ -39,15 +39,20 @@ export default function ProjectCard(props: ProjectCardProps) {
 
 	const[invitee, setInvitee] = useState("");
   
-	if (props.owner === props.user) 
+	if (props.owner === props.user) {
 		owner = "me";
-	else
+	}
+	else{
 		owner = props.owner;
+	}
 	if (typeof props.name === "undefined") {
 		label = "error";
 	}
 	else {
 		label = props.name;
+		if(label.length > 30){
+			label = label.slice(0,30) + "..."
+		}
 	}
 	return (
 		<div className="project-card">
@@ -99,8 +104,7 @@ export default function ProjectCard(props: ProjectCardProps) {
 									return;
 								}
 								const invitee = (document.getElementById('required-invite') as HTMLInputElement).value; 
-								if (invitee.length === 0) 
-								{
+								if (invitee.length === 0) {
 									return; // TODO: check if the user exists
 								}
 								await props.session.send_invite(invitee, guid);

@@ -32,9 +32,10 @@
   }
 
   h3 {
+    max-height: 50px;
     font-size: 140%;
     margin:auto;
-    overflow:hidden;
+    overflow:scroll;
     font-family: 'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;
   }
 
