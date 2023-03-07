@@ -339,7 +339,7 @@ export default function ProjectView(props: ProjectViewProps) {
 						<h2>
 							Project
 							<hr></hr>
-							<Button>Project1</Button>
+							<Button onClick={toggleSidePanel}>Project1</Button>
 							<Button>Project2</Button>
 						</h2>
 					</div>
