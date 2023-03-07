@@ -83,8 +83,8 @@ export default function ProjectCard (props: ProjectCardProps) {
 
 									setInvite(false);
 									setSuccess(true);
-									setSeverity("error");
-									setSeverityMessage("Failed to sent");
+									setSeverity("success");
+									setSeverityMessage("Sent successfully");
 									return;
 								}} > 
 									Send
