@@ -16,21 +16,28 @@ export interface ProjectCardProps {
 	session: Session;
 }
 
-export default function ProjectCard(props: ProjectCardProps) {
+export default function ProjectCard (props: ProjectCardProps) {
 	const navigate = useNavigate();
 	const [invite, setInvite] = useState(false);
 	const [success, setSuccess] = useState(false);
 	const [severity, setSeverity] = useState<AlertColor | undefined>("error");
 	const [severityMessage, setSeverityMessage] = useState("Failed to sent");
 
+	const[invitee, setInvitee] = useState("");
+  
 	const owns_project = props.owner.guid === props.session.guid;
 	const owner = owns_project ? "Me" : props.owner.email;
+
+	let label = props.name;
+	if(label.length > 30){
+		label = label.slice(0,30) + "...";
+	}
 
 	return (
 		<div className="project-card">
 			<div className="column">
 				<div className="card">
-					<h3>{props.name}</h3>
+					<h3>{label}</h3>
 					<h4>{"Owner: " + owner}</h4>
 					<hr></hr>
 					<Button variant="outlined" size="small" sx={{ color: "black", margin: 1 }} onClick={() => {
@@ -61,7 +68,7 @@ export default function ProjectCard(props: ProjectCardProps) {
 								sx={{ maxWidth: `100%`, margin: 2 }}
 							/>
 							<div className='submit-cancel'>
-								<Button variant="contained" type="submit" size="small" sx={{ color: "white", margin: 0.5 }} onClick={async () => {
+								<Button variant="contained" type="submit" size="small" sx={{ color: "white", margin: 0.5 }} onClick={ async () => {
 									const invitee = (document.getElementById('required-invite') as HTMLInputElement).value;
 									if (invitee.length === 0) {
 										return; // TODO: check if the user exists
@@ -77,14 +84,15 @@ export default function ProjectCard(props: ProjectCardProps) {
 									setInvite(false);
 									setSuccess(true);
 									setSeverity("success");
-									setSeverityMessage("Invite sent");
-								}} >
+									setSeverityMessage("Sent successfully");
+									return;
+								}} > 
 									Send
-								</Button>
+								</Button> 
 								<Button variant="contained" size="small" sx={{ color: "white" }} onClick={() => {
-									setInvite(false);
-									setSuccess(false);
-								}} >Cancel</Button>
+										setInvite(false);
+										setSuccess(false);
+									}} >Cancel</Button>
 							</div>
 						</div>
 					}
