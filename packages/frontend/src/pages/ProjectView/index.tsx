@@ -1,23 +1,87 @@
 import { Button, TextField, Alert } from '@mui/material/'
-import { Session, ProjectInfo, SubProject, SubProjectColumnCards } from "../../client"
+import { Session, ProjectInfo, SubProject, SubProjectColumnCards, Card } from "../../client"
 import './index.css';
 import Pages from "../../pages";
-import React, { useEffect, useState, useRef } from 'react';
-import { Link, useNavigate, useParams } from "react-router-dom";
+import React, { useEffect, useState, useRef, useLayoutEffect } from 'react';
+import { useNavigate, useParams } from "react-router-dom";
 import { CircularProgress } from "@mui/material";
-import { Result, Ok } from "ts-results";
+import { DndProvider, DropTargetMonitor, useDrag, useDrop } from 'react-dnd'
+import { getEmptyImage, HTML5Backend } from 'react-dnd-html5-backend'
 
-//This file contains the packground, drop down menu, and cards.
-
-
-//New column
 interface ColumnProps {
 	title: string;
+	guid: string;
 	onOpenPopup: () => void;
-	children?: React.ReactNode,
+	onMoveCard: (card: Card, to_column: string, to_priority: number) => void;
+	cards?: SubProjectColumnCards;
+}
+
+enum DragTypes {
+	CARD = 'card',
+}
+
+function PlaceholderCard(props: { card: Card }) {
+	return <div style={{ backgroundColor: "yellow" }}>
+		<div style={{ opacity: 0 }}>
+			<RenderedNoteCard card={props.card} />
+		</div>
+	</div>
 }
 
 function Column(props: ColumnProps) {
+
+	const onCardDrop = (card: Card, priority: number) => {
+
+		if (card.column_guid === props.guid) {
+			if (priority === card.priority)
+				return;
+			if (card.priority < priority) {
+				priority--;
+			}
+		}
+
+		props.onMoveCard(card, props.guid, priority);
+	};
+
+	const [{ isOver, item }, dropRef] = useDrop(
+		() => ({
+			accept: DragTypes.CARD,
+			drop: (item: { card: Card }) => {
+				onCardDrop(item.card, 0);
+			},
+			collect: (monitor) => ({
+				item: monitor.getItem<{ card: Card }>(),
+				isOver: monitor.isOver(),
+				didDrop: monitor.didDrop(),
+			})
+		}),
+		[props.cards]
+	)
+
+	const columnCards = () => {
+		if (!props.cards)
+			return <CircularProgress />
+
+		const raw_cards = props.cards.cards.get(props.guid);
+		if (!raw_cards) {
+			// TODO: style this...
+			return <Alert variant="outlined" severity="error" sx={{ margin: 2, maxWidth: "100%", textAlign: "left" }}>
+				Failed to get cards for column that doesn't exist!</Alert>;
+		}
+
+		if (raw_cards.length === 0) {
+			return <div ref={dropRef} style={{ width: "100%", minHeight: "40px" }}>
+				{isOver && <PlaceholderCard card={item.card} />}
+			</div>
+		}
+
+		let cards = raw_cards.sort((a, b) => a.priority - b.priority).map(c => {
+			return <NoteCard key={c.guid} card={c} onDrop={onCardDrop} />
+		})
+
+		return cards;
+	}
+
 	return <li className="note">
 		<div className="details">
 			<p>{props.title}</p>
@@ -26,15 +90,13 @@ function Column(props: ColumnProps) {
 		<div className="add-buttom">
 			<Button id="add-note-button" onClick={props.onOpenPopup}>Add new Notes</Button>
 		</div>
-		{props.children}
-		
+		{columnCards()}
+
 	</li>
 }
 
-//User Profile
 interface ProfileOptions {
-	//User Name is probabily the only custmizable object here. 
-	UserName: string;
+	userName: string;
 	children?: React.ReactNode,
 
 }
@@ -45,7 +107,7 @@ function Profile(props: ProfileOptions) {
 			<div className="drop-down">
 				<div className="user-profile">
 					<img src='placehold.it/200x200' />
-					<h2>{props.UserName}</h2>
+					<h2>{props.userName}</h2>
 				</div>
 				<hr></hr>
 
@@ -72,19 +134,18 @@ function Profile(props: ProfileOptions) {
 		</div></div>
 }
 
-//Small Node Card
-interface NoteProps {
-	title: string;
-	description: string;
-	time: string;
-	children?: React.ReactNode,
+
+interface RenderedNoteProps {
+	card: Card
+	ref?: React.MutableRefObject<HTMLDivElement>,
 }
-export function NoteCard(props: NoteProps){
-	return <div className="note-card" draggable="true">
-		<p>{props.title}</p>
-		<span>{props.description}</span>
+
+function RenderedNoteCard(props: RenderedNoteProps) {
+	return <div className={`note-card`} ref={props.ref}>
+		<p>{props.card.title}</p>
+		{/* <span>{props.card.description}</span> */}
+		<span>Priority {props.card.priority}</span>
 		<div className="bottom-content">
-			<span>{props.time}</span>
 			{/* <div className='settings'>
 				<i>Setting</i>
 				<ul className="menu">
@@ -93,81 +154,107 @@ export function NoteCard(props: NoteProps){
 				</ul>
 			</div> */}
 		</div>
-	</div>
-	
+	</div>;
 }
 
-export function DeleteNode(){
-	
+interface NoteProps {
+	card: Card
+	onDrop: (dropped: Card, priority: number) => void,
 }
 
-//Popup Box:
+enum NoteDropPosition {
+	BEFORE,
+	AFTER,
+	NONE,
+}
 
-// interface PanelProps {
-// 	ProjectTitle1: string;
-// 	ProjectTitle2: string;
-// 	children?: React.ReactNode,
-// }
+function NoteCard(props: NoteProps) {
+	const ref = useRef<HTMLDivElement>(null);
+	const [height, setHeight] = useState<number>(0);
 
-// function SidePanel(props: PanelProps) {
-// 	return <div className='side-wrapper'>
-// 		<div className='side-panel'>
-// 			<h2>
-// 				Project
-// 				<hr></hr>
-// 				<Button>{props.ProjectTitle1}</Button>
-// 				<Button>{props.ProjectTitle2}</Button>
+	const [{ isDragging }, dragRef] = useDrag(
+		() => ({
+			type: DragTypes.CARD,
+			item: { card: props.card },
+			collect: monitor => ({
+				isDragging: monitor.isDragging()
+			})
+		}),
+		[props.card]
+	)
 
-// 			</h2>
-// 		</div>
-// 		<button className='side-panel-toggle' type='button' onClick={toggleSidePanel}>
-// 			<span className="open">open</span>
-// 			<span className="close">close</span>
-// 		</button>
+	const isAfter = (monitor: DropTargetMonitor<{ card: Card }>) => {
+		const box = ref.current?.getBoundingClientRect();
+		const y = monitor.getClientOffset()?.y;
+		if (!box || !y)
+			return NoteDropPosition.NONE;
 
-// 				<div className='main'>
-// 				<div className="wrapper">
+		const offset = y - (box.top + height / 2);
+		return offset > 0;
+	}
 
+	const getDropPosition = (monitor: DropTargetMonitor<{ card: Card }>) => {
+		if (!monitor.isOver() || !monitor.canDrop())
+			return NoteDropPosition.NONE;
 
-// 				</div> 
-// 				</div>
-// 			</div>
-// }
-//Helper Functions Below:
-//Append card
-export function AppendCard(columnId:string ,NoteCard:HTMLElement){
-	//TODO: figure out how to pass in column id. 
+		const after = isAfter(monitor);
+
+		const delta = after ? 1 : -1;
+
+		const card = monitor.getItem()?.card;
+		if (!card) {
+			return;
+		}
+
+		if (card.column_guid === props.card.column_guid && card.priority === props.card.priority + delta) {
+			return NoteDropPosition.NONE;
+		}
+
+		return after ? NoteDropPosition.AFTER : NoteDropPosition.BEFORE;
+	}
+
+	const [{ dropPosition, item }, dropRef] = useDrop(
+		() => ({
+			accept: DragTypes.CARD,
+			drop: (item, monitor) => {
+				const after = isAfter(monitor);
+				const delta = after ? 1 : 0;
+				props.onDrop(item.card, props.card.priority + delta);
+			},
+			canDrop: (item: { card: Card }) => item.card.guid !== props.card.guid,
+			collect: (monitor) => ({
+				dropPosition: getDropPosition(monitor),
+				item: monitor.getItem(),
+			})
+		}),
+		[props.card, ref, height]
+	)
+
+	useLayoutEffect(() => {
+		setHeight(ref.current?.getBoundingClientRect().height ?? 0);
+	})
+
+	return (
+		<div ref={dropRef}>
+			{dropPosition == NoteDropPosition.BEFORE && <PlaceholderCard card={item.card} />}
+			<div
+				ref={dragRef}
+				style={{ opacity: isDragging ? 0 : 1 }}
+			>
+				<div ref={ref}>
+					<RenderedNoteCard card={props.card} />
+				</div>
+			</div>
+			{dropPosition == NoteDropPosition.AFTER && <PlaceholderCard card={item.card} />}
+		</div>
+	);
+
 }
 
 //Show User Menu
 function toggleMenu() {
 	let subMenu = document.getElementById("subMenu");
 	return subMenu!.classList.toggle("open-menu");
-}
-
-//Show ADD NEW NOTES popup
-function addNotesButton() {
-	let popupBox = document.querySelector(".popup-box");
-	return popupBox!.classList.add("show");
-}
-
-//Hide ADD NEW NOTES popup
-function closeAddNotesIcon() {
-	let popupBox = document.querySelector(".popup-box");
-	return popupBox!.classList.remove("show");
-}
-
-
-//Add new notes
-function addNotes(session: Session, guid: string) {
-	let titleTag = document.querySelector("input")
-	let descriptionTag = document.querySelector("textarea")
-	let noteTitle = titleTag?.value;
-	let noteDescription = descriptionTag?.value;
-
-	if (noteTitle || noteDescription) {
-		closeAddNotesIcon();
-	}
 }
 
 //Toggle side panel
@@ -197,8 +284,6 @@ export default function ProjectView(props: ProjectViewProps) {
 	const [newNoteTitle, setNewNoteTitle] = useState<string | undefined>(undefined);
 	const [newNoteDescription, setNewNoteDescription] = useState<string | undefined>(undefined);
 
-	// const [cards, setCards] = useState<Map<ColumnGuid, Card[]> | undefined>(undefined);
-
 	const fetchProjectInfo = async () => {
 		if (!guid || !props.session)
 			return;
@@ -225,6 +310,7 @@ export default function ProjectView(props: ProjectViewProps) {
 				console.log(res.val);
 				return;
 			}
+			setCards(undefined);
 			setCards(res.val);
 		}
 	}
@@ -238,8 +324,7 @@ export default function ProjectView(props: ProjectViewProps) {
 		fetchProjectInfo();
 	}, [])
 
-	const title = projInfo?.name;
-	DragAndDrop();
+	// DragAndDrop();
 
 	if (!props.session)
 		return <body></body>;
@@ -308,144 +393,109 @@ export default function ProjectView(props: ProjectViewProps) {
 		</div>
 	}
 
-	const column_cards = (column_guid: string) => {
-		if (!cards)
-			return <CircularProgress />
-
-		const raw_cards = cards.cards.get(column_guid);
-		if (!raw_cards) {
-			// TODO: style this...
-			return <Alert key={column_guid} variant="outlined" severity="error" sx={{ margin: 2, maxWidth: "100%", textAlign: "left" }}>Failed to get cards for column that doesn't exist!</Alert>;
-		}
-		return raw_cards.map(c => {
-			return <NoteCard key={c.guid} title={c.title} description={c.description} time={"TODO"} />
-		})
-	}
-
 	return (
-		<body>
-			<div className="Main-Page">
-				<nav>
-					<img src="LOGO-HERE" className="logo"></img>
-					<ul>
+		<DndProvider backend={HTML5Backend}>
+			<body>
+				<div className="Main-Page">
+					<nav>
+						<img src="LOGO-HERE" className="logo"></img>
+						<ul>
 
-					</ul>
-					<Profile UserName='[NAME HERE]'></Profile>
+						</ul>
+						<Profile userName='[NAME HERE]'></Profile>
+						{/* TODO: This is temporary, ideally we'll just periodically refresh or even better . */}
+						<Button onClick={async () => { await fetchProjectInfo() }}>Refresh</Button>
 
-				</nav>
-				{popupBox()}
-				<div className='side-wrapper'>
-					<div className='side-panel'>
-						<h2>
-							Project
-							<hr></hr>
-							<Button>Project1</Button>
-							<Button>Project2</Button>
-						</h2>
-					</div>
-					<button className='side-panel-toggle' type='button' onClick={toggleSidePanel}>
-						<span className="open">open</span>
-						<span className="close">close</span>
-					</button>
-					<div className ='main'>
-						<div className="wrapper">
-							{projInfo.columns.map(c => <Column key={c.guid} title={c.name} onOpenPopup={() => setCurrentColumnGuid(c.guid)}>
-								{column_cards(c.guid)}
-							</Column>)}
+					</nav>
+					{popupBox()}
+					<div className='side-wrapper'>
+						<div className='side-panel'>
+							<h2>
+								Project
+								<hr></hr>
+								<Button>Project1</Button>
+								<Button>Project2</Button>
+							</h2>
+						</div>
+						<button className='side-panel-toggle' type='button' onClick={toggleSidePanel}>
+							<span className="open">open</span>
+							<span className="close">close</span>
+						</button>
+						<div className='main'>
+							<div className="wrapper">
+								{projInfo.columns.map(c =>
+									<Column
+										key={c.guid}
+										guid={c.guid}
+										title={c.name}
+										onOpenPopup={() => setCurrentColumnGuid(c.guid)} cards={cards}
+										onMoveCard={async (card, to_column, to_priority) => {
+											if (!props.session || !guid)
+												return;
 
-							<div style={{ display: 'flex', flexDirection: 'column', alignItems: 'start' }}>
-								<TextField label="Column Name" onChange={e => setNewColumnName(e.target.value)} value={newColumnName} />
-								<Button onClick={async () => {
-									if (!newColumnName || !props.session || !guid)
-										return;
+											// TODO(Brandon): Before we even make the request, we should probably do some client-side prediction so that it feels less laggy...
 
-									console.log(newColumnName);
-									const res = await props.session.add_project_column(guid, newColumnName);
-									if (res.err) {
-										// TODO: Show some error message to the user here!
-										console.log(res.val);
-										return;
-									}
+											const res = await props.session.edit_sub_project_card(currentSubProject.guid, card.guid, { to_priority, to_column });
+											if (res.err) {
+												// TODO: Show some error message to the user here!
+												console.log(res.val);
+											}
 
-									await fetchProjectInfo();
-								}}>Create column</Button>
+											await fetchProjectInfo();
+										}}
+									/>
+								)}
+
+								<div style={{ display: 'flex', flexDirection: 'column', alignItems: 'start' }}>
+									<TextField label="Column Name" onChange={e => setNewColumnName(e.target.value)} value={newColumnName} />
+									<Button onClick={async () => {
+										if (!newColumnName || !props.session || !guid)
+											return;
+
+										console.log(newColumnName);
+										const res = await props.session.add_project_column(guid, newColumnName);
+										if (res.err) {
+											// TODO: Show some error message to the user here!
+											console.log(res.val);
+											return;
+										}
+
+										await fetchProjectInfo();
+									}}>Create column</Button>
+								</div>
+								{/* <Column title="Backing"> */}
+								{/* 	<div> */}
+								{/* 		<NoteCard title="Title" description="description..." time="time"></NoteCard> */}
+								{/* 	</div> */}
+								{/* </Column> */}
+								{/* <Column title="Design"></Column> */}
+								{/* <Column title="To Do"></Column> */}
+								{/* <Column title="Doing"></Column> */}
+
 							</div>
-							{/* <Column title="Backing"> */}
-							{/* 	<div> */}
-							{/* 		<NoteCard title="Title" description="description..." time="time"></NoteCard> */}
-							{/* 	</div> */}
-							{/* </Column> */}
-							{/* <Column title="Design"></Column> */}
-							{/* <Column title="To Do"></Column> */}
-							{/* <Column title="Doing"></Column> */}
-
 						</div>
 					</div>
 				</div>
-		</div>
-		</body >
-
+			</body>
+		</DndProvider>
 	);
 }
 
-//Drag and Drop
-function DragAndDrop(){
-const list_items = document.querySelectorAll(".note-card") as NodeListOf<HTMLElement>;
-const lists = document.querySelectorAll(".note") as NodeListOf<HTMLElement>;
-//item we are dragging
-let draggedItem:any = null;
-for(let i = 0; i< list_items.length; i++){
-	const item = list_items[i];
 
-	item.addEventListener('dragstart', function(){
-		draggedItem = item;
-		item.classList.add('dragging')
-		setTimeout(function(){
-			draggedItem.style.display = 'none';
-		},0)
-		
-	});
-	
-	item.addEventListener('dragend', function(){
-		item.classList.remove('dragging')
-		setTimeout(function(){
-			draggedItem.style.display = 'block';
-			draggedItem = null;
-		}, 0);
-	});
-}
-	for(let j = 0; j<lists.length; j++){
-		const list = lists[j]
-		list.addEventListener('dragover', function(e){
-			e.preventDefault();
-			const afterElement = getDragAfterElement(list, e.clientY)
-			if(afterElement == null && draggedItem!=null){
-				list.append(draggedItem);
-			}else if(draggedItem!=null){
-				list.insertBefore(draggedItem, afterElement)
-			}
-
-		});
-	}
-}
-
-
-
-
-function getDragAfterElement(list:any, y:number){
+function getDragAfterElement(list: any, y: number) {
 	//TODO: Figure out how to change the array dynamically. 
 	// Currently, the drag and drop features only work on the cards that are displayed when
 	// enterting the page. The newly added cards will not have this feature. 
 	const draggableElements = [...list.querySelectorAll('.note-card:not(.dragging)')]
-	return draggableElements.reduce((closest, child) =>{
+	return draggableElements.reduce((closest, child) => {
 		const box = child.getBoundingClientRect()
 		const offset = y - box.top - box.height / 2
-		if(offset < 0 && offset > closest.offset){
-			return { offset: offset, element: child}
-		}else {
+		if (offset < 0 && offset > closest.offset) {
+			return { offset: offset, element: child }
+		} else {
 			return closest
 
-			}
-		
-	},{ offset: Number.NEGATIVE_INFINITY }).element
+		}
+
+	}, { offset: Number.NEGATIVE_INFINITY }).element
 }

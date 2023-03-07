@@ -156,9 +156,23 @@ export class ProjectService {
 	private async fill_card_priority_hole(
 		manager: EntityManager,
 		project_column: ProjectColumn,
-		old_priority: number,
+		old_priority?: number,
 		new_priority?: number
 	): Promise<UpdateResult | undefined> {
+		if (old_priority == undefined && new_priority == undefined)
+			return undefined;
+
+		if (old_priority == undefined) {
+			console.log("Old priority undefined! " + new_priority);
+			return manager.createQueryBuilder()
+				.update(Card)
+				.set({ priority: () => "priority + 1" })
+				.where({
+					project_column,
+					priority: MoreThanOrEqual(new_priority),
+				}).execute();
+		}
+
 		if (new_priority == undefined) {
 			return manager.createQueryBuilder()
 				.update(Card)
@@ -169,25 +183,21 @@ export class ProjectService {
 				}).execute();
 		}
 
-		if (old_priority == new_priority) {
-			return undefined;
-		}
-
 		if (new_priority < old_priority) {
 			return await manager.createQueryBuilder()
 				.update(Card)
 				.set({ priority: () => "priority + 1" })
 				.where({
 					project_column,
-					priority: Between(new_priority, old_priority)
+					priority: Between(new_priority, old_priority - 1)
 				}).execute();
-		} else {
+		} else if (new_priority > old_priority) {
 			return await manager.createQueryBuilder()
 				.update(Card)
 				.set({ priority: () => "priority - 1" })
 				.where({
 					project_column,
-					priority: Between(old_priority, new_priority)
+					priority: Between(old_priority + 1, new_priority)
 				}).execute();
 		}
 	}
@@ -227,14 +237,14 @@ export class ProjectService {
 			assignee?: string,
 			column?: string
 		}): Promise<Result<void, string>> {
-		if (edits.priority ?? 0 < 0) {
+		if (edits.priority && edits.priority < 0) {
 			return Err("Priority cannot be negative!");
 		}
 
 		return await this.data_source.transaction(async manager => {
 			const sub_project = await manager.findOne(SubProject, { where: { guid: sub_project_guid }, relations: ["project", "project.members"] })
 			if (!sub_project)
-				return Err("Cannot add column to project that does not exist!");
+				return Err("Cannot edit card in sub project that does not exist!");
 
 			if (!sub_project.project.members.find(m => m.guid == user.guid)) {
 				return Err("User is not a member of the project and cannot add a card!")
@@ -266,21 +276,22 @@ export class ProjectService {
 				card.assignee = new_assignee;
 			}
 
-			if (edits.column && card.project_column.guid != edits.column) {
+			const changed_columns = edits.column && card.project_column.guid != edits.column;
+			if (changed_columns) {
 				const column = await manager.findOne(ProjectColumn, { where: { guid: edits.column } })
 				if (!column) {
 					return Err("Column does not exist!");
 				}
 
-				await this.fill_card_priority_hole(manager, card.project_column, card.priority);
+				await this.fill_card_priority_hole(manager, card.project_column, card.priority, undefined);
 
 				// TODO(Brandon): Probably want to add a check to make sure that the column is actually a part of the project...
 
 				card.project_column = column;
 			}
 
-			if (edits.priority != undefined && card.priority != edits.priority) {
-				await this.fill_card_priority_hole(manager, card.project_column, card.priority, edits.priority);
+			if (edits.priority != undefined && (card.priority != edits.priority || changed_columns)) {
+				await this.fill_card_priority_hole(manager, card.project_column, changed_columns ? undefined : card.priority, edits.priority);
 
 				const highest_card = await manager
 					.createQueryBuilder(Card, "card")
