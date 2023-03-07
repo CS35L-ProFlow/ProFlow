@@ -220,11 +220,18 @@ export default function UserView(props: UserViewProps) {
 											label="Project Name"
 											defaultValue=""
 											sx={{ maxWidth: `100%` }}
+											onKeyDown={e => {if(e.key === "Enter") {
+												e.preventDefault();
+												const submitBtn = document.getElementById("submit-button");
+												if(submitBtn){
+													submitBtn.click();
+												}
+											}}}
 										/>
 									</div>
 									</Box>
 								<div className="buttons2"> 
-									<Button variant="contained" size="small" sx={{ color: "white", margin: 1, maxWidth: `100%` }} onClick={async () => { 
+									<Button id="submit-button" variant="contained" size="small" sx={{ color: "white", margin: 1, maxWidth: `100%` }} onClick={async () => { 
 									const name = (document.getElementById('outlined-required') as HTMLInputElement).value; 
 									if (name.length !== 0 && props.session) { 
 										
