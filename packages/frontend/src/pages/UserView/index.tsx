@@ -7,12 +7,14 @@ import { Button, TextField, Box, Badge, CircularProgress, Typography, Alert, } f
 import { useEffect, useState } from 'react';
 import ProjectCard from './ProjectCard';
 import InviteCard from './InviteCard'; //TODO: Make Invite cards / page look nice
-import { Session, Project, Invite } from '../../client';
+import { Session, Project, Invite, init_proflow_client } from '../../client';
 import { useNavigate } from "react-router-dom";
+import { ProFlow } from '../../proflow';
 import Pages from "../../pages";
 
 export interface UserViewProps {
 	session?: Session;
+	onRefresh: (session: Session) => void,
 }
 
 export default function UserView(props: UserViewProps) {
@@ -61,8 +63,29 @@ export default function UserView(props: UserViewProps) {
 	useEffect(() => {
 
 		if (!props.session) {
-			navigate(Pages.LOGIN)
-			return;
+
+			const refreshJwt = async (client: ProFlow, jwt: string) => {
+				try {
+					const res = await client.auth.authRefresh();
+					const user_guid = res.user_guid;
+					const expire_sec = res.expire_sec;
+					const queryRes = await client.user.queryUser(user_guid);
+					const user_email = queryRes.email;
+					props.onRefresh(new Session(user_email, user_guid, jwt, expire_sec));
+				} catch (e) {
+					console.log("Failed to refresh JWT token");
+					navigate(Pages.LOGIN);
+				}
+			}
+
+			const jwt = localStorage.getItem("jwt");
+			if (!jwt) {
+				navigate(Pages.LOGIN);
+				return;
+			}
+			const client = init_proflow_client(jwt);
+			refreshJwt(client, jwt);
+
 		}
 		fetch();
 	}, [projDisp, inInviteDisp])
