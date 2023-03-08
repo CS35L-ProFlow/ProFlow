@@ -310,9 +310,8 @@ export class Session {
 			try {
 				const res = await this.http.auth.authRefresh();
 				this.client = init_proflow_client(res.jwt);
-				localStorage.setItem("jwt", res.jwt);
 				console.log("Refreshed auth token!");
-				localStorage.setItem("expirationDate", String(Date.now()+this.refresh_rate_ms(res.expire_sec)));
+
 				this.refresh_auth(this.refresh_rate_ms(res.expire_sec));
 			} catch (e) {
 				console.log("Failed to refresh JWT token, trying again...");

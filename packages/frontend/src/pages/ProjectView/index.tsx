@@ -1,5 +1,5 @@
 import { Button, TextField, Alert } from '@mui/material/'
-import { Session, ProjectInfo, SubProject, SubProjectColumnCards, Card, init_proflow_client } from "../../client"
+import { Session, ProjectInfo, SubProject, SubProjectColumnCards, Card } from "../../client"
 import './index.css';
 import Pages from "../../pages";
 import React, { useEffect, useState, useRef, useLayoutEffect } from 'react';
@@ -7,7 +7,6 @@ import { useNavigate, useParams } from "react-router-dom";
 import { CircularProgress } from "@mui/material";
 import { DndProvider, DropTargetMonitor, useDrag, useDrop } from 'react-dnd'
 import { getEmptyImage, HTML5Backend } from 'react-dnd-html5-backend'
-import { ProFlow } from '../../proflow';
 
 interface ColumnProps {
 	title: string;
@@ -269,7 +268,6 @@ function toggleSidePanel() {
 
 interface ProjectViewProps {
 	session: Session | undefined,
-	onRefresh: (session: Session) => void,
 };
 
 export default function ProjectView(props: ProjectViewProps) {
@@ -318,41 +316,13 @@ export default function ProjectView(props: ProjectViewProps) {
 	}
 
 	useEffect(() => {
-
-		const refreshJwt = async (client: ProFlow, jwt: string) => {
-			try {
-				const res = await client.auth.authRefresh();
-				const user_guid = res.user_guid;
-				const expire_sec = res.expire_sec;
-				const queryRes = await client.user.queryUser(user_guid);
-				const user_email = queryRes.email;
-				const new_session = await new Session(user_email, user_guid, jwt, expire_sec);
-				props.onRefresh(new_session);
-			} catch (e) {
-				console.log("Failed to refresh JWT token");
-				navigate(Pages.LOGIN);
-			}
-		}
-
-		if (!guid) {
+		if (!props.session || !guid) {
 			navigate(Pages.LOGIN)
 			return;
 		}
 
-		if (!props.session) {
-			const jwt = localStorage.getItem("jwt");
-			const expirationDate = localStorage.getItem("expirationDate");
-			if (!jwt || Number(expirationDate) < Date.now()) {
-				navigate(Pages.LOGIN);
-				return;
-			}
-			const client = init_proflow_client(jwt);
-			refreshJwt(client, jwt);
-
-		}
-
 		fetchProjectInfo();
-	}, [props.session])
+	}, [])
 
 	// DragAndDrop();
 
