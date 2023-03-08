@@ -7,12 +7,14 @@ import { Button, TextField, Box, Badge, CircularProgress, Typography, Alert, } f
 import { useEffect, useState } from 'react';
 import ProjectCard from './ProjectCard';
 import InviteCard from './InviteCard'; //TODO: Make Invite cards / page look nice
-import { Session, Project, Invite } from '../../client';
+import { Session, Project, Invite, init_proflow_client } from '../../client';
 import { useNavigate } from "react-router-dom";
+import { ProFlow } from '../../proflow';
 import Pages from "../../pages";
 
 export interface UserViewProps {
 	session?: Session;
+	onRefresh: (session: Session) => void,
 }
 
 export default function UserView(props: UserViewProps) {
@@ -25,9 +27,7 @@ export default function UserView(props: UserViewProps) {
 	const [inInviteDisp, setInInviteDisp] = useState(false);
 	const [inviteAccepted, setInviteAccepted] = useState(false);
 	const [taken, setTaken] = useState(false);
-
 	const [fetchError, setFetchError] = useState(false);
-
 	const [display, setDisplay] = useState(false);
 	const [progress, setProgress] = useState(false);
 	// const [inviteAccepted, setInviteAccepted] = useState(false);
@@ -44,7 +44,8 @@ export default function UserView(props: UserViewProps) {
 			console.log(res.val);
 			return;
 		}
-		setProjects(res.val);
+		await setProjects(res.val);
+		projectComponents();
 	}
 
 
@@ -85,9 +86,10 @@ export default function UserView(props: UserViewProps) {
 			}
 			setProgress(false);
 
-			setProjects(res.val);
+			await setProjects(res.val);
 			setDeleteProj(false);
 			setFetchError(false);
+			projectComponents();
 		}
 
 		const fetchInvites = async () => {
@@ -107,12 +109,35 @@ export default function UserView(props: UserViewProps) {
 			setFetchError(false);
 		}
 
-		if (!props.session) {
-			navigate(Pages.LOGIN)
-			return;
+		const refreshJwt = async (client: ProFlow, jwt: string) => {
+			try {
+				const res = await client.auth.authRefresh();
+				const user_guid = res.user_guid;
+				const expire_sec = res.expire_sec;
+				const queryRes = await client.user.queryUser(user_guid);
+				const user_email = queryRes.email;
+				const new_session = await new Session(user_email, user_guid, jwt, expire_sec);
+				props.onRefresh(new_session);
+			} catch (e) {
+				console.log("Failed to refresh JWT token");
+				navigate(Pages.LOGIN);
+			}
 		}
+
+		if (!props.session) {
+			const jwt = localStorage.getItem("jwt");
+			const expirationDate = localStorage.getItem("expirationDate");
+			if (!jwt || Number(expirationDate) < Date.now()) {
+				navigate(Pages.LOGIN);
+				return;
+			}
+			const client = init_proflow_client(jwt);
+			refreshJwt(client, jwt);
+
+		}
+
 		fetch();
-	}, [projDisp, inInviteDisp, display])
+	}, [projDisp, inInviteDisp, display, props.session])
 
 	if (!props.session) {
 		return <body></body>;
@@ -169,7 +194,6 @@ export default function UserView(props: UserViewProps) {
 	return (
 		<div className="body-of-page">
 			<div className="name-and-org">
-				{/* <div className="user-name-main">Name: {props.session.email}</div> */}
 				<Typography sx={{ margin: 3, marginLeft:6 }} fontSize={"large"} variant='overline'>{props.session.email}</Typography>
 			</div>
 			<hr></hr>
