@@ -278,6 +278,23 @@ export class Session {
 		).mapErr(err => "Failed to add card: " + err);
 	}
 
+	public async edit_sub_project_card(
+		sub_project_guid: string,
+		card_guid: string,
+		edits: { to_column?: string, to_priority?: number }
+	): Promise<Result<void, string>> {
+		return (
+			await safe_request(async () => {
+				await this.client.subProject.editCard(sub_project_guid,
+					{
+						guid: card_guid,
+						column: edits.to_column,
+						priority: edits.to_priority,
+					});
+			})
+		).mapErr(err => "Failed to edit card: " + err);
+	}
+
 	private async get_user_throwable(guid: string): Promise<User> {
 		const { email } = await this.client.user.queryUser(guid);
 		return { email, guid }

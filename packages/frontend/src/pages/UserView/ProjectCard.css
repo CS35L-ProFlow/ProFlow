@@ -32,6 +32,7 @@
   }
 
   h3 {
+    max-height: 50px;
     font-size: 140%;
     margin:auto;
     overflow:hidden;
