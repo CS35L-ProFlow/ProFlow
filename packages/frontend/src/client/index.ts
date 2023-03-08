@@ -310,9 +310,8 @@ export class Session {
 			try {
 				const res = await this.http.auth.authRefresh();
 				this.client = init_proflow_client(res.jwt);
-				localStorage.setItem("jwt", res.jwt);
 				console.log("Refreshed auth token!");
-				localStorage.setItem("expirationDate", String(Date.now()+this.refresh_rate_ms(res.expire_sec)));
+
 				this.refresh_auth(this.refresh_rate_ms(res.expire_sec));
 			} catch (e) {
 				console.log("Failed to refresh JWT token, trying again...");
@@ -332,6 +331,7 @@ export default class Client {
 			await safe_request(async () => {
 				const res = await client.auth.authLogin({ email, password });
 				localStorage.setItem("jwt", res.jwt)
+				localStorage.setItem("expirationDate", String(Date.now()+Math.max((res.expire_sec - 30) * 1000, 1000)));
 				return new Session(email, res.user_guid, res.jwt, res.expire_sec);
 			})
 		).mapErr(err => "Failed to log in: " + err);
