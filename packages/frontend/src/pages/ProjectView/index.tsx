@@ -4,7 +4,7 @@ import './index.css';
 import Pages from "../../pages";
 import React, { useEffect, useState, useRef, useLayoutEffect } from 'react';
 import { useNavigate, useParams } from "react-router-dom";
-import { CircularProgress} from "@mui/material";
+import { CircularProgress } from "@mui/material";
 import { DndProvider, DropTargetMonitor, useDrag, useDrop } from 'react-dnd'
 import { getEmptyImage, HTML5Backend } from 'react-dnd-html5-backend'
 import { ProFlow } from '../../proflow';
@@ -89,12 +89,12 @@ function Column(props: ColumnProps) {
 
 	return <li className="note">
 		<div className="details">
-			<Typography className="p" align='center' margin={1} justifyContent={"space-between"} marginLeft={"5%"}>{props.title}<Button id="add-note-button" onClick={props.renameColumn}><EditIcon opacity="50%"/></Button></Typography>
+			<Typography className="p" align='center' margin={1} justifyContent={"space-between"} marginLeft={"5%"}>{props.title}<Button id="add-note-button" onClick={props.renameColumn}><EditIcon opacity="50%" /></Button></Typography>
 			<hr></hr>
 		</div>
 		<div className="add-button">
-			<Button id="add-note-button" sx={{margin:1}} onClick={props.onOpenPopup}>Add new Notes</Button>
-			<Button id="add-note-button" sx={{margin:1}} onClick={props.deleteColumn} startIcon={<DeleteIcon/>}></Button>
+			<Button id="add-note-button" sx={{ margin: 1 }} onClick={props.onOpenPopup}>Add new Notes</Button>
+			<Button id="add-note-button" sx={{ margin: 1 }} onClick={props.deleteColumn} startIcon={<DeleteIcon />}></Button>
 		</div>
 		{columnCards()}
 
@@ -334,7 +334,7 @@ export default function ProjectView(props: ProjectViewProps) {
 				const expire_sec = res.expire_sec;
 				const queryRes = await client.user.queryUser(user_guid);
 				const user_email = queryRes.email;
-				const new_session = await new Session(user_email, user_guid, jwt, expire_sec);
+				const new_session = new Session(user_email, user_guid, jwt, expire_sec);
 				props.onRefresh(new_session);
 			} catch (e) {
 				console.log("Failed to refresh JWT token");
@@ -399,14 +399,14 @@ export default function ProjectView(props: ProjectViewProps) {
 						<i onClick={() => setCurrentColumnGuid(undefined)}>x</i>
 					</header>
 					<form action='#' className="note-form">
-						<TextField label="Title" sx={{marginBottom:1}} onChange={e => setNewNoteTitle(e.target.value)} value={newNoteTitle} />
-						<TextField label="Description" sx={{marginBottom:1}} onChange={e => setNewNoteDescription(e.target.value)} value={newNoteDescription} multiline />
+						<TextField label="Title" sx={{ marginBottom: 1 }} onChange={e => setNewNoteTitle(e.target.value)} value={newNoteTitle} />
+						<TextField label="Description" sx={{ marginBottom: 1 }} onChange={e => setNewNoteDescription(e.target.value)} value={newNoteDescription} multiline />
 						{
-							errorPopNotes && 
+							errorPopNotes &&
 							<div>
-								<Alert sx={{margin:1}} color="error" severity='error'>No title/description provided</Alert>
+								<Alert sx={{ margin: 1 }} color="error" severity='error'>No title/description provided</Alert>
 							</div>
-							}
+						}
 						<Button id="save-note-button" onClick={async () => {
 							if (!props.session || !currentSubProject || !currentColumnGuid)
 								return;
@@ -438,9 +438,9 @@ export default function ProjectView(props: ProjectViewProps) {
 							setErrorPopNotes(false);
 						}}>Add Note</Button>
 					</form>
-						{progress &&
-						<LinearProgress sx={{margin:1}} color="primary" />
-						}
+					{progress &&
+						<LinearProgress sx={{ margin: 1 }} color="primary" />
+					}
 				</div>
 			</div>
 		</div>
@@ -500,15 +500,15 @@ export default function ProjectView(props: ProjectViewProps) {
 								)}
 								<div style={{ display: 'flex', flexDirection: 'column', alignItems: 'start' }}>
 									<TextField label="Column Name" onChange={e => setNewColumnName(e.target.value)} value={newColumnName} />
-											{
-											errorPop && 
-											<div>
-												<Alert sx={{marginTop:1}} color="error" severity='error'>Check the card name</Alert>
-											</div>
-											}
-											{progress &&
-												<LinearProgress sx={{margin:1}} color="primary" />
-											}
+									{
+										errorPop &&
+										<div>
+											<Alert sx={{ marginTop: 1 }} color="error" severity='error'>Check the card name</Alert>
+										</div>
+									}
+									{progress &&
+										<LinearProgress sx={{ margin: 1 }} color="primary" />
+									}
 									<Button onClick={async () => {
 										if (!newColumnName || !props.session || !guid)
 											return;
