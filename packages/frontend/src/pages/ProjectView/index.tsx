@@ -1,18 +1,22 @@
-import { Button, TextField, Alert } from '@mui/material/'
+import { Button, TextField, Alert, Typography, LinearProgress } from '@mui/material/'
 import { Session, ProjectInfo, SubProject, SubProjectColumnCards, Card, init_proflow_client } from "../../client"
 import './index.css';
 import Pages from "../../pages";
 import React, { useEffect, useState, useRef, useLayoutEffect } from 'react';
 import { useNavigate, useParams } from "react-router-dom";
-import { CircularProgress } from "@mui/material";
+import { CircularProgress} from "@mui/material";
 import { DndProvider, DropTargetMonitor, useDrag, useDrop } from 'react-dnd'
 import { getEmptyImage, HTML5Backend } from 'react-dnd-html5-backend'
 import { ProFlow } from '../../proflow';
+import DeleteIcon from '@mui/icons-material/Delete';
+import EditIcon from '@mui/icons-material/Edit';
 
 interface ColumnProps {
 	title: string;
 	guid: string;
 	onOpenPopup: () => void;
+	deleteColumn?: () => void; // TODO: Delete column 
+	renameColumn?: () => void;
 	onMoveCard: (card: Card, to_column: string, to_priority: number) => void;
 	cards?: SubProjectColumnCards;
 }
@@ -85,11 +89,12 @@ function Column(props: ColumnProps) {
 
 	return <li className="note">
 		<div className="details">
-			<p>{props.title}</p>
+			<Typography className="p" align='center' margin={1} justifyContent={"space-between"} marginLeft={"5%"}>{props.title}<Button id="add-note-button" onClick={props.renameColumn}><EditIcon opacity="50%"/></Button></Typography>
 			<hr></hr>
 		</div>
-		<div className="add-buttom">
-			<Button id="add-note-button" onClick={props.onOpenPopup}>Add new Notes</Button>
+		<div className="add-button">
+			<Button id="add-note-button" sx={{margin:1}} onClick={props.onOpenPopup}>Add new Notes</Button>
+			<Button id="add-note-button" sx={{margin:1}} onClick={props.deleteColumn} startIcon={<DeleteIcon/>}></Button>
 		</div>
 		{columnCards()}
 
@@ -278,6 +283,9 @@ export default function ProjectView(props: ProjectViewProps) {
 	const [projInfo, setProjInfo] = useState<ProjectInfo | undefined>(undefined);
 	const [currentSubProject, setCurrentSubProject] = useState<SubProject | undefined>(undefined);
 	const [cards, setCards] = useState<SubProjectColumnCards | undefined>(undefined);
+	const [errorPop, setErrorPop] = useState(false);
+	const [progress, setProgress] = useState(false);
+	const [errorPopNotes, setErrorPopNotes] = useState(false);
 
 	const [newColumnName, setNewColumnName] = useState<string | undefined>(undefined);
 
@@ -390,23 +398,34 @@ export default function ProjectView(props: ProjectViewProps) {
 						<p>Add a New Note</p>
 						<i onClick={() => setCurrentColumnGuid(undefined)}>x</i>
 					</header>
-					<form action='#'>
-						<TextField label="Title" onChange={e => setNewNoteTitle(e.target.value)} value={newNoteTitle} />
-						<TextField label="Description" onChange={e => setNewNoteDescription(e.target.value)} value={newNoteDescription} multiline />
+					<form action='#' className="note-form">
+						<TextField label="Title" sx={{marginBottom:1}} onChange={e => setNewNoteTitle(e.target.value)} value={newNoteTitle} />
+						<TextField label="Description" sx={{marginBottom:1}} onChange={e => setNewNoteDescription(e.target.value)} value={newNoteDescription} multiline />
+						{
+							errorPopNotes && 
+							<div>
+								<Alert sx={{margin:1}} color="error" severity='error'>No title/description provided</Alert>
+							</div>
+							}
 						<Button id="save-note-button" onClick={async () => {
 							if (!props.session || !currentSubProject || !currentColumnGuid)
 								return;
 
 							if (!newNoteDescription || !newNoteTitle) {
 								// TODO: Show this error to the user!
+								setErrorPopNotes(true);
 								console.log("No title or description provided!")
 								return;
 							}
 
 							// TODO: Display a progress bar when these requests are made!
+							setProgress(true);
 							const res = await props.session.add_sub_project_card(currentSubProject.guid, currentColumnGuid, newNoteTitle, newNoteDescription);
+							setProgress(false);
+
 							if (res.err) {
 								// TODO: Show this error to the user!
+								setErrorPopNotes(true);
 								console.log(res.val);
 								return;
 							}
@@ -416,8 +435,12 @@ export default function ProjectView(props: ProjectViewProps) {
 							setNewNoteTitle(undefined);
 							setNewNoteDescription(undefined);
 							setCurrentColumnGuid(undefined);
+							setErrorPopNotes(false);
 						}}>Add Note</Button>
 					</form>
+						{progress &&
+						<LinearProgress sx={{margin:1}} color="primary" />
+						}
 				</div>
 			</div>
 		</div>
@@ -475,21 +498,31 @@ export default function ProjectView(props: ProjectViewProps) {
 										}}
 									/>
 								)}
-
 								<div style={{ display: 'flex', flexDirection: 'column', alignItems: 'start' }}>
 									<TextField label="Column Name" onChange={e => setNewColumnName(e.target.value)} value={newColumnName} />
+											{
+											errorPop && 
+											<div>
+												<Alert sx={{marginTop:1}} color="error" severity='error'>Check the card name</Alert>
+											</div>
+											}
+											{progress &&
+												<LinearProgress sx={{margin:1}} color="primary" />
+											}
 									<Button onClick={async () => {
 										if (!newColumnName || !props.session || !guid)
 											return;
 
 										console.log(newColumnName);
+										setProgress(true);
 										const res = await props.session.add_project_column(guid, newColumnName);
+										setProgress(false);
 										if (res.err) {
 											// TODO: Show some error message to the user here!
-											console.log(res.val);
+											setErrorPop(true);
 											return;
 										}
-
+										setErrorPop(false);
 										await fetchProjectInfo();
 									}}>Create column</Button>
 								</div>
@@ -501,7 +534,6 @@ export default function ProjectView(props: ProjectViewProps) {
 								{/* <Column title="Design"></Column> */}
 								{/* <Column title="To Do"></Column> */}
 								{/* <Column title="Doing"></Column> */}
-
 							</div>
 						</div>
 					</div>
@@ -516,6 +548,7 @@ function getDragAfterElement(list: any, y: number) {
 	//TODO: Figure out how to change the array dynamically. 
 	// Currently, the drag and drop features only work on the cards that are displayed when
 	// enterting the page. The newly added cards will not have this feature. 
+
 	const draggableElements = [...list.querySelectorAll('.note-card:not(.dragging)')]
 	return draggableElements.reduce((closest, child) => {
 		const box = child.getBoundingClientRect()
