@@ -1,4 +1,4 @@
-import './ProjectCard.css';
+import './InviteCard.css';
 import React from 'react';
 import { Button } from '@mui/material';
 
@@ -10,9 +10,9 @@ export interface InviteCardProps {
 
 export default function InviteCard(props: InviteCardProps) {
 	return (
-		<div className="project-card">
-			<div className="column">
-				<div className="card">
+		<div className="project-card2">
+			<div className="column2">
+				<div className="card2">
 					<h3>{props.name}</h3>
 					<h4>{"From: " + props.owner}</h4>
 					<Button variant="outlined" size="small" sx={{ color: "black", margin: 1 }} onClick={props.onAcceptInvitation}>Accept</Button>

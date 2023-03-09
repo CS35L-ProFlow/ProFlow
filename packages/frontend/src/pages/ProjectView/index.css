@@ -224,7 +224,10 @@
   .wrapper .card-layout{
     padding: 10px;
   }
+
   .add-button{
+    display: flex;
+    justify-content: space-between;
     padding-top: 10px;
     border-top: 1px solid #ccc;
   }
@@ -435,5 +438,3 @@
   .side-panel-open .close {
     display: initial !important;
   }
-
-

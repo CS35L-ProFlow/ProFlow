@@ -4,7 +4,7 @@ import { ApiError } from "../proflow/core/ApiError";
 import { Result, Ok, Err } from "ts-results";
 import { SubProjectResponse } from '../proflow';
 
-const init_proflow_client = (jwt?: string) => new ProFlow({
+export const init_proflow_client = (jwt?: string) => new ProFlow({
 	// http://localhost:BACKEND_PORT/route
 	BASE: "http://localhost:" + BACKEND_PORT,
 	HEADERS: jwt ? { "Authorization": "Bearer " + jwt } : undefined
@@ -330,6 +330,8 @@ export default class Client {
 		return (
 			await safe_request(async () => {
 				const res = await client.auth.authLogin({ email, password });
+				localStorage.setItem("jwt", res.jwt)
+				localStorage.setItem("expirationDate", String(Date.now()+Math.max((res.expire_sec - 30) * 1000, 1000)));
 				return new Session(email, res.user_guid, res.jwt, res.expire_sec);
 			})
 		).mapErr(err => "Failed to log in: " + err);
