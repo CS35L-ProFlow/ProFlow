@@ -34,6 +34,9 @@ function PlaceholderCard(props: { card: Card }) {
 }
 
 function Column(props: ColumnProps) {
+	const [rename, setRename] = useState(false);
+	const [loading, setLoading] = useState(false);
+	const [errorCard, setErrorCard] = useState(false);
 
 	const onCardDrop = (card: Card, priority: number) => {
 
@@ -87,9 +90,33 @@ function Column(props: ColumnProps) {
 		return cards;
 	}
 
-	return <li className="note">
+	return (<li className="note">
 		<div className="details">
-			<Typography className="p" align='center' margin={1} justifyContent={"space-between"} marginLeft={"5%"}>{props.title}<Button id="add-note-button" onClick={props.renameColumn}><EditIcon opacity="50%"/></Button></Typography>
+			<Typography className="p" align='center' margin={1} justifyContent={"space-between"} marginLeft={"5%"}>{props.title}<Button id="add-note-button" onClick={()=>setRename(true)}><EditIcon opacity="50%"/></Button></Typography>
+			{
+				rename &&
+				<div className='renaming'>
+					<TextField label="New Name" sx={{margin:1}} />
+					<Button sx={{margin:1}} variant="outlined" onClick={ () => {
+						setLoading(true);
+						if(!props.renameColumn){
+							setErrorCard(true);
+						}
+						setLoading(false);
+						setErrorCard(false);
+						setRename(false);
+						}}>
+							Submit</Button>
+				</div>
+			}
+			{
+				loading && 
+				<LinearProgress color="primary"></LinearProgress>
+			}
+			{
+				errorCard && 
+				<Alert severity="error" color="error">Error renaming card</Alert>
+			}
 			<hr></hr>
 		</div>
 		<div className="add-button">
@@ -98,7 +125,7 @@ function Column(props: ColumnProps) {
 		</div>
 		{columnCards()}
 
-	</li>
+	</li>);
 }
 
 interface ProfileOptions {
