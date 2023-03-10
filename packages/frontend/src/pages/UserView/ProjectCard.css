@@ -7,7 +7,7 @@
 * {
     box-sizing: border-box;
     font-family: 'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;
-  }
+}
   
   /* Float four columns side by side */
   .column {
@@ -17,37 +17,22 @@
     font-family: 'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;
   }
   
-  /* Responsive columns */
-  @media screen and (max-width: 800px) {
-    .column {
-      width: 100%;
-      display: block;
-      margin-bottom: 20px;
-      content: inherit;
-      overflow: hidden;
-    }
-  }
-  
   /* Style the counter cards */
   .project-card {
-    margin-top: 10px;
-    width: 100%;
-    border-radius: 10%;
-    box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2);
-    padding: 10px;
-    text-align: center;
-    flex-direction: column;
-    justify-content: center;
-    background-color: #f1f1f1;
-    font-family: 'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;
+   
+    list-style: none;
+    background: #ececec;
+    border-radius: 5px;
+    padding: 15px 20px 20px;
   }
-
+  
   Button{
     margin:auto;
     font-family: 'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;
   }
 
   h3 {
+    max-height: 50px;
     font-size: 140%;
     margin:auto;
     overflow:hidden;

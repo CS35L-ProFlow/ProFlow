@@ -4,35 +4,38 @@
     margin-top: 20px;
     margin-bottom: 20px;
     display: flex;
-    width: 40%;
+    width: 100%;
     flex-direction: column;
     color: black; 
     border-radius: 10px;
-    background-color:rgb(187, 234, 234); 
+    /* background-color:rgb(187, 234, 234);  */
     /* background: linear-gradient(145deg, rgb(187, 234, 234), #0886d9); */
+    
     
     align-items: center;
     font-family: 'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;
 }
 
-.main-user-info > .user-avatar-main {
-    margin: 3%;
-    width: 20%;
-    height: 20%;
-    border-radius: 50%;
-}
-
 .buttons{
+    display: flex; 
     max-width: 100%;
-    margin:auto;
-    height: 30%;
+    margin-left: 3%;
+    margin-bottom: 30px;
+    margin-top: 2%;
     font-family: 'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;
 }
 
-body {
-    background-color: rgb(44, 55, 155);
-    font-family: 'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;
+
+body{
+    background-color:rgb(187, 234, 234);
 }
+
+/* .body-of-page {
+    position: fixed; top: 0px; left: 0px; width: 100%; height: 100%;
+    /* background-color: rgb(44, 55, 155); 
+    background-color:#b8e2f2; 
+    font-family: 'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;
+} */
 
 .name-and-org {
     margin:15px;
@@ -45,8 +48,7 @@ body {
 }
 
 .add-new-project{
-    margin-bottom:10%;
-    margin-top: 10%;
+    margin-top: 1%;
     font-family: 'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;
 }
 
@@ -96,6 +98,10 @@ body {
 }
 
 @media screen and (max-width: 1080px) {
+    .main-user-info {
+        width: 69%;
+      }
+
     .new-button {
       margin:auto;
     }
@@ -117,20 +123,13 @@ body {
 
 
   .projects-main{
-    margin: auto;
-    margin-top: 10px;
-    display: flex;
-    width: 35%;
-    flex-direction: column;
-    color: black; 
-    background-color:rgb(187, 234, 234); 
-    /* background: linear-gradient(145deg, rgb(187, 234, 234), #0886d9);  */
-    font-family: 'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;
+    margin-left: 50px;
   }
 
   .buttons2{
+    display: flex; 
     max-width: 100%;
-    margin-left:10%;
+    margin-bottom: 30px;
     height: 30%;
     font-family: 'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;
   }
@@ -140,3 +139,60 @@ body {
     max-width:100%;
     font-family: 'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;
 }
+
+@media screen and (max-width: 1300px) {
+    .project-card-list {
+       
+        margin:auto;
+      }
+
+    .name-and-org {
+      font-size: 0.8rem;
+    }
+  
+    .add-new-project {
+      margin-bottom: 5%;
+      margin-top: 5%;
+      font-size: 0.8rem;
+    }
+  
+    #create-new-b {
+      margin-bottom: 5px;
+      margin-left: 5px;
+      font-size: 0.8rem;
+    }
+  
+    
+  
+    .buttons2 {
+      margin-left: 0;
+    }
+  
+    .add-new-b {
+      font-size: 0.8rem;
+    }
+  }
+
+
+.project-card-list {
+    display: grid;
+    gap: 15px;
+    grid-template-columns: repeat(auto-fill, 265px);
+    margin-right: 5%;
+  }
+
+.invite-cards {
+display: grid;
+gap: 15px;
+grid-template-columns: repeat(auto-fill, 265px);
+margin-right: 5%;
+margin-left: 3%;
+}
+
+
+  /* .project-card-list {
+    width: 100%;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+  } */
