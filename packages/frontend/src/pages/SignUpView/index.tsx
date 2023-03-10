@@ -123,7 +123,6 @@ export function SignUp(props: SignUpProps) {
 				onKeyDown={handleEnter} onClick={signup} >Sign Up!</Button> 
 			</div>
 		</div>
-<<<<<<< HEAD
 		<div className="alternative">
 		<p className="promptAlt">Already have an account?
 		<p>   </p>
@@ -157,7 +156,5 @@ export function SignUp(props: SignUpProps) {
 		// 	<br />
 		// 	<Button variant="contained" size="small" onClick={() => window.open("https://google.com")}>Invite Friends</Button>
 		// </div>
-=======
->>>>>>> 216d035802496704d7aa28b3b514577ae430ce12
 	);
 }
