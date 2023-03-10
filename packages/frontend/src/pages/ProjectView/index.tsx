@@ -10,6 +10,15 @@ import { getEmptyImage, HTML5Backend } from 'react-dnd-html5-backend'
 import { ProFlow } from '../../proflow';
 import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
+import ArrowBackIosIcon from '@mui/icons-material/ArrowBackIos';
+import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos';
+import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
+import List from '@mui/material/List';
+import ListItem from '@mui/material/ListItem';
+import ListItemText from '@mui/material/ListItemText';
+import MenuItem from '@mui/material/MenuItem';
+import Menu from '@mui/material/Menu';
+
 
 interface ColumnProps {
 	title: string;
@@ -88,6 +97,7 @@ function Column(props: ColumnProps) {
 	}
 
 	return <li className="note">
+
 		<div className="details">
 			<Typography className="p" align='center' margin={1} justifyContent={"space-between"} marginLeft={"5%"}>{props.title}<Button id="add-note-button" onClick={props.renameColumn}><EditIcon opacity="50%"/></Button></Typography>
 			<hr></hr>
@@ -150,13 +160,26 @@ interface RenderedNoteProps {
 
 function RenderedNoteCard(props: RenderedNoteProps) {
 	return <div className={`note-card`} ref={props.ref}>
-		<p>{props.card.title}</p>
-		<span>{props.card.description}</span>
-		<span>Priority {props.card.priority}</span>
-		<div className="bottom-content">
-		</div>
-	</div>;
+				<p>
+					{props.card.title} 
+					<Button onClick={()=>EditCard(props.card)}><EditIcon/></Button>
+				</p>
+				<span>{props.card.description}</span>
+				<span>Priority {props.card.priority}</span>
+				<div className="bottom-content">
+					user: {props.card.assignee?.email}
+				</div>
+			</div>;
 }
+
+function EditCard(props: Card) {
+
+}
+
+function ModifyCard(props: Card){
+	return 
+}
+
 
 interface NoteProps {
 	card: Card
@@ -264,14 +287,12 @@ function toggleSidePanel() {
 	let sidePanelOpen = document.querySelector(".side-panel-toggle")
 	sidePanelOpen!.classList.toggle("side-panel-open")
 	return sidePanel!.classList.toggle("open-side-panel")
-
 }
 
 interface ProjectViewProps {
 	session: Session | undefined,
 	onRefresh: (session: Session) => void,
 };
-
 export default function ProjectView(props: ProjectViewProps) {
 	const { guid } = useParams();
 	const navigate = useNavigate();
@@ -288,7 +309,7 @@ export default function ProjectView(props: ProjectViewProps) {
 	const [currentColumnGuid, setCurrentColumnGuid] = useState<string | undefined>(undefined);
 	const [newNoteTitle, setNewNoteTitle] = useState<string | undefined>(undefined);
 	const [newNoteDescription, setNewNoteDescription] = useState<string | undefined>(undefined);
-
+	const [newAsignee, setNewAsignee] = useState<string | undefined>(undefined);
 	const fetchProjectInfo = async () => {
 		if (!guid || !props.session)
 			return;
@@ -353,7 +374,7 @@ export default function ProjectView(props: ProjectViewProps) {
 			refreshJwt(client, jwt);
 
 		}
-
+		
 		fetchProjectInfo();
 	}, [props.session])
 
@@ -381,8 +402,13 @@ export default function ProjectView(props: ProjectViewProps) {
 			}}>Create Root Sub-Project</Button>
 		</body>
 	}
+	function show(text: any):void{
+
+	}
+	
 
 	const popupBox = () => {
+
 		if (!currentColumnGuid)
 			return <></>;
 
@@ -396,10 +422,19 @@ export default function ProjectView(props: ProjectViewProps) {
 					<form action='#' className="note-form">
 						<TextField label="Title" sx={{marginBottom:1}} onChange={e => setNewNoteTitle(e.target.value)} value={newNoteTitle} />
 						<TextField label="Description" sx={{marginBottom:1}} onChange={e => setNewNoteDescription(e.target.value)} value={newNoteDescription} multiline />
+						<div>
+							<select className='select-box' onChange={e =>{setNewAsignee(e.target.value); console.log(e.target.value) }}>
+								
+								<option selected>No Asignee</option>
+								{projInfo.members.map(user =>
+									<option>{user.email}</option>
+									)}
+							</select>
+						</div>
 						{
 							errorPopNotes && 
 							<div>
-								<Alert sx={{margin:1}} color="error" severity='error'>No title/description provided</Alert>
+								<Alert sx={{margin:1}} color="error" severity='error'>No title/description/user provided</Alert>
 							</div>
 							}
 						<Button id="save-note-button" onClick={async () => {
@@ -411,6 +446,7 @@ export default function ProjectView(props: ProjectViewProps) {
 								setErrorPopNotes(true);
 								console.log("No title or description provided!")
 								return;
+					
 							}
 
 							// TODO: Display a progress bar when these requests are made!
@@ -433,6 +469,7 @@ export default function ProjectView(props: ProjectViewProps) {
 							setErrorPopNotes(false);
 						}}>Add Note</Button>
 					</form>
+					
 						{progress &&
 						<LinearProgress sx={{margin:1}} color="primary" />
 						}
@@ -466,8 +503,8 @@ export default function ProjectView(props: ProjectViewProps) {
 							</h2>
 						</div>
 						<button className='side-panel-toggle' type='button' onClick={toggleSidePanel}>
-							<span className="open">open</span>
-							<span className="close">close</span>
+							<span className="open"><ArrowForwardIosIcon/></span>
+							<span className="close"><ArrowBackIosIcon/></span>
 						</button>
 						<div className='main'>
 							<div className="wrapper">
@@ -521,14 +558,6 @@ export default function ProjectView(props: ProjectViewProps) {
 										await fetchProjectInfo();
 									}}>Create column</Button>
 								</div>
-								{/* <Column title="Backing"> */}
-								{/* 	<div> */}
-								{/* 		<NoteCard title="Title" description="description..." time="time"></NoteCard> */}
-								{/* 	</div> */}
-								{/* </Column> */}
-								{/* <Column title="Design"></Column> */}
-								{/* <Column title="To Do"></Column> */}
-								{/* <Column title="Doing"></Column> */}
 							</div>
 						</div>
 					</div>

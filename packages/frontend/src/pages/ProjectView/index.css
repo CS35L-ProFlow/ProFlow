@@ -159,7 +159,7 @@
   .wrapper{
     margin: 50px;
     display: grid;
-    flex-direction: row;
+    flex-direction: column;
     width: 400vw;
     gap: 15px;
     grid-template-columns: repeat(auto-fill, 265px);
@@ -168,17 +168,16 @@
   .wrapper li{
     min-height: 150px;
     height: fit-content;
-    /* overflow: hidden; */
     list-style: none;
     background: #ececec;
     border-radius: 5px;
     max-height: 85vh;
-    /* overflow-y:scroll; */
     margin:0;
+    overflow-y: hidden;
     overflow-x: hidden;
   }
   .wrapper .note .column-with-cards{
-    /* overflow-y: scroll; */
+    overflow-y: scroll;
     overflow-x: hidden;
   }
   
@@ -206,6 +205,7 @@
   }
   
   .note-card p{
+    margin-left: 0;
     font-size: 23px;
     font-weight: 400;
   }
@@ -213,7 +213,7 @@
 
   .note-card span{
     display: block;
-    margin-top: 5px;
+    margin-top: 10px;
     color: #575757;
     font-size: 16px;
   }
@@ -422,9 +422,9 @@
   }
 
   .main{
-    /* width: 100vh; */
-    flex-grow: 1;
-    flex-direction: column;
+    width: fit-content;
+    /* flex-grow: 1; */
+    flex-direction: row;
     overflow-x: scroll;
   }
   .side-panel.open-side-panel{
@@ -437,4 +437,15 @@
 
   .side-panel-open .close {
     display: initial !important;
+  }
+
+  .select-box{
+    height:40px;
+    width: 100%;
+    margin-bottom: 10px;
+    margin-top: 0px;
+  }
+  option{
+    max-height: 10px;
+    overflow-y: scroll;
   }
