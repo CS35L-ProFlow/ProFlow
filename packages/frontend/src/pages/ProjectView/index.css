@@ -173,7 +173,6 @@
     border-radius: 5px;
     max-height: 85vh;
     margin:0;
-    overflow-y: hidden;
     overflow-x: hidden;
   }
   .wrapper .note .column-with-cards{

@@ -1,4 +1,4 @@
-import { Button, TextField, Alert, Typography, LinearProgress } from '@mui/material/'
+import { Button, TextField, Alert, Typography, LinearProgress, Snackbar } from '@mui/material/'
 import { Session, ProjectInfo, SubProject, SubProjectColumnCards, Card, init_proflow_client } from "../../client"
 import './index.css';
 import Pages from "../../pages";
@@ -43,6 +43,9 @@ function PlaceholderCard(props: { card: Card }) {
 }
 
 function Column(props: ColumnProps) {
+	const [rename, setRename] = useState(false);
+	const [loading, setLoading] = useState(false);
+	const [errorCard, setErrorCard] = useState(false);
 
 	const onCardDrop = (card: Card, priority: number) => {
 
@@ -96,10 +99,33 @@ function Column(props: ColumnProps) {
 		return cards;
 	}
 
-	return <li className="note">
-
+	return (<li className="note">
 		<div className="details">
-			<Typography className="p" align='center' margin={1} justifyContent={"space-between"} marginLeft={"5%"}>{props.title}<Button id="add-note-button" onClick={props.renameColumn}><EditIcon opacity="50%"/></Button></Typography>
+			<Typography className="p" align='center' margin={1} justifyContent={"space-between"} marginLeft={"5%"}>{props.title}<Button id="add-note-button" onClick={()=>setRename(true)}><EditIcon opacity="50%"/></Button></Typography>
+			{
+				rename &&
+				<div className='renaming'>
+					<TextField label="New Name" sx={{margin:1}} />
+					<Button sx={{margin:1}} variant="outlined" onClick={ () => {
+						setLoading(true);
+						if(!props.renameColumn){
+							setErrorCard(true);
+						}
+						setLoading(false);
+						setErrorCard(false);
+						setRename(false);
+						}}>
+							Submit</Button>
+				</div>
+			}
+			{
+				loading && 
+				<LinearProgress color="primary"></LinearProgress>
+			}
+			{
+				errorCard && 
+				<Alert severity="error" color="error">Error renaming card</Alert>
+			}
 			<hr></hr>
 		</div>
 		<div className="add-button">
@@ -110,7 +136,7 @@ function Column(props: ColumnProps) {
 		{columnCards()}
 		</div>
 
-	</li>
+	</li>);
 }
 
 interface ProfileOptions {
@@ -302,6 +328,20 @@ export default function ProjectView(props: ProjectViewProps) {
 	const [errorPop, setErrorPop] = useState(false);
 	const [progress, setProgress] = useState(false);
 	const [errorPopNotes, setErrorPopNotes] = useState(false);
+
+	const [open, setOpen] = useState(true);
+
+	const handleClickDrag = () => {
+		setOpen(true);
+	};
+
+	const handleCloseDrag = (event?: React.SyntheticEvent | Event, reason?: string) => {
+		if (reason === 'clickaway') {
+		return;
+		}
+
+		setOpen(false);
+	};
 
 	const [newColumnName, setNewColumnName] = useState<string | undefined>(undefined);
 
@@ -516,19 +556,26 @@ export default function ProjectView(props: ProjectViewProps) {
 										onOpenPopup={() => setCurrentColumnGuid(c.guid)} cards={cards}
 										onMoveCard={async (card, to_column, to_priority) => {
 											if (!props.session || !guid)
+											{
+												setOpen(true);
 												return;
+											}
 
 											// TODO(Brandon): Before we even make the request, we should probably do some client-side prediction so that it feels less laggy...
 
 											const res = await props.session.edit_sub_project_card(currentSubProject.guid, card.guid, { to_priority, to_column });
 											if (res.err) {
 												// TODO: Show some error message to the user here!
-												console.log(res.val);
+												setOpen(true);
 											}
+											setOpen(false);
 
+											setProgress(true);
 											await fetchProjectInfo();
+											setProgress(false);
 										}}
 									/>
+									
 								)}
 								<div style={{ display: 'flex', flexDirection: 'column', alignItems: 'start' }}>
 									<TextField label="Column Name" onChange={e => setNewColumnName(e.target.value)} value={newColumnName} />
@@ -559,8 +606,18 @@ export default function ProjectView(props: ProjectViewProps) {
 									}}>Create column</Button>
 								</div>
 							</div>
+							<Snackbar open={open} autoHideDuration={6000} onClose={handleCloseDrag}>
+								<Alert onClose={handleCloseDrag} severity="error" sx={{ width: '100%' }}>
+									Error dragging notes
+								</Alert>
+							</Snackbar>
+
+							{progress &&
+								<LinearProgress sx={{marginTop:"10%"}} color="primary" />
+							}
 						</div>
-					</div>
+						
+					</div>			
 				</div>
 			</body>
 		</DndProvider>
