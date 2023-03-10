@@ -64,7 +64,7 @@ export function SignUp(props: SignUpProps) {
 			}
 		</div>
 		<div className="alternative">
-		<p className="promptAlt">Already have an account? 
+		<p className="promptAlt">Already have an account?
 		<p>   </p>
 		<a className="altLink" href={"http://localhost:3000/login"}>{"Login"}</a>
 		</p>

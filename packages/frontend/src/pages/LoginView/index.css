@@ -1,15 +1,12 @@
 .container1 {
+  display: grid;
   transform:translateY(+50%);
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
   align-items: center;
   background-color: rgb(187, 234, 234);
   width: 20%;
   height: 50%;
   margin: auto;
-  border-radius: 50px;
+  border-radius: 10%;
   direction: flex;
   flex-direction: column;
   justify-content: center;
@@ -17,36 +14,55 @@
   padding: 10px;
 }
 
-.container2 {
+@media screen and (max-width: 600px) {
+  .container1{
+    transform:translateX(-50%), translateY(+30%);
+    width: 70%;
+    height: 70%;
+  }
+  /* .container2{
+    transform:translateX(-50%), translateY(+50%);
+    width: 120%;
+
+  } */
+  .promptAlt{
+    transform: translateY(+30%);
+    color: white;
+  }
+
+  h1{
+    font-size: 30px
+  }
+  
+}
+
+/* .container2 {
+  display: grid;
   transform:translateY(+70%);
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
   align-items: center;
   background-color: rgb(187, 234, 234);
   width: 20%;
   height: 37%;
   margin: auto;
-  border-radius: 50px;
+  border-radius: 10%;
   direction: flex;
   flex-direction: column;
   justify-content: center;
   text-align: center;
   padding: 10px;
-}
+} */
 
 body{
   background-color: rgb(44, 55, 155);
   align-items: center;
   justify-content: center;
-  /* display: flex; */
 }
 
 h1{
-  font-size: 1.5vw;
+  font-size: 1;
+  max-width: 80%;
+  overflow: hidden;
   margin: 10%;
-  /* margin-bottom: 10%; */
   justify-content: center;
   text-align:center;
   font-family: 'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;
@@ -104,7 +120,7 @@ h1{
 .alternative{
   justify-content: center;
   text-align: center;
-  margin-top: 250px;
+  margin-top: 270px;
 }
 
 .altLink
