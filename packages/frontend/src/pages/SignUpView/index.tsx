@@ -19,18 +19,16 @@ export function SignUp(props: SignUpProps) {
 	const [dispPasswordError, setPasswordError] = useState(false);
 	const navigate = useNavigate();
 	const [ErrorPassword, AlterPasswordError] = useState<string | undefined>(undefined);
-	const[ErrorEmail, AlterEmailError] = useState<string | undefined>(undefined);
+	const [ErrorEmail, AlterEmailError] = useState<string | undefined>(undefined);
 	const [PasswordStatus, AlterPasswordStatus] = useState<string | undefined>(undefined);
 
-	function updateEmail(newEmail: string) 
-	{
+	function updateEmail(newEmail: string) {
 		AlterEmailError("");
 		setEmail(newEmail);
 		console.log(newEmail);
 	}
 
-	function updatePassword1(newPassword1: string)
-	{
+	function updatePassword1(newPassword1: string) {
 		setPassword1(newPassword1);
 		if (password2.length !== 0) {
 			if (newPassword1 != password2) {
@@ -48,8 +46,7 @@ export function SignUp(props: SignUpProps) {
 		}
 	}
 
-	function updatePassword2(newPassword2: string)
-	{
+	function updatePassword2(newPassword2: string) {
 		setPassword2(newPassword2);
 		if (newPassword2.length !== 0) {
 			if (password1 != newPassword2) {
@@ -67,8 +64,7 @@ export function SignUp(props: SignUpProps) {
 		}
 	}
 
-	async function signup() 
-	{
+	async function signup() {
 		if (password2.length === 0) {
 			setPasswordError(true);
 			AlterPasswordError("Password required");
@@ -90,71 +86,39 @@ export function SignUp(props: SignUpProps) {
 
 	function handleEnter(event: React.KeyboardEvent<HTMLButtonElement>): void {
 		if (event.key === 'Enter') {
-		  signup();
+			signup();
 		}
-	  }
+	}
 
 	return (
 		<div>
-		<div className="container1">
-			<h1>
-				Welcome, Let's Get Started
-			</h1>
-			<div className="input-group">
-				<TextField label="Enter your Email" value={email} error={!!ErrorEmail} 
-					onKeyDown={e => {if(e.key === "Enter") {signup()}}}
-					helperText={ErrorEmail} onChange={e => updateEmail(e.target.value)} />
-			</div>
-			<div className="input-group">
-				<TextField type="Password" label="Password" id="password" 
-					error={dispPasswordError} value={password1} 
-					onKeyDown={e => {if(e.key === "Enter") {signup()}}}
-					onChange={e => updatePassword1(e.target.value)} />
-			</div>
-			<div className="input-group">
-				<TextField type="Password" label="Confirm password" value={password2} 
-					error={dispPasswordError} 
-					helperText={dispPasswordError ? ErrorPassword : PasswordStatus} 
-					onKeyDown={e => {if(e.key === "Enter") {signup()}}}
-					onChange={e => updatePassword2(e.target.value)}/>
-			</div>
-			<div className="fixError">
-			<Button className="clickMe" id="LOGIN" variant="contained" 
-				onKeyDown={handleEnter} onClick={signup} >Sign Up!</Button> 
+			<div className="container1">
+				<h1>
+					Welcome, Let's Get Started
+				</h1>
+				<div className="input-group">
+					<TextField label="Enter your Email" value={email} error={!!ErrorEmail}
+						onKeyDown={e => { if (e.key === "Enter") { signup() } }}
+						helperText={ErrorEmail} onChange={e => updateEmail(e.target.value)} />
+				</div>
+				<div className="input-group">
+					<TextField type="Password" label="Password" id="password"
+						error={dispPasswordError} value={password1}
+						onKeyDown={e => { if (e.key === "Enter") { signup() } }}
+						onChange={e => updatePassword1(e.target.value)} />
+				</div>
+				<div className="input-group">
+					<TextField type="Password" label="Confirm password" value={password2}
+						error={dispPasswordError}
+						helperText={dispPasswordError ? ErrorPassword : PasswordStatus}
+						onKeyDown={e => { if (e.key === "Enter") { signup() } }}
+						onChange={e => updatePassword2(e.target.value)} />
+				</div>
+				<div className="fixError">
+					<Button className="clickMe" id="LOGIN" variant="contained"
+						onKeyDown={handleEnter} onClick={signup} >Sign Up!</Button>
+				</div>
 			</div>
 		</div>
-		<div className="alternative">
-		<p className="promptAlt">Already have an account?
-		<p>   </p>
-		<a className="altLink" href={"http://localhost:3000/login"}>{"Login"}</a>
-		</p>
-		</div>
-    </div>
-    //Old sign up code, just leaving this here as a reference
-		// <div>
-		// 	<h1>Welcome!</h1>
-		// 	<h2>Enter your new account information below:</h2>
-		// 	<div>Email:</div>
-		// 	<input id="email" type="text" />
-		// 	<div>Password</div>
-		// 	<input id="password" type="text" />
-		// 	<div />
-		// 	<br />
-		// 	<Button variant="contained" size="small" onClick={async () => {
-		// 		const email_input = (document.getElementById('email') as HTMLInputElement).value;
-		// 		const password = (document.getElementById('password') as HTMLInputElement).value;
-		// 		// try {
-		// 		// 	const res = await props.client.http.auth.authSignup({ email: email_input, password: password });
-		// 		// 	props.client.authorize(res.jwt, res.expire_sec);
-		// 		// 	navigate(Pages.USER);
-		// 		// } catch (e) {
-		// 		// 	if (e instanceof ApiError) {
-		// 		// 		console.log("Request failed (" + e.status + ") error: " + e.body.message);
-		// 		// 	}
-		// 		// }
-		// 	}}>Sign Up!</Button>
-		// 	<br />
-		// 	<Button variant="contained" size="small" onClick={() => window.open("https://google.com")}>Invite Friends</Button>
-		// </div>
 	);
 }
