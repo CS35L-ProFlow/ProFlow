@@ -62,7 +62,7 @@ export default function Login(props: LoginProps) {
 		<div className="alternative">
 		<p className="promptAlt">Don't have an account? 
 		<p>   </p>
-		<a className="altLink" href={"http://localhost:3000/signup"}>{"Sign Up"}</a>
+		<Button className="altLink" onClick={(event) => navigate(Pages.SIGNUP)}>{"Sign Up"}</Button>
 		</p>
 		</div>
 		</div>

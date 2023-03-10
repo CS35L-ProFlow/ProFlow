@@ -119,6 +119,12 @@ export function SignUp(props: SignUpProps) {
 						onKeyDown={handleEnter} onClick={signup} >Sign Up!</Button>
 				</div>
 			</div>
+			<div className="alternative">
+		<p className="promptAlt">Already have an account? 
+		<p>   </p>
+		<Button className="altLink" onClick={(event) => navigate(Pages.LOGIN)}>{"Log In"}</Button>
+		</p>
+		</div>
 		</div>
 	);
 }
