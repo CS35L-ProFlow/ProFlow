@@ -1,4 +1,4 @@
-import { Button, TextField, Alert, Typography, LinearProgress } from '@mui/material/'
+import { Button, TextField, Alert, Typography, LinearProgress, Snackbar } from '@mui/material/'
 import { Session, ProjectInfo, SubProject, SubProjectColumnCards, Card, init_proflow_client } from "../../client"
 import './index.css';
 import Pages from "../../pages";
@@ -314,6 +314,20 @@ export default function ProjectView(props: ProjectViewProps) {
 	const [progress, setProgress] = useState(false);
 	const [errorPopNotes, setErrorPopNotes] = useState(false);
 
+	const [open, setOpen] = useState(true);
+
+	const handleClickDrag = () => {
+		setOpen(true);
+	};
+
+	const handleCloseDrag = (event?: React.SyntheticEvent | Event, reason?: string) => {
+		if (reason === 'clickaway') {
+		return;
+		}
+
+		setOpen(false);
+	};
+
 	const [newColumnName, setNewColumnName] = useState<string | undefined>(undefined);
 
 	// TODO: Maybe group these state objects together since they're all related to creating a new card?
@@ -511,19 +525,26 @@ export default function ProjectView(props: ProjectViewProps) {
 										onOpenPopup={() => setCurrentColumnGuid(c.guid)} cards={cards}
 										onMoveCard={async (card, to_column, to_priority) => {
 											if (!props.session || !guid)
+											{
+												setOpen(true);
 												return;
+											}
 
 											// TODO(Brandon): Before we even make the request, we should probably do some client-side prediction so that it feels less laggy...
 
 											const res = await props.session.edit_sub_project_card(currentSubProject.guid, card.guid, { to_priority, to_column });
 											if (res.err) {
 												// TODO: Show some error message to the user here!
-												console.log(res.val);
+												setOpen(true);
 											}
+											setOpen(false);
 
+											setProgress(true);
 											await fetchProjectInfo();
+											setProgress(false);
 										}}
 									/>
+									
 								)}
 								<div style={{ display: 'flex', flexDirection: 'column', alignItems: 'start' }}>
 									<TextField label="Column Name" onChange={e => setNewColumnName(e.target.value)} value={newColumnName} />
@@ -562,8 +583,18 @@ export default function ProjectView(props: ProjectViewProps) {
 								{/* <Column title="To Do"></Column> */}
 								{/* <Column title="Doing"></Column> */}
 							</div>
+							<Snackbar open={open} autoHideDuration={6000} onClose={handleCloseDrag}>
+								<Alert onClose={handleCloseDrag} severity="error" sx={{ width: '100%' }}>
+									Error dragging notes
+								</Alert>
+							</Snackbar>
+
+							{progress &&
+								<LinearProgress sx={{marginTop:"10%"}} color="primary" />
+							}
 						</div>
-					</div>
+						
+					</div>			
 				</div>
 			</body>
 		</DndProvider>
