@@ -8,11 +8,17 @@
   .Main-Page{
     width: 100%;
     min-height: 100vh;
-    background: #b8e2f2;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: cover;
+    background-color:rgb(187, 234, 234);
     color: #525252;
     overflow: hidden;
   }
   
+  .Main-Page img{
+    width: 20px;
+  }
   .App {
     text-align: center;
   }
@@ -160,7 +166,8 @@
     margin: 50px;
     display: grid;
     flex-direction: column;
-    width: 400vw;
+    /* overflow-x: scroll ; */
+    width: 200vw;
     gap: 15px;
     grid-template-columns: repeat(auto-fill, 265px);
   }
@@ -176,7 +183,6 @@
     overflow-x: hidden;
   }
   .wrapper .note .column-with-cards{
-    overflow-y: scroll;
     overflow-x: hidden;
   }
   
@@ -209,6 +215,11 @@
     font-weight: 400;
   }
   
+  .note-card .edit-delete-button {
+    margin-left: auto;
+    margin-right: 0;
+    size: 10;
+  }
 
   .note-card span{
     display: block;
@@ -321,6 +332,7 @@
     width: calc(100%-15px);
     border-radius: 5px;
     background: #fff;
+    height: auto;
   }
   
   .popup .content header{
@@ -359,10 +371,9 @@
     border: 1px solid #999;
   }
   
-  .content form textarea{
-    height: 150px;
-    resize: none;
-    padding: 8px 15px;
+  .content .textarea{
+    width: 100%;
+    padding-bottom: 0px;
   }
   
   .content form Button{

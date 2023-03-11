@@ -12,17 +12,20 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
 import ArrowBackIosIcon from '@mui/icons-material/ArrowBackIos';
 import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos';
-import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
 import List from '@mui/material/List';
 import ListItem from '@mui/material/ListItem';
 import ListItemText from '@mui/material/ListItemText';
 import MenuItem from '@mui/material/MenuItem';
 import Menu from '@mui/material/Menu';
+import { PersonPinSharp } from '@mui/icons-material';
+import { width } from '@mui/system';
 
 
 interface ColumnProps {
 	title: string;
 	guid: string;
+	onEditCard: (card: Card) => void;
+	onDeleteCard: (card: Card) => void;
 	onOpenPopup: () => void;
 	deleteColumn?: () => void; // TODO: Delete column 
 	renameColumn?: () => void;
@@ -37,7 +40,7 @@ enum DragTypes {
 function PlaceholderCard(props: { card: Card }) {
 	return <div style={{ backgroundColor: "yellow" }}>
 		<div style={{ opacity: 0 }}>
-			<RenderedNoteCard card={props.card} />
+			<RenderedNoteCard card={props.card} onEditCard={()=>{}} onDeleteCard={()=>{}}/>
 		</div>
 	</div>
 }
@@ -93,7 +96,7 @@ function Column(props: ColumnProps) {
 		}
 
 		let cards = raw_cards.sort((a, b) => a.priority - b.priority).map(c => {
-			return <NoteCard key={c.guid} card={c} onDrop={onCardDrop} />
+			return <NoteCard key={c.guid} card={c} onDrop={onCardDrop} onEditCard={props.onEditCard} onDeleteCard={props.onDeleteCard}/>
 		})
 
 		return cards;
@@ -134,6 +137,8 @@ function Column(props: ColumnProps) {
 		</div>
 		<div className='column-with-cards'>
 		{columnCards()}
+		{}
+		
 		</div>
 
 	</li>);
@@ -146,33 +151,21 @@ interface ProfileOptions {
 }
 
 function Profile(props: ProfileOptions) {
-	return <div><img src="User-Image-Here" className="user-pic" onClick={toggleMenu}></img>
+	const navigate = useNavigate();
+	return <div><img src={require("./logo192.png")} className="user-pic" onClick={toggleMenu}></img>
 		<div className="drop-down-menu" id="subMenu">
 			<div className="drop-down">
 				<div className="user-profile">
-					<img src='placehold.it/200x200' />
+					<img src={require("./logo192.png")} />
 					<h2>{props.userName}</h2>
 				</div>
 				<hr></hr>
 
 				<a href='#' className="drop-down-link">
-					<p>Switch accounts</p>
+					<p onClick={()=> navigate(Pages.USER)}>View Other Projects</p>
 				</a>
-
 				<a href='#' className="drop-down-link">
-					<p>Manage Account</p>
-				</a>
-
-				<a href='#' className="drop-down-link">
-					<p>Profile and visibility</p>
-				</a>
-
-				<a href='#' className="drop-down-link">
-					<p>Settings</p>
-				</a>
-				<hr></hr>
-				<a href='#' className="drop-down-link">
-					<p>Can add other functionalities here</p>
+					<p onClick={()=> navigate(Pages.LOGIN)}>Logout</p>
 				</a>
 			</div>
 		</div></div>
@@ -180,7 +173,9 @@ function Profile(props: ProfileOptions) {
 
 
 interface RenderedNoteProps {
-	card: Card
+	card: Card;
+	onEditCard: (card: Card) => void;
+	onDeleteCard: (card: Card) => void;
 	ref?: React.MutableRefObject<HTMLDivElement>,
 }
 
@@ -188,27 +183,36 @@ function RenderedNoteCard(props: RenderedNoteProps) {
 	return <div className={`note-card`} ref={props.ref}>
 				<p>
 					{props.card.title} 
-					<Button onClick={()=>EditCard(props.card)}><EditIcon/></Button>
 				</p>
 				<span>{props.card.description}</span>
 				<span>Priority {props.card.priority}</span>
 				<div className="bottom-content">
-					user: {props.card.assignee?.email}
+				</div>
+				<div className='edit-delete-button'>
+					<Button className='edit-card' onClick={() =>props.onEditCard(props.card)}><EditIcon/></Button>
+					<Button className='delete-card' onClick={() =>props.onDeleteCard(props.card)}><DeleteIcon/></Button>
 				</div>
 			</div>;
 }
 
-function EditCard(props: Card) {
+function DeleteWaring(){
+	return <div> 
+			<div className='warning-wrapper'>
+				<div className='warning-message'>Are you sure you want to delete?</div>
+				<Button>Confirm</Button>
+				<Button>Cancel</Button>
+			</div>
+			<div id="overlay"></div>
+			</div>
 
 }
 
-function ModifyCard(props: Card){
-	return 
-}
 
 
 interface NoteProps {
-	card: Card
+	card: Card;
+	onEditCard: (card: Card) => void;
+	onDeleteCard: (card:Card) =>void;
 	onDrop: (dropped: Card, priority: number) => void,
 }
 
@@ -292,7 +296,7 @@ function NoteCard(props: NoteProps) {
 				style={{ opacity: isDragging ? 0 : 1 }}
 			>
 				<div ref={ref}>
-					<RenderedNoteCard card={props.card} />
+					<RenderedNoteCard card={props.card} onEditCard={props.onEditCard} onDeleteCard={props.onDeleteCard}/>
 				</div>
 			</div>
 			{dropPosition == NoteDropPosition.AFTER && <PlaceholderCard card={item.card} />}
@@ -328,8 +332,11 @@ export default function ProjectView(props: ProjectViewProps) {
 	const [errorPop, setErrorPop] = useState(false);
 	const [progress, setProgress] = useState(false);
 	const [errorPopNotes, setErrorPopNotes] = useState(false);
+	const [editCard, setEditCard] = useState<Card | undefined>(undefined);
 
-	const [open, setOpen] = useState(true);
+
+	
+	const [open, setOpen] = useState(false);
 
 	const handleClickDrag = () => {
 		setOpen(true);
@@ -449,7 +456,7 @@ export default function ProjectView(props: ProjectViewProps) {
 
 	const popupBox = () => {
 
-		if (!currentColumnGuid)
+		if (!currentColumnGuid && !editCard)
 			return <></>;
 
 		return <div className="popup-box">
@@ -457,11 +464,11 @@ export default function ProjectView(props: ProjectViewProps) {
 				<div className="content">
 					<header>
 						<p>Add a New Note</p>
-						<i onClick={() => setCurrentColumnGuid(undefined)}>x</i>
+						<i onClick={() => {setCurrentColumnGuid(undefined); setEditCard(undefined)}}>x</i>
 					</header>
 					<form action='#' className="note-form">
-						<TextField label="Title" sx={{marginBottom:1}} onChange={e => setNewNoteTitle(e.target.value)} value={newNoteTitle} />
-						<TextField label="Description" sx={{marginBottom:1}} onChange={e => setNewNoteDescription(e.target.value)} value={newNoteDescription} multiline />
+						<TextField label="Title" className='textarea' sx={{marginBottom:1}} onChange={e => setNewNoteTitle(e.target.value)} value={newNoteTitle} />
+						<TextField label="Description" className='textarea' sx={{marginBottom:1}} onChange={e => setNewNoteDescription(e.target.value)} value={newNoteDescription} multiline />
 						<div>
 							<select className='select-box' onChange={e =>{setNewAsignee(e.target.value); console.log(e.target.value) }}>
 								
@@ -507,7 +514,8 @@ export default function ProjectView(props: ProjectViewProps) {
 							setNewNoteDescription(undefined);
 							setCurrentColumnGuid(undefined);
 							setErrorPopNotes(false);
-						}}>Add Note</Button>
+							setEditCard(undefined);
+						}}>{currentColumnGuid? "Add Note": "Save Edits"}</Button>
 					</form>
 					
 						{progress &&
@@ -523,11 +531,11 @@ export default function ProjectView(props: ProjectViewProps) {
 			<body>
 				<div className="Main-Page">
 					<nav>
-						<img src="LOGO-HERE" className="logo"></img>
+						<img src={require("./logo192.png")} className="logo"></img>
 						<ul>
 
 						</ul>
-						<Profile userName='[NAME HERE]'></Profile>
+						<Profile userName={projInfo.owner.email}></Profile>
 						{/* TODO: This is temporary, ideally we'll just periodically refresh or even better . */}
 						<Button onClick={async () => { await fetchProjectInfo() }}>Refresh</Button>
 
@@ -573,6 +581,19 @@ export default function ProjectView(props: ProjectViewProps) {
 											setProgress(true);
 											await fetchProjectInfo();
 											setProgress(false);
+										}}
+										onEditCard={(card) =>{
+											setEditCard(card);
+											setNewNoteTitle(card.title);
+											setNewNoteDescription(card.description)
+											setNewAsignee(card.assignee?.email)
+										}
+										
+										
+											
+										}
+										onDeleteCard={(card) =>{
+											//Delete from the server. 
 										}}
 									/>
 									
