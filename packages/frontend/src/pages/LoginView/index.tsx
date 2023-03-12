@@ -45,7 +45,8 @@ export default function Login(props: LoginProps) {
   }
 
 	return (
-		<div className="container2">
+		<div>
+		<div className="container1">
 			<h1>
 				Login
 			</h1>
@@ -57,6 +58,13 @@ export default function Login(props: LoginProps) {
 			</div>
 			{/* <Button id="LOGIN" variant="contained" onKeyDown={handleEnter} onClick={login}>Login</Button> */}
 			<Button className="clickMe" id="LOGIN" variant="contained" onKeyDown={(event) => handleEnter(event)} onClick={(event) => login()}>Login</Button>
+		</div>
+		<div className="alternative">
+		<p className="promptAlt">Don't have an account? 
+		<p>   </p>
+		<Button className="altLink" onClick={(event) => navigate(Pages.SIGNUP)}>{"Sign Up"}</Button>
+		</p>
+		</div>
 		</div>
 	);
 }
