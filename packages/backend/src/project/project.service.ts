@@ -102,6 +102,52 @@ export class ProjectService {
 		});
 	}
 
+	async delete_column(owner: User, guid: string, column_guid: string): Promise<Result<void, string>> {
+		return await this.data_source.transaction(async manager => {
+			const project = await manager.findOne(Project, { where: { guid }, relations: { owner: true } });
+			if (!project) {
+				return Err("Cannot delete column in project that does not exist!");
+			}
+
+			if (project.owner.guid != owner.guid) {
+				return Err("Cannot delete column in project that you do not own!");
+			}
+
+			const existing = await manager.findOne(ProjectColumn, { where: { guid: column_guid, project }, relations: { project: true } });
+			if (!existing) {
+				return Err("Column does not exist!");
+			}
+
+			await manager.delete(ProjectColumn, { guid: column_guid });
+
+			return Ok.EMPTY;
+		});
+	}
+
+	async rename_column(owner: User, guid: string, column_guid: string, new_name: string): Promise<Result<void, string>> {
+		return await this.data_source.transaction(async manager => {
+			const project = await manager.findOne(Project, { where: { guid }, relations: { owner: true } });
+			if (!project) {
+				return Err("Cannot rename column in project that does not exist!");
+			}
+
+			if (project.owner.guid != owner.guid) {
+				return Err("Cannot rename column in project that you do not own!");
+			}
+
+			const existing = await manager.findOne(ProjectColumn, { where: { guid: column_guid, project }, relations: { project: true } });
+			if (!existing) {
+				return Err("Column does not exist!");
+			}
+
+			existing.name = new_name;
+
+			await manager.save(ProjectColumn, existing);
+
+			return Ok.EMPTY;
+		});
+	}
+
 	async add_card_to_column(
 		user: User,
 		sub_project_guid: string,

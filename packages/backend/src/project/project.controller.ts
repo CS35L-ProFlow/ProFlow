@@ -2,7 +2,7 @@ import { Controller, Post, Get, Param, Body, UseGuards, ForbiddenException, Quer
 import { ApiBearerAuth, ApiParam, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard, AuthUser } from "../auth/jwt.guard";
 import { User, SubProject } from "../database/entities";
-import { GetProjectResponse, GetProjectTreeResponse, SubProjectResponse } from "../dtos/dtos.entity";
+import { GetProjectResponse, GetProjectTreeResponse, RenameProjectColumnRequest, SubProjectResponse } from "../dtos/dtos.entity";
 
 import { InviteMemberResult, ProjectService } from "./project.service";
 import { CreateSubProjectRequest, CreateProjectRequest, CreateProjectColumnRequest } from "../dtos/dtos.entity";
@@ -129,6 +129,31 @@ export class ProjectController {
 	@Post(":guid/add-column")
 	async add_column(@AuthUser() user: User, @Param() param: { guid: string }, @Body() req: CreateProjectColumnRequest) {
 		const res = await this.project_service.add_column(user, param.guid, req.name);
+		if (res.err) {
+			throw new ForbiddenException(res.val);
+		}
+	}
+
+
+	@UseGuards(JwtAuthGuard)
+	@ApiBearerAuth()
+	@ApiParam({ name: "guid", required: true, description: "Project GUID" })
+	@ApiQuery({ name: "column_guid", required: true, description: "Column GUID" })
+	@Post(":guid/delete-column")
+	async delete_column(@AuthUser() user: User, @Param() param: { guid: string }, @RequiredQuery("column_guid") column_guid: string) {
+		const res = await this.project_service.delete_column(user, param.guid, column_guid);
+		if (res.err) {
+			throw new ForbiddenException(res.val);
+		}
+	}
+
+	@UseGuards(JwtAuthGuard)
+	@ApiBearerAuth()
+	@ApiParam({ name: "guid", required: true, description: "Project GUID" })
+	@ApiQuery({ name: "column_guid", required: true, description: "Column GUID" })
+	@Post(":guid/rename-column")
+	async rename_column(@AuthUser() user: User, @Param() param: { guid: string }, @RequiredQuery("column_guid") column_guid: string, @Body() req: RenameProjectColumnRequest) {
+		const res = await this.project_service.rename_column(user, param.guid, column_guid, req.name);
 		if (res.err) {
 			throw new ForbiddenException(res.val);
 		}

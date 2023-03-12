@@ -129,6 +129,14 @@ export class CreateProjectColumnRequest {
 	name: string;
 }
 
+export class RenameProjectColumnRequest {
+	/*
+	 * New name of the column.
+	 */
+	@IsNotEmpty()
+	name: string;
+}
+
 export class GetUserResponse {
 	/*
 	 * The name of the user.
