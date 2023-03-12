@@ -15,9 +15,6 @@ export class User {
 	@Column({ type: "text" })
 	readonly password: string;
 
-	@OneToMany(() => Card, (card) => card.assignee, { onDelete: "CASCADE", onUpdate: "CASCADE" })
-	readonly assigned: Card[];
-
 	@OneToMany(() => Project, (project) => project.owner, { onDelete: "CASCADE", onUpdate: "CASCADE" })
 	readonly owned_projects: Project[]
 
