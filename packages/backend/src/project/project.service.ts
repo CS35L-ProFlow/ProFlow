@@ -302,6 +302,7 @@ export class ProjectService {
 				return Err("Card does not exist!");
 			}
 
+			console.log("Title is " + edits.title);
 			if (edits.title && card.title != edits.title) {
 				card.title = edits.title;
 			}
@@ -310,20 +311,24 @@ export class ProjectService {
 				card.description = edits.description;
 			}
 
-			if (edits.assignee && card.assignee?.guid != edits.assignee) {
-				const new_assignee = sub_project.project.members.find(m => m.guid == edits.assignee);
+			if (edits.assignee) {
+				if (edits.assignee === "NONE") {
+					card.assignee = null;
+				} else if (card.assignee?.guid != edits.assignee) {
 
-				if (!new_assignee) {
-					return Err("Assignee is not a member of the project!");
+					const new_assignee = sub_project.project.members.find(m => m.guid == edits.assignee);
+
+					if (!new_assignee) {
+						return Err("Assignee is not a member of the project!");
+					}
+
+					card.assignee = new_assignee;
 				}
-
-				// TODO(Brandon): Probably want to add a check to make sure that the user is actually a member of the project...
-
-				card.assignee = new_assignee;
 			}
 
 			const changed_columns = edits.column && card.project_column.guid != edits.column;
 			if (changed_columns) {
+
 				const column = await manager.findOne(ProjectColumn, { where: { guid: edits.column } })
 				if (!column) {
 					return Err("Column does not exist!");
@@ -350,7 +355,8 @@ export class ProjectService {
 				card.priority = Math.min(edits.priority, highest_priority);
 			}
 
-			await manager.save(card);
+			const res = await manager.save(Card, card);
+			console.log("card.assignee?.guid afterwards " + res.assignee?.guid);
 
 			return Ok.EMPTY;
 		});
@@ -407,7 +413,7 @@ export class ProjectService {
 				}
 			}
 
-			const cards = await manager.find(Card, { where: { sub_project, project_column, assignee }, order: { priority: "ASC" } })
+			const cards = await manager.find(Card, { where: { sub_project, project_column, assignee }, order: { priority: "ASC" }, relations: { assignee: true } })
 			return Ok({ cards, project_column, project });
 		});
 	}

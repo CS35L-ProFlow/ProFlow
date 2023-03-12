@@ -1,34 +1,26 @@
 import { Button, TextField, Alert, Typography, LinearProgress, Snackbar } from '@mui/material/'
-import { Session, ProjectInfo, SubProject, SubProjectColumnCards, Card, init_proflow_client } from "../../client"
+import { Session, ProjectInfo, SubProject, SubProjectColumnCards, Card, User, init_proflow_client } from "../../client"
 import './index.css';
 import Pages from "../../pages";
 import React, { useEffect, useState, useRef, useLayoutEffect } from 'react';
 import { useNavigate, useParams } from "react-router-dom";
-import { CircularProgress } from "@mui/material";
+import { CircularProgress, Select, MenuItem, FormControl, InputLabel } from "@mui/material";
 import { DndProvider, DropTargetMonitor, useDrag, useDrop } from 'react-dnd'
-import { getEmptyImage, HTML5Backend } from 'react-dnd-html5-backend'
+import { HTML5Backend } from 'react-dnd-html5-backend'
 import { ProFlow } from '../../proflow';
 import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
-import ArrowBackIosIcon from '@mui/icons-material/ArrowBackIos';
-import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos';
-import List from '@mui/material/List';
-import ListItem from '@mui/material/ListItem';
-import ListItemText from '@mui/material/ListItemText';
-import MenuItem from '@mui/material/MenuItem';
-import Menu from '@mui/material/Menu';
-import { PersonPinSharp } from '@mui/icons-material';
-import { width } from '@mui/system';
+import { Result, Err, Ok } from "ts-results";
 
 
 interface ColumnProps {
 	title: string;
 	guid: string;
+	onCreateCard: () => void;
 	onEditCard: (card: Card) => void;
 	onDeleteCard: (card: Card) => void;
-	onOpenPopup: () => void;
-	deleteColumn?: () => void; // TODO: Delete column 
-	renameColumn?: () => void;
+	onDeleteColumn: () => Promise<void>;
+	onRenameColumn: (name: string) => Promise<Result<void, string>>;
 	onMoveCard: (card: Card, to_column: string, to_priority: number) => void;
 	cards?: SubProjectColumnCards;
 }
@@ -40,15 +32,15 @@ enum DragTypes {
 function PlaceholderCard(props: { card: Card }) {
 	return <div style={{ backgroundColor: "yellow" }}>
 		<div style={{ opacity: 0 }}>
-			<RenderedNoteCard card={props.card} onEditCard={()=>{}} onDeleteCard={()=>{}}/>
+			<RenderedNoteCard card={props.card} onEditCard={() => { }} onDeleteCard={() => { }} />
 		</div>
 	</div>
 }
 
 function Column(props: ColumnProps) {
-	const [rename, setRename] = useState(false);
+	const [newName, setNewName] = useState<string | undefined>(undefined);
 	const [loading, setLoading] = useState(false);
-	const [errorCard, setErrorCard] = useState(false);
+	const [errorRename, setErrorRename] = useState<string | undefined>(undefined);
 
 	const onCardDrop = (card: Card, priority: number) => {
 
@@ -96,7 +88,7 @@ function Column(props: ColumnProps) {
 		}
 
 		let cards = raw_cards.sort((a, b) => a.priority - b.priority).map(c => {
-			return <NoteCard key={c.guid} card={c} onDrop={onCardDrop} onEditCard={props.onEditCard} onDeleteCard={props.onDeleteCard}/>
+			return <NoteCard key={c.guid} card={c} onDrop={onCardDrop} onEditCard={props.onEditCard} onDeleteCard={props.onDeleteCard} />
 		})
 
 		return cards;
@@ -104,19 +96,32 @@ function Column(props: ColumnProps) {
 
 	return (<li className="note">
 		<div className="details">
-			<Typography className="p" align='center' margin={1} justifyContent={"space-between"} marginLeft={"5%"}>{props.title}<Button id="add-note-button" onClick={() => setRename(true)}><EditIcon opacity="50%" /></Button></Typography>
+			<Typography className="p" align='center' margin={1} justifyContent={"space-between"} marginLeft={"5%"}>
+				{props.title}
+				<Button id="add-note-button" onClick={() => { setNewName(props.title) }}>
+					<EditIcon opacity="50%" />
+				</Button>
+			</Typography>
 			{
-				rename &&
+				newName != undefined &&
 				<div className='renaming'>
-					<TextField label="New Name" sx={{ margin: 1 }} />
-					<Button sx={{ margin: 1 }} variant="outlined" onClick={() => {
-						setLoading(true);
-						if (!props.renameColumn) {
-							setErrorCard(true);
+					<TextField label="New Name" sx={{ margin: 1 }} onChange={e => setNewName(e.target.value)} value={newName} />
+					<Button sx={{ margin: 1 }} variant="outlined" onClick={async () => {
+						if (!newName || newName.length === 0) {
+							setErrorRename("Column name must not be empty!");
+							return;
 						}
+						setLoading(true);
+						const res = await props.onRenameColumn(newName);
 						setLoading(false);
-						setErrorCard(false);
-						setRename(false);
+
+						if (res.err) {
+							setErrorRename(res.val);
+							return;
+						}
+
+						setErrorRename(undefined);
+						setNewName(undefined);
 					}}>
 						Submit</Button>
 				</div>
@@ -126,19 +131,19 @@ function Column(props: ColumnProps) {
 				<LinearProgress color="primary"></LinearProgress>
 			}
 			{
-				errorCard &&
-				<Alert severity="error" color="error">Error renaming card</Alert>
+				errorRename &&
+				<Alert severity="error" color="error">{errorRename}</Alert>
 			}
 			<hr></hr>
 		</div>
 		<div className="add-button">
-			<Button id="add-note-button" sx={{ margin: 1 }} onClick={props.onOpenPopup}>Add new Notes</Button>
-			<Button id="add-note-button" sx={{ margin: 1 }} onClick={props.deleteColumn} startIcon={<DeleteIcon />}></Button>
+			<Button id="add-note-button" sx={{ margin: 1 }} onClick={props.onCreateCard}>Add New Notes</Button>
+			<Button id="add-note-button" sx={{ margin: 1 }} onClick={props.onDeleteColumn} startIcon={<DeleteIcon />}></Button>
 		</div>
 		<div className='column-with-cards'>
-		{columnCards()}
-		{}
-		
+			{columnCards()}
+			{}
+
 		</div>
 
 	</li>);
@@ -162,10 +167,10 @@ function Profile(props: ProfileOptions) {
 				<hr></hr>
 
 				<a href='#' className="drop-down-link">
-					<p onClick={()=> navigate(Pages.USER)}>View Other Projects</p>
+					<p onClick={() => navigate(Pages.USER)}>View Other Projects</p>
 				</a>
 				<a href='#' className="drop-down-link">
-					<p onClick={()=> navigate(Pages.LOGIN)}>Logout</p>
+					<p onClick={() => navigate(Pages.LOGIN)}>Logout</p>
 				</a>
 			</div>
 		</div></div>
@@ -181,38 +186,24 @@ interface RenderedNoteProps {
 
 function RenderedNoteCard(props: RenderedNoteProps) {
 	return <div className={`note-card`} ref={props.ref}>
-				<p>
-					{props.card.title} 
-				</p>
-				<span>{props.card.description}</span>
-				<span>Priority {props.card.priority}</span>
-				<div className="bottom-content">
-				</div>
-				<div className='edit-delete-button'>
-					<Button className='edit-card' onClick={() =>props.onEditCard(props.card)}><EditIcon/></Button>
-					<Button className='delete-card' onClick={() =>props.onDeleteCard(props.card)}><DeleteIcon/></Button>
-				</div>
-			</div>;
+		<p>
+			{props.card.title}
+		</p>
+		<span>{props.card.description}</span>
+		{props.card.assignee ? <span>{props.card.assignee.email}</span> : <></>}
+		<div className="bottom-content">
+		</div>
+		<div className='edit-delete-button'>
+			<Button className='edit-card' onClick={() => props.onEditCard(props.card)}><EditIcon /></Button>
+			<Button className='delete-card' onClick={() => props.onDeleteCard(props.card)}><DeleteIcon /></Button>
+		</div>
+	</div>;
 }
-
-function DeleteWaring(){
-	return <div> 
-			<div className='warning-wrapper'>
-				<div className='warning-message'>Are you sure you want to delete?</div>
-				<Button>Confirm</Button>
-				<Button>Cancel</Button>
-			</div>
-			<div id="overlay"></div>
-			</div>
-
-}
-
-
 
 interface NoteProps {
 	card: Card;
 	onEditCard: (card: Card) => void;
-	onDeleteCard: (card:Card) =>void;
+	onDeleteCard: (card: Card) => void;
 	onDrop: (dropped: Card, priority: number) => void,
 }
 
@@ -296,7 +287,7 @@ function NoteCard(props: NoteProps) {
 				style={{ opacity: isDragging ? 0 : 1 }}
 			>
 				<div ref={ref}>
-					<RenderedNoteCard card={props.card} onEditCard={props.onEditCard} onDeleteCard={props.onDeleteCard}/>
+					<RenderedNoteCard card={props.card} onEditCard={props.onEditCard} onDeleteCard={props.onDeleteCard} />
 				</div>
 			</div>
 			{dropPosition == NoteDropPosition.AFTER && <PlaceholderCard card={item.card} />}
@@ -323,48 +314,47 @@ interface ProjectViewProps {
 	session: Session | undefined,
 	onRefresh: (session: Session) => void,
 };
+
+interface EditPopup {
+	columnGuid?: string,
+	cardGuid?: string,
+	title: string,
+	description: string,
+	assignee?: User,
+	errorMsg?: string,
+	showProgress: boolean,
+}
+
+const DEFAULT_EDIT_POPUP: EditPopup = { title: "", description: "", showProgress: false }
+
 export default function ProjectView(props: ProjectViewProps) {
 	const { guid } = useParams();
 	const navigate = useNavigate();
 	const [projInfo, setProjInfo] = useState<ProjectInfo | undefined>(undefined);
 	const [currentSubProject, setCurrentSubProject] = useState<SubProject | undefined>(undefined);
 	const [cards, setCards] = useState<SubProjectColumnCards | undefined>(undefined);
-	const [errorPop, setErrorPop] = useState(false);
-	const [progress, setProgress] = useState(false);
-	const [errorPopNotes, setErrorPopNotes] = useState(false);
-	const [editCard, setEditCard] = useState<Card | undefined>(undefined);
+	const [newColumnName, setNewColumnName] = useState<string>("");
 
+	const [editPopup, setEditPopup] = useState<EditPopup | undefined>();
 
-	
-	const [open, setOpen] = useState(false);
+	const [showProgress, setShowProgress] = useState<boolean>(false);
+	const [popupError, setPopupError] = useState<string | undefined>(undefined);
 
-	const handleClickDrag = () => {
-		setOpen(true);
-	};
-
-	const handleCloseDrag = (event?: React.SyntheticEvent | Event, reason?: string) => {
+	const handleCloseDrag = (_?: React.SyntheticEvent | Event, reason?: string) => {
 		if (reason === 'clickaway') {
-		return;
+			return;
 		}
 
-		setOpen(false);
+		setPopupError(undefined);
 	};
 
-	const [newColumnName, setNewColumnName] = useState<string | undefined>(undefined);
-
-	// TODO: Maybe group these state objects together since they're all related to creating a new card?
-	const [currentColumnGuid, setCurrentColumnGuid] = useState<string | undefined>(undefined);
-	const [newNoteTitle, setNewNoteTitle] = useState<string | undefined>(undefined);
-	const [newNoteDescription, setNewNoteDescription] = useState<string | undefined>(undefined);
-	const [newAsignee, setNewAsignee] = useState<string | undefined>(undefined);
 	const fetchProjectInfo = async () => {
 		if (!guid || !props.session)
 			return;
 
 		const res = await props.session.get_project_info(guid);
 		if (res.err) {
-			// TODO: Show some error message to the user here!
-			console.log(res.val);
+			setPopupError(res.val);
 			return;
 		}
 		const proj_info = res.val;
@@ -379,8 +369,7 @@ export default function ProjectView(props: ProjectViewProps) {
 		if (sub_proj) {
 			const res = await props.session.get_sub_project_cards(proj_info, sub_proj.guid);
 			if (res.err) {
-				// TODO: Show some error message to the user here!
-				console.log(res.val);
+				setPopupError(res.val);
 				return;
 			}
 			setCards(undefined);
@@ -421,17 +410,14 @@ export default function ProjectView(props: ProjectViewProps) {
 			refreshJwt(client, jwt);
 
 		}
-		
+
 		fetchProjectInfo();
 	}, [props.session])
-
-	// DragAndDrop();
 
 	if (!props.session)
 		return <body></body>;
 
 	if (!projInfo)
-		// TODO: Style this progress indicator correctly!
 		return <CircularProgress />;
 
 	if (!currentSubProject) {
@@ -449,14 +435,9 @@ export default function ProjectView(props: ProjectViewProps) {
 			}}>Create Root Sub-Project</Button>
 		</body>
 	}
-	function show(text: any):void{
-
-	}
-	
 
 	const popupBox = () => {
-
-		if (!currentColumnGuid && !editCard)
+		if (!editPopup)
 			return <></>;
 
 		return <div className="popup-box">
@@ -464,63 +445,90 @@ export default function ProjectView(props: ProjectViewProps) {
 				<div className="content">
 					<header>
 						<p>Add a New Note</p>
-						<i onClick={() => {setCurrentColumnGuid(undefined); setEditCard(undefined)}}>x</i>
+						<i onClick={() => setEditPopup(undefined)}>x</i>
 					</header>
-					<form action='#' className="note-form">
-						<TextField label="Title" className='textarea' sx={{marginBottom:1}} onChange={e => setNewNoteTitle(e.target.value)} value={newNoteTitle} />
-						<TextField label="Description" className='textarea' sx={{marginBottom:1}} onChange={e => setNewNoteDescription(e.target.value)} value={newNoteDescription} multiline />
+					<TextField
+						label="Title"
+						className='textarea' sx={{ marginBottom: 1 }}
+						onChange={e =>
+							setEditPopup(prev => ({
+								...(prev ?? DEFAULT_EDIT_POPUP),
+								title: e.target.value
+							}))
+						}
+						value={editPopup.title} />
+					<TextField
+						label="Description"
+						className='textarea'
+						sx={{ marginBottom: 1 }}
+						onChange={e =>
+							setEditPopup(prev => ({
+								...(prev ?? DEFAULT_EDIT_POPUP),
+								description: e.target.value
+							}))
+						}
+						value={editPopup.description} multiline />
+					<FormControl fullWidth>
+						<InputLabel id="select-assignee">Assignee</InputLabel>
+						<Select
+							value={editPopup.assignee?.guid ?? "NONE"}
+							labelId="select-assignee"
+							onChange={e => {
+								const assignee = projInfo.members.find(user => user.guid == e.target.value);
+								setEditPopup(prev => ({ ...(prev ?? DEFAULT_EDIT_POPUP), assignee }))
+								console.log("Set assignee to " + assignee);
+							}
+							}>
+							<MenuItem value={"NONE"}>None</MenuItem>
+							{projInfo.members.map(user => <MenuItem key={user.guid} value={user.guid}>{user.email}</MenuItem>)}
+						</Select>
+					</FormControl>
+					{
+						editPopup.errorMsg &&
 						<div>
-							<select className='select-box' onChange={e =>{setNewAsignee(e.target.value); console.log(e.target.value) }}>
-								
-								<option selected>No Asignee</option>
-								{projInfo.members.map(user =>
-									<option>{user.email}</option>
-									)}
-							</select>
+							<Alert sx={{ margin: 1 }} color="error" severity='error'>{editPopup.errorMsg}</Alert>
 						</div>
-						{
-							errorPopNotes &&
-							<div>
-								<Alert sx={{margin:1}} color="error" severity='error'>No title/description/user provided</Alert>
-							</div>
+					}
+					<Button id="save-note-button" onClick={async () => {
+						if (editPopup.cardGuid == undefined && editPopup.columnGuid == undefined) {
+							return;
 						}
-						<Button id="save-note-button" onClick={async () => {
-							if (!props.session || !currentSubProject || !currentColumnGuid)
-								return;
 
-							if (!newNoteDescription || !newNoteTitle) {
-								// TODO: Show this error to the user!
-								setErrorPopNotes(true);
-								console.log("No title or description provided!")
-								return;
-					
-							}
+						if (!props.session || !currentSubProject || !editPopup)
+							return;
 
-							// TODO: Display a progress bar when these requests are made!
-							setProgress(true);
-							const res = await props.session.add_sub_project_card(currentSubProject.guid, currentColumnGuid, newNoteTitle, newNoteDescription);
-							setProgress(false);
-
-							if (res.err) {
-								// TODO: Show this error to the user!
-								setErrorPopNotes(true);
-								console.log(res.val);
-								return;
-							}
-
-							await fetchProjectInfo();
-
-							setNewNoteTitle(undefined);
-							setNewNoteDescription(undefined);
-							setCurrentColumnGuid(undefined);
-							setErrorPopNotes(false);
-							setEditCard(undefined);
-						}}>{currentColumnGuid? "Add Note": "Save Edits"}</Button>
-					</form>
-					
-						{progress &&
-						<LinearProgress sx={{margin:1}} color="primary" />
+						if (editPopup.title.length === 0 || editPopup.description.length === 0) {
+							setEditPopup(prev => ({ ...(prev ?? DEFAULT_EDIT_POPUP), errorMsg: "Missing title or description!" }));
+							return;
 						}
+
+						setEditPopup(prev => ({ ...(prev ?? DEFAULT_EDIT_POPUP), showProgress: true }));
+						let res: Result<void, string>;
+						if (editPopup.columnGuid != undefined) {
+							res = await props.session.add_sub_project_card(currentSubProject.guid, editPopup.columnGuid, editPopup.title, editPopup.description);
+						} else {
+							res = await props.session.edit_sub_project_card(currentSubProject.guid, editPopup.cardGuid!, {
+								title: editPopup.title,
+								description: editPopup.description,
+								assignee: editPopup.assignee?.guid ?? "NONE"
+							});
+						}
+						setEditPopup(prev => ({ ...(prev ?? DEFAULT_EDIT_POPUP), showProgress: false }));
+
+						if (res.err) {
+							const errorMsg = res.val;
+							setEditPopup(prev => ({ ...(prev ?? DEFAULT_EDIT_POPUP), errorMsg }));
+							return;
+						}
+
+						await fetchProjectInfo();
+
+						setEditPopup(undefined);
+					}}>{editPopup.columnGuid != undefined ? "Add Note" : "Save Edits"}</Button>
+
+					{editPopup.showProgress &&
+						<LinearProgress sx={{ margin: 1 }} color="primary" />
+					}
 				</div>
 			</div>
 		</div>
@@ -542,18 +550,18 @@ export default function ProjectView(props: ProjectViewProps) {
 					</nav>
 					{popupBox()}
 					<div className='side-wrapper'>
-						<div className='side-panel'>
-							<h2>
-								Project
-								<hr></hr>
-								<Button>Project1</Button>
-								<Button>Project2</Button>
-							</h2>
-						</div>
-						<button className='side-panel-toggle' type='button' onClick={toggleSidePanel}>
-							<span className="open"><ArrowForwardIosIcon/></span>
-							<span className="close"><ArrowBackIosIcon/></span>
-						</button>
+						{/* <div className='side-panel'> */}
+						{/* 	<h2> */}
+						{/* 		Project */}
+						{/* 		<hr></hr> */}
+						{/* 		<Button>Project1</Button> */}
+						{/* 		<Button>Project2</Button> */}
+						{/* 	</h2> */}
+						{/* </div> */}
+						{/* <button className='side-panel-toggle' type='button' onClick={toggleSidePanel}> */}
+						{/* 	<span className="open"><ArrowForwardIosIcon /></span> */}
+						{/* 	<span className="close"><ArrowBackIosIcon /></span> */}
+						{/* </button> */}
 						<div className='main'>
 							<div className="wrapper">
 								{projInfo.columns.map(c =>
@@ -561,11 +569,11 @@ export default function ProjectView(props: ProjectViewProps) {
 										key={c.guid}
 										guid={c.guid}
 										title={c.name}
-										onOpenPopup={() => setCurrentColumnGuid(c.guid)} cards={cards}
+										cards={cards}
+										onCreateCard={() => setEditPopup({ ...DEFAULT_EDIT_POPUP, columnGuid: c.guid })}
 										onMoveCard={async (card, to_column, to_priority) => {
-											if (!props.session || !guid)
-											{
-												setOpen(true);
+											if (!props.session || !guid) {
+												setPopupError("Unknown error!");
 												return;
 											}
 
@@ -573,94 +581,105 @@ export default function ProjectView(props: ProjectViewProps) {
 
 											const res = await props.session.edit_sub_project_card(currentSubProject.guid, card.guid, { to_priority, to_column });
 											if (res.err) {
-												// TODO: Show some error message to the user here!
-												setOpen(true);
+												setPopupError(res.val);
+												return;
 											}
-											setOpen(false);
 
-											setProgress(true);
+											setPopupError(undefined);
+
 											await fetchProjectInfo();
-											setProgress(false);
 										}}
-										onEditCard={(card) =>{
-											setEditCard(card);
-											setNewNoteTitle(card.title);
-											setNewNoteDescription(card.description)
-											setNewAsignee(card.assignee?.email)
-										}
-										
-										
-											
-										}
-										onDeleteCard={(card) =>{
-											//Delete from the server. 
+										onEditCard={card => setEditPopup({
+											title: card.title,
+											description: card.description,
+											assignee: card.assignee,
+											cardGuid: card.guid,
+											showProgress: false
+										})}
+										onDeleteCard={async card => {
+											if (!props.session || !guid) {
+												return;
+											}
+
+											const res = await props.session.delete_sub_project_card(currentSubProject.guid, card.guid);
+											if (res.err) {
+												setPopupError(res.val);
+												return;
+											}
+
+											setPopupError(undefined);
+
+											await fetchProjectInfo();
+										}}
+										onDeleteColumn={async () => {
+											if (!props.session || !guid) {
+												return;
+											}
+
+											const res = await props.session.delete_project_column(guid, c.guid);
+											if (res.err) {
+												setPopupError(res.val);
+												return;
+											}
+
+											setPopupError(undefined);
+
+											await fetchProjectInfo();
+										}}
+										onRenameColumn={async (name): Promise<Result<void, string>> => {
+											if (!props.session || !guid) {
+												return Err("Unknown error!");
+											}
+
+											const res = await props.session.rename_project_column(guid, c.guid, name);
+											if (res.err) {
+												return res;
+											}
+
+											await fetchProjectInfo();
+											return Ok.EMPTY;
 										}}
 									/>
-									
+
 								)}
 								<div style={{ display: 'flex', flexDirection: 'column', alignItems: 'start' }}>
 									<TextField label="Column Name" onChange={e => setNewColumnName(e.target.value)} value={newColumnName} />
-									{
-										errorPop &&
-										<div>
-											<Alert sx={{ marginTop: 1 }} color="error" severity='error'>Check the card name</Alert>
-										</div>
-									}
-									{progress &&
+									{showProgress &&
 										<LinearProgress sx={{ margin: 1 }} color="primary" />
 									}
 									<Button onClick={async () => {
 										if (!newColumnName || !props.session || !guid)
 											return;
 
-										console.log(newColumnName);
-										setProgress(true);
+										setShowProgress(true);
 										const res = await props.session.add_project_column(guid, newColumnName);
-										setProgress(false);
+										setShowProgress(false);
 										if (res.err) {
-											// TODO: Show some error message to the user here!
-											setErrorPop(true);
+											setPopupError(res.val);
 											return;
 										}
-										setErrorPop(false);
+
+										setPopupError(undefined);
+										setNewColumnName("");
+
 										await fetchProjectInfo();
 									}}>Create column</Button>
 								</div>
 							</div>
-							<Snackbar open={open} autoHideDuration={6000} onClose={handleCloseDrag}>
+							<Snackbar open={popupError != undefined} autoHideDuration={6000} onClose={handleCloseDrag}>
 								<Alert onClose={handleCloseDrag} severity="error" sx={{ width: '100%' }}>
-									Error dragging notes
+									{popupError}
 								</Alert>
 							</Snackbar>
 
-							{progress &&
-								<LinearProgress sx={{marginTop:"10%"}} color="primary" />
+							{showProgress &&
+								<LinearProgress sx={{ marginTop: "10%" }} color="primary" />
 							}
 						</div>
-						
-					</div>			
+
+					</div>
 				</div>
 			</body>
 		</DndProvider>
 	);
-}
-
-
-function getDragAfterElement(list: any, y: number) {
-	//TODO: Figure out how to change the array dynamically. 
-	// Currently, the drag and drop features only work on the cards that are displayed when
-	// enterting the page. The newly added cards will not have this feature. 
-
-	const draggableElements = [...list.querySelectorAll('.note-card:not(.dragging)')]
-	return draggableElements.reduce((closest, child) => {
-		const box = child.getBoundingClientRect()
-		const offset = y - box.top - box.height / 2
-		if (offset < 0 && offset > closest.offset) {
-			return { offset: offset, element: child }
-		} else {
-			return closest
-
-		}
-
-	}, { offset: Number.NEGATIVE_INFINITY }).element
 }

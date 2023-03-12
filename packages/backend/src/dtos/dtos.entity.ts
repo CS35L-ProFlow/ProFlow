@@ -1,4 +1,4 @@
-import { IsEmail, IsNotEmpty, IsInt } from "class-validator";
+import { IsEmail, IsNotEmpty, IsInt, ValidateIf } from "class-validator";
 
 export class LoginRequest {
 	/*
@@ -98,6 +98,7 @@ export class EditCardRequest {
 	 * The priority index of the card. 0 is the highest priority in the column.
 	 */
 	@IsInt()
+	@ValidateIf(o => o.priority !== undefined)
 	priority?: number;
 
 	/*

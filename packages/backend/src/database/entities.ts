@@ -135,9 +135,9 @@ export class Card {
 	@JoinColumn({ name: "project_column_id" })
 	project_column: ProjectColumn
 
-	@ManyToOne(() => User, (user) => user.assigned, { nullable: true, onDelete: "CASCADE", onUpdate: "CASCADE" })
+	@ManyToOne(() => User, { nullable: true, onDelete: "CASCADE", onUpdate: "CASCADE" })
 	@JoinColumn({ name: "assignee_id" })
-	assignee?: User;
+	assignee: User | null;
 
 	@Column({ type: "text" })
 	description: string;

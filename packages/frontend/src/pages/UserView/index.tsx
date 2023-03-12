@@ -22,10 +22,8 @@ export default function UserView(props: UserViewProps) {
 	const [projects, setProjects] = useState<Project[] | undefined>(undefined);
 	const [inInvites, setInInvites] = useState<Invite[] | undefined>(undefined);
 	const [createProj, setCreateProj] = useState(false);
-	const [deleteProj, setDeleteProj] = useState(false);
 	const [projDisp, setProjDisp] = useState(true);
 	const [inInviteDisp, setInInviteDisp] = useState(false);
-	const [inviteAccepted, setInviteAccepted] = useState(false);
 	const [taken, setTaken] = useState(false);
 	const [fetchError, setFetchError] = useState(false);
 	const [display, setDisplay] = useState(false);
@@ -44,7 +42,7 @@ export default function UserView(props: UserViewProps) {
 			console.log(res.val);
 			return;
 		}
-		await setProjects(res.val);
+		setProjects(res.val);
 		projectComponents();
 	}
 
@@ -72,9 +70,9 @@ export default function UserView(props: UserViewProps) {
 			fetchProjects();
 			fetchInvites();
 		}
-		
+
 		const fetchProjects = async () => {
-			if (!props.session){
+			if (!props.session) {
 				return;
 			}
 			setProgress(true);
@@ -86,14 +84,13 @@ export default function UserView(props: UserViewProps) {
 			}
 			setProgress(false);
 
-			await setProjects(res.val);
-			setDeleteProj(false);
+			setProjects(res.val);
 			setFetchError(false);
 			projectComponents();
 		}
 
 		const fetchInvites = async () => {
-			if (!props.session){
+			if (!props.session) {
 				return;
 			}
 			setProgress(true);
@@ -105,7 +102,6 @@ export default function UserView(props: UserViewProps) {
 			}
 			setProgress(false);
 			setInInvites(res.val);
-			setInviteAccepted(false);
 			setFetchError(false);
 		}
 
@@ -116,7 +112,7 @@ export default function UserView(props: UserViewProps) {
 				const expire_sec = res.expire_sec;
 				const queryRes = await client.user.queryUser(user_guid);
 				const user_email = queryRes.email;
-				const new_session = await new Session(user_email, user_guid, jwt, expire_sec);
+				const new_session = new Session(user_email, user_guid, jwt, expire_sec);
 				props.onRefresh(new_session);
 			} catch (e) {
 				console.log("Failed to refresh JWT token");
@@ -145,15 +141,15 @@ export default function UserView(props: UserViewProps) {
 
 
 	const projectComponents = () => {
-		if (!projects){
+		if (!projects) {
 			return <CircularProgress color='success' />
 		}
-		if (projects.length === 0){
+		if (projects.length === 0) {
 			return <Alert variant="outlined" severity="info" sx={{ margin: 2, maxWidth: "100%", textAlign: "left" }}>No Projects Found. Press "NEW PROJECT" to create a new one</Alert>;
 		}
 		return projects.map(proj => {
 			return <ProjectCard key={proj.guid} guid={proj.guid} name={proj.name} session={props.session!} owner={proj.owner} onDelete={async () => {
-				if (!props.session || !proj.guid){
+				if (!props.session || !proj.guid) {
 					return;
 				}
 				const res = await props.session.delete_proj(proj.guid);
@@ -168,11 +164,11 @@ export default function UserView(props: UserViewProps) {
 	}
 
 	const incomingInviteComponents = () => {
-		if (!inInvites){
+		if (!inInvites) {
 			return <CircularProgress />;
 		}
 
-		if (inInvites.length === 0){
+		if (inInvites.length === 0) {
 			return <Alert variant="outlined" severity="info" sx={{ margin: 2, maxWidth: "100%" }}>No Invites found</Alert>;
 		}
 		return inInvites.map(invite => {
@@ -194,7 +190,7 @@ export default function UserView(props: UserViewProps) {
 	return (
 		<div className="body-of-page">
 			<div className="name-and-org">
-				<Typography sx={{ margin: 3, marginLeft:6 }} fontSize={"large"} variant='overline'>{props.session.email}</Typography>
+				<Typography sx={{ margin: 3, marginLeft: 6 }} fontSize={"large"} variant='overline'>{props.session.email}</Typography>
 			</div>
 			<hr></hr>
 			{/* <div className="user-description">{props.description}</div> */}
@@ -244,44 +240,46 @@ export default function UserView(props: UserViewProps) {
 											label="Project Name"
 											defaultValue=""
 											sx={{ maxWidth: `100%` }}
-											onKeyDown={e => {if(e.key === "Enter") {
-												e.preventDefault();
-												const submitBtn = document.getElementById("submit-button");
-												if(submitBtn){
-													submitBtn.click();
+											onKeyDown={e => {
+												if (e.key === "Enter") {
+													e.preventDefault();
+													const submitBtn = document.getElementById("submit-button");
+													if (submitBtn) {
+														submitBtn.click();
+													}
 												}
-											}}}
+											}}
 										/>
 									</div>
-									</Box>
-								<div className="buttons2"> 
-									<Button id="submit-button" variant="contained" size="small" sx={{ color: "white", margin: 1, maxWidth: `100%` }} onClick={async () => { 
-									const name = (document.getElementById('outlined-required') as HTMLInputElement).value; 
-									if (name.length !== 0 && props.session) { 
-										
+								</Box>
+								<div className="buttons2">
+									<Button id="submit-button" variant="contained" size="small" sx={{ color: "white", margin: 1, maxWidth: `100%` }} onClick={async () => {
+										const name = (document.getElementById('outlined-required') as HTMLInputElement).value;
+										if (name.length !== 0 && props.session) {
 
-										if (projects && projects.some(proj => proj.name === name)) { 
-											setTaken(true);
-											return;
+
+											if (projects && projects.some(proj => proj.name === name)) {
+												setTaken(true);
+												return;
+											}
+											await props.session.create_project(name);
+											setCreateProj(false);
+											setTaken(false);
+											setDisplay(!display);
 										}
-										await props.session.create_project(name);
-										setCreateProj(false); 
-										setTaken(false);
-										setDisplay(!display);
-									} 
-									return;
-									}}> 
-										Submit 
-									</Button> 
-									<Button variant="contained" size="small" sx={{ color: "white", margin: 1, maxWidth: `100%` }} onClick={() => setCreateProj(false)}> 
-										Cancel 
-									</Button> 
+										return;
+									}}>
+										Submit
+									</Button>
+									<Button variant="contained" size="small" sx={{ color: "white", margin: 1, maxWidth: `100%` }} onClick={() => setCreateProj(false)}>
+										Cancel
+									</Button>
 								</div>
 								{taken &&
-								<Alert variant="outlined" severity="error" sx={{ marginLeft:1, maxWidth: "10%", textAlign: "left"}}>Project name is taken</Alert>
+									<Alert variant="outlined" severity="error" sx={{ marginLeft: 1, maxWidth: "10%", textAlign: "left" }}>Project name is taken</Alert>
 								}
-							</div>  : 
-							<Button variant="outlined" size="small" color="success" sx={{ color: "black", margin: 1, maxWidth: `100%` }} onClick={() => setCreateProj(true)}> 
+							</div> :
+							<Button variant="outlined" size="small" color="success" sx={{ color: "black", margin: 1, maxWidth: `100%` }} onClick={() => setCreateProj(true)}>
 								+ New Project
 							</Button>
 					}
