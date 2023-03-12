@@ -50,7 +50,6 @@ export class ProjectService {
 		return await this.data_source.transaction(async manager => {
 			const existing = await manager.findOne(Project, { where: { name, owner }, relations: { owner: true, members: true } });
 			if (existing) {
-				console.log("Found existing project with same name and owner.");
 				return null;
 			}
 
@@ -209,7 +208,6 @@ export class ProjectService {
 			return undefined;
 
 		if (old_priority == undefined) {
-			console.log("Old priority undefined! " + new_priority);
 			return manager.createQueryBuilder()
 				.update(Card)
 				.set({ priority: () => "priority + 1" })
@@ -302,7 +300,6 @@ export class ProjectService {
 				return Err("Card does not exist!");
 			}
 
-			console.log("Title is " + edits.title);
 			if (edits.title && card.title != edits.title) {
 				card.title = edits.title;
 			}
@@ -356,7 +353,6 @@ export class ProjectService {
 			}
 
 			const res = await manager.save(Card, card);
-			console.log("card.assignee?.guid afterwards " + res.assignee?.guid);
 
 			return Ok.EMPTY;
 		});
@@ -433,12 +429,10 @@ export class ProjectService {
 	async create_sub_project(owner: User, project: Project, name: string, parent?: SubProject): Promise<Result<SubProject, string>> {
 		return await this.data_source.transaction(async manager => {
 			if (project.owner.guid != owner.guid) {
-				console.log("Failed to create sub-project of project that user does not own.")
 				return Err("Cannot create sub-project for project that you do not own!");
 			}
 			const existing = await manager.findOne(SubProject, { where: { project, name }, relations: { project: true } });
 			if (existing) {
-				console.log("Found existing subproject with same name and parent project.");
 				return Err("Existing sub-project with same name already exists!");
 			}
 
@@ -452,12 +446,10 @@ export class ProjectService {
 		// because a) it's very rare, and b) no real consequences happen other than a bad error message.
 		const existing = await this.find_sub_project(owner, guid);
 		if (!existing) {
-			console.log("Failed to delete non-existant sub-project")
 			return Err("Sub-project does not exist!");
 		}
 
 		if (existing.project.owner.guid != owner.guid) {
-			console.log("Failed to delete sub-project that user does not own.")
 			return Err("Cannot delete sub-project that you do not own!");
 		}
 

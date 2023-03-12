@@ -79,7 +79,6 @@ export default function UserView(props: UserViewProps) {
 			const res = await props.session.get_my_projects();
 			if (res.err) {
 				setFetchError(true);
-				console.log(res.val);
 				return;
 			}
 			setProgress(false);
@@ -97,7 +96,6 @@ export default function UserView(props: UserViewProps) {
 			const res = await props.session.get_my_invites();
 			if (res.err) {
 				setFetchError(true);
-				console.log(res.val);
 				return;
 			}
 			setProgress(false);

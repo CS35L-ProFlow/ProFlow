@@ -476,7 +476,6 @@ export default function ProjectView(props: ProjectViewProps) {
 							onChange={e => {
 								const assignee = projInfo.members.find(user => user.guid == e.target.value);
 								setEditPopup(prev => ({ ...(prev ?? DEFAULT_EDIT_POPUP), assignee }))
-								console.log("Set assignee to " + assignee);
 							}
 							}>
 							<MenuItem value={"NONE"}>None</MenuItem>
