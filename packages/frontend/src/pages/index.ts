@@ -1,5 +1,4 @@
 enum Pages {
-	HOME = '/',
 	USER = "/user",
 	SIGNUP = "/signup",
 	LOGIN = "/login",
