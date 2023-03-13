@@ -1,34 +1,30 @@
-import { Button, TextField, Alert, Typography, LinearProgress, Snackbar } from '@mui/material/'
-import { Session, ProjectInfo, SubProject, SubProjectColumnCards, Card, init_proflow_client } from "../../client"
-import './index.css';
+import { Button, TextField, Alert, LinearProgress, Snackbar, IconButton, Drawer } from '@mui/material'
+import { Session, ProjectInfo, SubProject, SubProjectColumnCards, Card, User, init_proflow_client } from "../../client"
+// import './index.css';
 import Pages from "../../pages";
 import React, { useEffect, useState, useRef, useLayoutEffect } from 'react';
 import { useNavigate, useParams } from "react-router-dom";
-import { CircularProgress } from "@mui/material";
+import { CircularProgress, Select, MenuItem, FormControl, InputLabel, Tooltip } from "@mui/material";
 import { DndProvider, DropTargetMonitor, useDrag, useDrop } from 'react-dnd'
-import { getEmptyImage, HTML5Backend } from 'react-dnd-html5-backend'
+import { HTML5Backend } from 'react-dnd-html5-backend'
 import { ProFlow } from '../../proflow';
 import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
-import ArrowBackIosIcon from '@mui/icons-material/ArrowBackIos';
-import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos';
-import List from '@mui/material/List';
-import ListItem from '@mui/material/ListItem';
-import ListItemText from '@mui/material/ListItemText';
-import MenuItem from '@mui/material/MenuItem';
-import Menu from '@mui/material/Menu';
-import { PersonPinSharp } from '@mui/icons-material';
-import { width } from '@mui/system';
+import FaceIcon from '@mui/icons-material/Face';
+import MenuIcon from '@mui/icons-material/Menu';
+import PeopleIcon from '@mui/icons-material/People';
+import AccessTimeIcon from '@mui/icons-material/AccessTime';
+import { Result, Err, Ok } from "ts-results";
 
 
 interface ColumnProps {
 	title: string;
 	guid: string;
+	onCreateCard: () => void;
 	onEditCard: (card: Card) => void;
 	onDeleteCard: (card: Card) => void;
-	onOpenPopup: () => void;
-	deleteColumn?: () => void; // TODO: Delete column 
-	renameColumn?: () => void;
+	onDeleteColumn: () => Promise<void>;
+	onRenameColumn: (name: string) => Promise<Result<void, string>>;
 	onMoveCard: (card: Card, to_column: string, to_priority: number) => void;
 	cards?: SubProjectColumnCards;
 }
@@ -38,17 +34,17 @@ enum DragTypes {
 }
 
 function PlaceholderCard(props: { card: Card }) {
-	return <div style={{ backgroundColor: "yellow" }}>
+	return <div style={{ backgroundColor: "#808080", borderRadius: "10px" }}>
 		<div style={{ opacity: 0 }}>
-			<RenderedNoteCard card={props.card} onEditCard={()=>{}} onDeleteCard={()=>{}}/>
+			<RenderedNoteCard card={props.card} onEditCard={() => { }} onDeleteCard={() => { }} />
 		</div>
 	</div>
 }
 
 function Column(props: ColumnProps) {
-	const [rename, setRename] = useState(false);
+	const [newName, setNewName] = useState<string | undefined>(undefined);
 	const [loading, setLoading] = useState(false);
-	const [errorCard, setErrorCard] = useState(false);
+	const [errorRename, setErrorRename] = useState<string | undefined>(undefined);
 
 	const onCardDrop = (card: Card, priority: number) => {
 
@@ -90,33 +86,60 @@ function Column(props: ColumnProps) {
 		}
 
 		if (raw_cards.length === 0) {
-			return <div ref={dropRef} style={{ width: "100%", minHeight: "40px" }}>
+			return <div ref={dropRef} style={{ width: "100%", height: "90%" }}>
 				{isOver && <PlaceholderCard card={item.card} />}
 			</div>
 		}
 
 		let cards = raw_cards.sort((a, b) => a.priority - b.priority).map(c => {
-			return <NoteCard key={c.guid} card={c} onDrop={onCardDrop} onEditCard={props.onEditCard} onDeleteCard={props.onDeleteCard}/>
+			return <NoteCard key={c.guid} card={c} onDrop={onCardDrop} onEditCard={props.onEditCard} onDeleteCard={props.onDeleteCard} />
 		})
 
 		return cards;
 	}
 
-	return (<li className="note">
+	return <div style={{
+		width: "230pt",
+		marginLeft: "min(2.5vw, 10pt)",
+		marginRight: "min(2.5vw, 10pt)",
+		marginTop: 0,
+		marginBottom: 0,
+		backgroundColor: "#ececec",
+		padding: "10pt",
+		borderRadius: "10px",
+		display: "flex",
+		flexDirection: "column",
+		justifyContent: "start",
+		alignContent: "center",
+
+	}}>
 		<div className="details">
-			<Typography className="p" align='center' margin={1} justifyContent={"space-between"} marginLeft={"5%"}>{props.title}<Button id="add-note-button" onClick={() => setRename(true)}><EditIcon opacity="50%" /></Button></Typography>
+			<div style={{ display: "flex", flexDirection: "row", alignItems: "center" }}>
+				<h3 style={{ flexGrow: 1, marginLeft: "8pt" }}>{props.title}</h3>
+				<Button sx={{}} id="add-note-button" onClick={() => { setNewName(props.title) }}>
+					<EditIcon />
+				</Button>
+			</div>
 			{
-				rename &&
+				newName != undefined &&
 				<div className='renaming'>
-					<TextField label="New Name" sx={{ margin: 1 }} />
-					<Button sx={{ margin: 1 }} variant="outlined" onClick={() => {
-						setLoading(true);
-						if (!props.renameColumn) {
-							setErrorCard(true);
+					<TextField label="New Name" sx={{ margin: 1 }} onChange={e => setNewName(e.target.value)} value={newName} />
+					<Button sx={{ margin: 1 }} variant="outlined" onClick={async () => {
+						if (!newName || newName.length === 0) {
+							setErrorRename("Column name must not be empty!");
+							return;
 						}
+						setLoading(true);
+						const res = await props.onRenameColumn(newName);
 						setLoading(false);
-						setErrorCard(false);
-						setRename(false);
+
+						if (res.err) {
+							setErrorRename(res.val);
+							return;
+						}
+
+						setErrorRename(undefined);
+						setNewName(undefined);
 					}}>
 						Submit</Button>
 				</div>
@@ -126,50 +149,53 @@ function Column(props: ColumnProps) {
 				<LinearProgress color="primary"></LinearProgress>
 			}
 			{
-				errorCard &&
-				<Alert severity="error" color="error">Error renaming card</Alert>
+				errorRename &&
+				<Alert severity="error" color="error">{errorRename}</Alert>
 			}
 			<hr></hr>
 		</div>
 		<div className="add-button">
-			<Button id="add-note-button" sx={{ margin: 1 }} onClick={props.onOpenPopup}>Add new Notes</Button>
-			<Button id="add-note-button" sx={{ margin: 1 }} onClick={props.deleteColumn} startIcon={<DeleteIcon />}></Button>
+			<Button id="add-note-button" sx={{ margin: 1 }} onClick={props.onCreateCard}>Add New Notes</Button>
+			<Button id="add-note-button" sx={{ margin: 1 }} onClick={props.onDeleteColumn} startIcon={<DeleteIcon />}></Button>
 		</div>
-		<div className='column-with-cards'>
-		{columnCards()}
-		{}
-		
+		<div style={{
+			width: "100%",
+			overflowY: "scroll",
+			overflowX: "hidden",
+			flex: "1 1 1px",
+		}}>
+			{columnCards()}
 		</div>
 
-	</li>);
+	</div>;
 }
 
-interface ProfileOptions {
-	userName: string;
-	children?: React.ReactNode,
+// interface ProfileOptions {
+// 	userName: string;
+// 	children?: React.ReactNode,
 
-}
+// }
 
-function Profile(props: ProfileOptions) {
-	const navigate = useNavigate();
-	return <div><img src={require("./logo192.png")} className="user-pic" onClick={toggleMenu}></img>
-		<div className="drop-down-menu" id="subMenu">
-			<div className="drop-down">
-				<div className="user-profile">
-					<img src={require("./logo192.png")} />
-					<h2>{props.userName}</h2>
-				</div>
-				<hr></hr>
+// function Profile(props: ProfileOptions) {
+// 	const navigate = useNavigate();
+// 	return <div><img src={require("./logo192.png")} className="user-pic" onClick={toggleMenu}></img>
+// 		<div className="drop-down-menu" id="subMenu">
+// 			<div className="drop-down">
+// 				<div className="user-profile">
+// 					<img src={require("./logo192.png")} />
+// 					<h2>{props.userName}</h2>
+// 				</div>
+// 				<hr></hr>
 
-				<a href='#' className="drop-down-link">
-					<p onClick={()=> navigate(Pages.USER)}>View Other Projects</p>
-				</a>
-				<a href='#' className="drop-down-link">
-					<p onClick={()=> navigate(Pages.LOGIN)}>Logout</p>
-				</a>
-			</div>
-		</div></div>
-}
+// 				<a href='#' className="drop-down-link">
+// 					<p onClick={() => navigate(Pages.USER)}>View Other Projects</p>
+// 				</a>
+// 				<a href='#' className="drop-down-link">
+// 					<p onClick={() => navigate(Pages.LOGIN)}>Logout</p>
+// 				</a>
+// 			</div>
+// 		</div></div>
+// }
 
 
 interface RenderedNoteProps {
@@ -180,39 +206,44 @@ interface RenderedNoteProps {
 }
 
 function RenderedNoteCard(props: RenderedNoteProps) {
-	return <div className={`note-card`} ref={props.ref}>
-				<p>
-					{props.card.title} 
-				</p>
-				<span>{props.card.description}</span>
-				<span>Priority {props.card.priority}</span>
-				<div className="bottom-content">
-				</div>
-				<div className='edit-delete-button'>
-					<Button className='edit-card' onClick={() =>props.onEditCard(props.card)}><EditIcon/></Button>
-					<Button className='delete-card' onClick={() =>props.onDeleteCard(props.card)}><DeleteIcon/></Button>
-				</div>
-			</div>;
+	return <div ref={props.ref} style={{ backgroundColor: "white", padding: "5pt", marginTop: "10pt", borderRadius: "10px" }}>
+		<h3 style={{ marginLeft: "2pt", marginTop: "2pt" }}>{props.card.title}</h3>
+		<hr />
+		<p style={{
+			whiteSpace: "pre-wrap",
+			display: "-webkit-box",
+			WebkitLineClamp: 4,
+			WebkitBoxOrient: "vertical",
+			textOverflow: "ellipsis",
+			overflow: "hidden",
+			color: "grey"
+		}}>{props.card.description}</p>
+		<div style={{
+			display: "flex",
+			flexDirection: "row",
+			justifyContent: "start",
+			alignItems: "center",
+			color: "grey"
+		}}>
+			<AccessTimeIcon style={{ marginRight: "5pt" }} />
+			<span style={{ fontSize: "0.8em", flexGrow: 1 }}>{props.card.date_created.toDateString()}</span>
+			{props.card.assignee &&
+				<Tooltip title={props.card.assignee.email}>
+					<FaceIcon style={{ marginRight: "5pt", color: "grey" }}></FaceIcon>
+				</Tooltip>
+			}
+		</div>
+		<div style={{ display: "flex", flexDirection: "row", justifyContent: "space-evenly", alignItems: "center" }}>
+			<Button className='edit-card' onClick={() => props.onEditCard(props.card)}><EditIcon /></Button>
+			<Button className='delete-card' onClick={() => props.onDeleteCard(props.card)}><DeleteIcon /></Button>
+		</div>
+	</div>;
 }
-
-function DeleteWaring(){
-	return <div> 
-			<div className='warning-wrapper'>
-				<div className='warning-message'>Are you sure you want to delete?</div>
-				<Button>Confirm</Button>
-				<Button>Cancel</Button>
-			</div>
-			<div id="overlay"></div>
-			</div>
-
-}
-
-
 
 interface NoteProps {
 	card: Card;
 	onEditCard: (card: Card) => void;
-	onDeleteCard: (card:Card) =>void;
+	onDeleteCard: (card: Card) => void;
 	onDrop: (dropped: Card, priority: number) => void,
 }
 
@@ -296,7 +327,7 @@ function NoteCard(props: NoteProps) {
 				style={{ opacity: isDragging ? 0 : 1 }}
 			>
 				<div ref={ref}>
-					<RenderedNoteCard card={props.card} onEditCard={props.onEditCard} onDeleteCard={props.onDeleteCard}/>
+					<RenderedNoteCard card={props.card} onEditCard={props.onEditCard} onDeleteCard={props.onDeleteCard} />
 				</div>
 			</div>
 			{dropPosition == NoteDropPosition.AFTER && <PlaceholderCard card={item.card} />}
@@ -323,48 +354,49 @@ interface ProjectViewProps {
 	session: Session | undefined,
 	onRefresh: (session: Session) => void,
 };
+
+interface EditPopup {
+	columnGuid?: string,
+	cardGuid?: string,
+	title: string,
+	description: string,
+	assignee?: User,
+	errorMsg?: string,
+	showProgress: boolean,
+}
+
+const DEFAULT_EDIT_POPUP: EditPopup = { title: "", description: "", showProgress: false }
+
 export default function ProjectView(props: ProjectViewProps) {
 	const { guid } = useParams();
 	const navigate = useNavigate();
 	const [projInfo, setProjInfo] = useState<ProjectInfo | undefined>(undefined);
 	const [currentSubProject, setCurrentSubProject] = useState<SubProject | undefined>(undefined);
 	const [cards, setCards] = useState<SubProjectColumnCards | undefined>(undefined);
-	const [errorPop, setErrorPop] = useState(false);
-	const [progress, setProgress] = useState(false);
-	const [errorPopNotes, setErrorPopNotes] = useState(false);
-	const [editCard, setEditCard] = useState<Card | undefined>(undefined);
+	const [newColumnName, setNewColumnName] = useState<string>("");
 
+	const [editPopup, setEditPopup] = useState<EditPopup | undefined>();
 
-	
-	const [open, setOpen] = useState(false);
+	const [showProgress, setShowProgress] = useState<boolean>(false);
+	const [popupError, setPopupError] = useState<string | undefined>(undefined);
 
-	const handleClickDrag = () => {
-		setOpen(true);
-	};
+	const [showAppDrawer, setShowAppDrawer] = useState<boolean>(false);
 
-	const handleCloseDrag = (event?: React.SyntheticEvent | Event, reason?: string) => {
+	const handleCloseDrag = (_?: React.SyntheticEvent | Event, reason?: string) => {
 		if (reason === 'clickaway') {
-		return;
+			return;
 		}
 
-		setOpen(false);
+		setPopupError(undefined);
 	};
 
-	const [newColumnName, setNewColumnName] = useState<string | undefined>(undefined);
-
-	// TODO: Maybe group these state objects together since they're all related to creating a new card?
-	const [currentColumnGuid, setCurrentColumnGuid] = useState<string | undefined>(undefined);
-	const [newNoteTitle, setNewNoteTitle] = useState<string | undefined>(undefined);
-	const [newNoteDescription, setNewNoteDescription] = useState<string | undefined>(undefined);
-	const [newAsignee, setNewAsignee] = useState<string | undefined>(undefined);
 	const fetchProjectInfo = async () => {
 		if (!guid || !props.session)
 			return;
 
 		const res = await props.session.get_project_info(guid);
 		if (res.err) {
-			// TODO: Show some error message to the user here!
-			console.log(res.val);
+			setPopupError(res.val);
 			return;
 		}
 		const proj_info = res.val;
@@ -379,8 +411,7 @@ export default function ProjectView(props: ProjectViewProps) {
 		if (sub_proj) {
 			const res = await props.session.get_sub_project_cards(proj_info, sub_proj.guid);
 			if (res.err) {
-				// TODO: Show some error message to the user here!
-				console.log(res.val);
+				setPopupError(res.val);
 				return;
 			}
 			setCards(undefined);
@@ -421,17 +452,14 @@ export default function ProjectView(props: ProjectViewProps) {
 			refreshJwt(client, jwt);
 
 		}
-		
+
 		fetchProjectInfo();
 	}, [props.session])
-
-	// DragAndDrop();
 
 	if (!props.session)
 		return <body></body>;
 
 	if (!projInfo)
-		// TODO: Style this progress indicator correctly!
 		return <CircularProgress />;
 
 	if (!currentSubProject) {
@@ -449,218 +477,285 @@ export default function ProjectView(props: ProjectViewProps) {
 			}}>Create Root Sub-Project</Button>
 		</body>
 	}
-	function show(text: any):void{
-
-	}
-	
 
 	const popupBox = () => {
-
-		if (!currentColumnGuid && !editCard)
+		if (!editPopup)
 			return <></>;
 
-		return <div className="popup-box">
-			<div className="popup">
-				<div className="content">
-					<header>
-						<p>Add a New Note</p>
-						<i onClick={() => {setCurrentColumnGuid(undefined); setEditCard(undefined)}}>x</i>
-					</header>
-					<form action='#' className="note-form">
-						<TextField label="Title" className='textarea' sx={{marginBottom:1}} onChange={e => setNewNoteTitle(e.target.value)} value={newNoteTitle} />
-						<TextField label="Description" className='textarea' sx={{marginBottom:1}} onChange={e => setNewNoteDescription(e.target.value)} value={newNoteDescription} multiline />
-						<div>
-							<select className='select-box' onChange={e =>{setNewAsignee(e.target.value); console.log(e.target.value) }}>
-								
-								<option selected>No Asignee</option>
-								{projInfo.members.map(user =>
-									<option>{user.email}</option>
-									)}
-							</select>
-						</div>
-						{
-							errorPopNotes &&
-							<div>
-								<Alert sx={{margin:1}} color="error" severity='error'>No title/description/user provided</Alert>
-							</div>
+		return <div style={{
+			position: "absolute",
+			width: "100%",
+			display: "flex",
+			justifyContent: "center",
+			alignItems: "center",
+			top: 0,
+			right: 0,
+			bottom: 0,
+			left: 0,
+			zIndex: 10,
+			backdropFilter: "blur(10px)",
+		}}>
+			<div style={{
+				minWidth: "250pt",
+				maxWidth: "250pt",
+				backgroundColor: "white",
+				borderRadius: "10px",
+				padding: "10pt"
+			}}>
+				<header style={{ display: "flex", flexDirection: "row" }}>
+					<p style={{ flexGrow: 1 }}>Add a New Note</p>
+				</header>
+				<TextField
+					fullWidth
+					label="Title"
+					sx={{ marginTop: "5pt", marginBottom: "5pt" }}
+					onChange={e =>
+						setEditPopup(prev => ({
+							...(prev ?? DEFAULT_EDIT_POPUP),
+							title: e.target.value
+						}))
+					}
+					value={editPopup.title} />
+				<FormControl
+					fullWidth>
+					<InputLabel id="select-assignee">Assignee</InputLabel>
+					<Select
+						value={editPopup.assignee?.guid ?? "NONE"}
+						labelId="select-assignee"
+						label="Assignee"
+						sx={{ marginTop: "5pt", marginBottom: "5pt" }}
+						onChange={e => {
+							const assignee = projInfo.members.find(user => user.guid == e.target.value);
+							setEditPopup(prev => ({ ...(prev ?? DEFAULT_EDIT_POPUP), assignee }))
 						}
-						<Button id="save-note-button" onClick={async () => {
-							if (!props.session || !currentSubProject || !currentColumnGuid)
-								return;
+						}>
+						<MenuItem value={"NONE"}>None</MenuItem>
+						{projInfo.members.map(user => <MenuItem key={user.guid} value={user.guid}>{user.email}</MenuItem>)}
+					</Select>
+				</FormControl>
+				<TextField
+					fullWidth
+					label="Description"
+					sx={{ marginTop: "5pt", marginBottom: "5pt" }}
+					onChange={e =>
+						setEditPopup(prev => ({
+							...(prev ?? DEFAULT_EDIT_POPUP),
+							description: e.target.value
+						}))
+					}
+					value={editPopup.description} multiline />
+				{
+					editPopup.errorMsg &&
+					<div>
+						<Alert sx={{ margin: 1 }} color="error" severity='error'>{editPopup.errorMsg}</Alert>
+					</div>
+				}
+				<Button onClick={async () => {
+					if (editPopup.cardGuid == undefined && editPopup.columnGuid == undefined) {
+						return;
+					}
 
-							if (!newNoteDescription || !newNoteTitle) {
-								// TODO: Show this error to the user!
-								setErrorPopNotes(true);
-								console.log("No title or description provided!")
-								return;
-					
-							}
+					if (!props.session || !currentSubProject || !editPopup)
+						return;
 
-							// TODO: Display a progress bar when these requests are made!
-							setProgress(true);
-							const res = await props.session.add_sub_project_card(currentSubProject.guid, currentColumnGuid, newNoteTitle, newNoteDescription);
-							setProgress(false);
+					if (editPopup.title.length === 0 || editPopup.description.length === 0) {
+						setEditPopup(prev => ({ ...(prev ?? DEFAULT_EDIT_POPUP), errorMsg: "Missing title or description!" }));
+						return;
+					}
 
-							if (res.err) {
-								// TODO: Show this error to the user!
-								setErrorPopNotes(true);
-								console.log(res.val);
-								return;
-							}
+					setEditPopup(prev => ({ ...(prev ?? DEFAULT_EDIT_POPUP), showProgress: true }));
+					let res: Result<void, string>;
+					if (editPopup.columnGuid != undefined) {
+						res = await props.session.add_sub_project_card(currentSubProject.guid, editPopup.columnGuid, editPopup.title, editPopup.description);
+					} else {
+						res = await props.session.edit_sub_project_card(currentSubProject.guid, editPopup.cardGuid!, {
+							title: editPopup.title,
+							description: editPopup.description,
+							assignee: editPopup.assignee?.guid ?? "NONE"
+						});
+					}
+					setEditPopup(prev => ({ ...(prev ?? DEFAULT_EDIT_POPUP), showProgress: false }));
 
-							await fetchProjectInfo();
+					if (res.err) {
+						const errorMsg = res.val;
+						setEditPopup(prev => ({ ...(prev ?? DEFAULT_EDIT_POPUP), errorMsg }));
+						return;
+					}
 
-							setNewNoteTitle(undefined);
-							setNewNoteDescription(undefined);
-							setCurrentColumnGuid(undefined);
-							setErrorPopNotes(false);
-							setEditCard(undefined);
-						}}>{currentColumnGuid? "Add Note": "Save Edits"}</Button>
-					</form>
-					
-						{progress &&
-						<LinearProgress sx={{margin:1}} color="primary" />
-						}
-				</div>
+					await fetchProjectInfo();
+
+					setEditPopup(undefined);
+				}}>{editPopup.columnGuid != undefined ? "Add Note" : "Save Edits"}</Button>
+				<Button onClick={() => setEditPopup(undefined)} color="error">Cancel</Button>
+
+				{editPopup.showProgress &&
+					<LinearProgress sx={{ margin: 1 }} color="primary" />
+				}
 			</div>
 		</div>
 	}
 
 	return (
 		<DndProvider backend={HTML5Backend}>
-			<body>
-				<div className="Main-Page">
-					<nav>
-						<img src={require("./logo192.png")} className="logo"></img>
-						<ul>
-
-						</ul>
-						<Profile userName={projInfo.owner.email}></Profile>
-						{/* TODO: This is temporary, ideally we'll just periodically refresh or even better . */}
-						<Button onClick={async () => { await fetchProjectInfo() }}>Refresh</Button>
-
-					</nav>
-					{popupBox()}
-					<div className='side-wrapper'>
-						<div className='side-panel'>
-							<h2>
-								Project
-								<hr></hr>
-								<Button>Project1</Button>
-								<Button>Project2</Button>
-							</h2>
-						</div>
-						<button className='side-panel-toggle' type='button' onClick={toggleSidePanel}>
-							<span className="open"><ArrowForwardIosIcon/></span>
-							<span className="close"><ArrowBackIosIcon/></span>
-						</button>
-						<div className='main'>
-							<div className="wrapper">
-								{projInfo.columns.map(c =>
-									<Column
-										key={c.guid}
-										guid={c.guid}
-										title={c.name}
-										onOpenPopup={() => setCurrentColumnGuid(c.guid)} cards={cards}
-										onMoveCard={async (card, to_column, to_priority) => {
-											if (!props.session || !guid)
-											{
-												setOpen(true);
-												return;
-											}
-
-											// TODO(Brandon): Before we even make the request, we should probably do some client-side prediction so that it feels less laggy...
-
-											const res = await props.session.edit_sub_project_card(currentSubProject.guid, card.guid, { to_priority, to_column });
-											if (res.err) {
-												// TODO: Show some error message to the user here!
-												setOpen(true);
-											}
-											setOpen(false);
-
-											setProgress(true);
-											await fetchProjectInfo();
-											setProgress(false);
-										}}
-										onEditCard={(card) =>{
-											setEditCard(card);
-											setNewNoteTitle(card.title);
-											setNewNoteDescription(card.description)
-											setNewAsignee(card.assignee?.email)
-										}
-										
-										
-											
-										}
-										onDeleteCard={(card) =>{
-											//Delete from the server. 
-										}}
-									/>
-									
-								)}
-								<div style={{ display: 'flex', flexDirection: 'column', alignItems: 'start' }}>
-									<TextField label="Column Name" onChange={e => setNewColumnName(e.target.value)} value={newColumnName} />
-									{
-										errorPop &&
-										<div>
-											<Alert sx={{ marginTop: 1 }} color="error" severity='error'>Check the card name</Alert>
-										</div>
-									}
-									{progress &&
-										<LinearProgress sx={{ margin: 1 }} color="primary" />
-									}
-									<Button onClick={async () => {
-										if (!newColumnName || !props.session || !guid)
-											return;
-
-										console.log(newColumnName);
-										setProgress(true);
-										const res = await props.session.add_project_column(guid, newColumnName);
-										setProgress(false);
-										if (res.err) {
-											// TODO: Show some error message to the user here!
-											setErrorPop(true);
-											return;
-										}
-										setErrorPop(false);
-										await fetchProjectInfo();
-									}}>Create column</Button>
-								</div>
-							</div>
-							<Snackbar open={open} autoHideDuration={6000} onClose={handleCloseDrag}>
-								<Alert onClose={handleCloseDrag} severity="error" sx={{ width: '100%' }}>
-									Error dragging notes
-								</Alert>
-							</Snackbar>
-
-							{progress &&
-								<LinearProgress sx={{marginTop:"10%"}} color="primary" />
-							}
-						</div>
-						
-					</div>			
+			{showProgress &&
+				<LinearProgress sx={{ position: "absolute", top: 0, right: 0, left: 0, bottom: 0 }} color="primary" />}
+			<div style={{ width: "100vw", height: "100vh", display: "flex", flexDirection: "column" }}>
+				<div style={{
+					height: "7vh",
+					width: "min-content",
+					backgroundColor: "#ececec",
+					marginTop: "max(1vh, 5pt)",
+					marginLeft: "30pt",
+					borderRadius: "10px",
+					paddingLeft: "2vw",
+					paddingRight: "2vw",
+					display: "flex",
+					flexDirection: "row",
+					alignItems: "center",
+					justifyContent: "start",
+				}}>
+					<IconButton edge="start" color="inherit" aria-label="menu" sx={{ mr: 2 }} onClick={() => setShowAppDrawer(true)}>
+						<MenuIcon />
+					</IconButton>
+					<h2 style={{ fontSize: "2.2em", whiteSpace: "nowrap", marginRight: "3vw" }}>{projInfo.name}</h2>
+					<Tooltip title={projInfo.members.length + " members"}>
+						<PeopleIcon></PeopleIcon>
+					</Tooltip>
 				</div>
-			</body>
+				{popupBox()}
+				{/* <div className='side-wrapper'> */}
+				{/* <div className='side-panel'> */}
+				{/* 	<h2> */}
+				{/* 		Project */}
+				{/* 		<hr></hr> */}
+				{/* 		<Button>Project1</Button> */}
+				{/* 		<Button>Project2</Button> */}
+				{/* 	</h2> */}
+				{/* </div> */}
+				{/* <button className='side-panel-toggle' type='button' onClick={toggleSidePanel}> */}
+				{/* 	<span className="open"><ArrowForwardIosIcon /></span> */}
+				{/* 	<span className="close"><ArrowBackIosIcon /></span> */}
+				{/* </button> */}
+				<div
+					className="wrapper"
+					style={{
+						display: "grid",
+						flexGrow: 1,
+						gridAutoFlow: "column",
+						justifyContent: "start",
+						marginLeft: "20pt",
+						marginRight: "20pt",
+						marginTop: "max(2vh, 5pt)",
+						marginBottom: "max(5vh, 5pt)",
+					}}>
+					{projInfo.columns.map(c =>
+						<Column
+							key={c.guid}
+							guid={c.guid}
+							title={c.name}
+							cards={cards}
+							onCreateCard={() => setEditPopup({ ...DEFAULT_EDIT_POPUP, columnGuid: c.guid })}
+							onMoveCard={async (card, to_column, to_priority) => {
+								if (!props.session || !guid) {
+									setPopupError("Unknown error!");
+									return;
+								}
+
+								// TODO(Brandon): Before we even make the request, we should probably do some client-side prediction so that it feels less laggy...
+
+								const res = await props.session.edit_sub_project_card(currentSubProject.guid, card.guid, { to_priority, to_column });
+								if (res.err) {
+									setPopupError(res.val);
+									return;
+								}
+
+								setPopupError(undefined);
+
+								await fetchProjectInfo();
+							}}
+							onEditCard={card => setEditPopup({
+								title: card.title,
+								description: card.description,
+								assignee: card.assignee,
+								cardGuid: card.guid,
+								showProgress: false
+							})}
+							onDeleteCard={async card => {
+								if (!props.session || !guid) {
+									return;
+								}
+
+								const res = await props.session.delete_sub_project_card(currentSubProject.guid, card.guid);
+								if (res.err) {
+									setPopupError(res.val);
+									return;
+								}
+
+								setPopupError(undefined);
+
+								await fetchProjectInfo();
+							}}
+							onDeleteColumn={async () => {
+								if (!props.session || !guid) {
+									return;
+								}
+
+								const res = await props.session.delete_project_column(guid, c.guid);
+								if (res.err) {
+									setPopupError(res.val);
+									return;
+								}
+
+								setPopupError(undefined);
+
+								await fetchProjectInfo();
+							}}
+							onRenameColumn={async (name): Promise<Result<void, string>> => {
+								if (!props.session || !guid) {
+									return Err("Unknown error!");
+								}
+
+								const res = await props.session.rename_project_column(guid, c.guid, name);
+								if (res.err) {
+									return res;
+								}
+
+								await fetchProjectInfo();
+								return Ok.EMPTY;
+							}}
+						/>
+
+					)}
+					<div style={{ display: 'flex', flexDirection: 'column', alignItems: 'start', width: "230pt" }}>
+						<TextField label="Column Name" onChange={e => setNewColumnName(e.target.value)} value={newColumnName} />
+						{showProgress &&
+							<LinearProgress sx={{ margin: 1 }} color="primary" />
+						}
+						<Button onClick={async () => {
+							if (!newColumnName || !props.session || !guid)
+								return;
+
+							setShowProgress(true);
+							const res = await props.session.add_project_column(guid, newColumnName);
+							setShowProgress(false);
+							if (res.err) {
+								setPopupError(res.val);
+								return;
+							}
+
+							setPopupError(undefined);
+							setNewColumnName("");
+
+							await fetchProjectInfo();
+						}}>Create column</Button>
+					</div>
+				</div>
+				<Snackbar open={popupError != undefined} autoHideDuration={6000} onClose={handleCloseDrag}>
+					<Alert onClose={handleCloseDrag} severity="error" sx={{ width: '100%' }}>
+						{popupError}
+					</Alert>
+				</Snackbar>
+			</div>
 		</DndProvider>
 	);
-}
-
-
-function getDragAfterElement(list: any, y: number) {
-	//TODO: Figure out how to change the array dynamically. 
-	// Currently, the drag and drop features only work on the cards that are displayed when
-	// enterting the page. The newly added cards will not have this feature. 
-
-	const draggableElements = [...list.querySelectorAll('.note-card:not(.dragging)')]
-	return draggableElements.reduce((closest, child) => {
-		const box = child.getBoundingClientRect()
-		const offset = y - box.top - box.height / 2
-		if (offset < 0 && offset > closest.offset) {
-			return { offset: offset, element: child }
-		} else {
-			return closest
-
-		}
-
-	}, { offset: Number.NEGATIVE_INFINITY }).element
 }

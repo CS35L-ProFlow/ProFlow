@@ -18,11 +18,8 @@ export class AuthController {
 	async auth_login(@Body() req: LoginRequest): Promise<LoginResponse> {
 		const user = await this.auth_service.validate(req.email, req.password);
 		if (!user) {
-			console.log("Credentials invalid!");
 			throw new UnauthorizedException("Invalid credentials!");
 		}
-
-		console.log("User successfully logged in! " + user.email);
 
 		const jwt = this.auth_service.login(user);
 

@@ -15,9 +15,6 @@ export class User {
 	@Column({ type: "text" })
 	readonly password: string;
 
-	@OneToMany(() => Card, (card) => card.assignee, { onDelete: "CASCADE", onUpdate: "CASCADE" })
-	readonly assigned: Card[];
-
 	@OneToMany(() => Project, (project) => project.owner, { onDelete: "CASCADE", onUpdate: "CASCADE" })
 	readonly owned_projects: Project[]
 
@@ -135,9 +132,9 @@ export class Card {
 	@JoinColumn({ name: "project_column_id" })
 	project_column: ProjectColumn
 
-	@ManyToOne(() => User, (user) => user.assigned, { nullable: true, onDelete: "CASCADE", onUpdate: "CASCADE" })
+	@ManyToOne(() => User, { nullable: true, onDelete: "CASCADE", onUpdate: "CASCADE" })
 	@JoinColumn({ name: "assignee_id" })
-	assignee?: User;
+	assignee: User | null;
 
 	@Column({ type: "text" })
 	description: string;

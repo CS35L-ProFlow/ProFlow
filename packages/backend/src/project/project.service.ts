@@ -50,7 +50,6 @@ export class ProjectService {
 		return await this.data_source.transaction(async manager => {
 			const existing = await manager.findOne(Project, { where: { name, owner }, relations: { owner: true, members: true } });
 			if (existing) {
-				console.log("Found existing project with same name and owner.");
 				return null;
 			}
 
@@ -209,7 +208,6 @@ export class ProjectService {
 			return undefined;
 
 		if (old_priority == undefined) {
-			console.log("Old priority undefined! " + new_priority);
 			return manager.createQueryBuilder()
 				.update(Card)
 				.set({ priority: () => "priority + 1" })
@@ -310,20 +308,24 @@ export class ProjectService {
 				card.description = edits.description;
 			}
 
-			if (edits.assignee && card.assignee?.guid != edits.assignee) {
-				const new_assignee = sub_project.project.members.find(m => m.guid == edits.assignee);
+			if (edits.assignee) {
+				if (edits.assignee === "NONE") {
+					card.assignee = null;
+				} else if (card.assignee?.guid != edits.assignee) {
 
-				if (!new_assignee) {
-					return Err("Assignee is not a member of the project!");
+					const new_assignee = sub_project.project.members.find(m => m.guid == edits.assignee);
+
+					if (!new_assignee) {
+						return Err("Assignee is not a member of the project!");
+					}
+
+					card.assignee = new_assignee;
 				}
-
-				// TODO(Brandon): Probably want to add a check to make sure that the user is actually a member of the project...
-
-				card.assignee = new_assignee;
 			}
 
 			const changed_columns = edits.column && card.project_column.guid != edits.column;
 			if (changed_columns) {
+
 				const column = await manager.findOne(ProjectColumn, { where: { guid: edits.column } })
 				if (!column) {
 					return Err("Column does not exist!");
@@ -350,7 +352,7 @@ export class ProjectService {
 				card.priority = Math.min(edits.priority, highest_priority);
 			}
 
-			await manager.save(card);
+			const res = await manager.save(Card, card);
 
 			return Ok.EMPTY;
 		});
@@ -407,7 +409,7 @@ export class ProjectService {
 				}
 			}
 
-			const cards = await manager.find(Card, { where: { sub_project, project_column, assignee }, order: { priority: "ASC" } })
+			const cards = await manager.find(Card, { where: { sub_project, project_column, assignee }, order: { priority: "ASC" }, relations: { assignee: true } })
 			return Ok({ cards, project_column, project });
 		});
 	}
@@ -427,12 +429,10 @@ export class ProjectService {
 	async create_sub_project(owner: User, project: Project, name: string, parent?: SubProject): Promise<Result<SubProject, string>> {
 		return await this.data_source.transaction(async manager => {
 			if (project.owner.guid != owner.guid) {
-				console.log("Failed to create sub-project of project that user does not own.")
 				return Err("Cannot create sub-project for project that you do not own!");
 			}
 			const existing = await manager.findOne(SubProject, { where: { project, name }, relations: { project: true } });
 			if (existing) {
-				console.log("Found existing subproject with same name and parent project.");
 				return Err("Existing sub-project with same name already exists!");
 			}
 
@@ -446,12 +446,10 @@ export class ProjectService {
 		// because a) it's very rare, and b) no real consequences happen other than a bad error message.
 		const existing = await this.find_sub_project(owner, guid);
 		if (!existing) {
-			console.log("Failed to delete non-existant sub-project")
 			return Err("Sub-project does not exist!");
 		}
 
 		if (existing.project.owner.guid != owner.guid) {
-			console.log("Failed to delete sub-project that user does not own.")
 			return Err("Cannot delete sub-project that you do not own!");
 		}
 
