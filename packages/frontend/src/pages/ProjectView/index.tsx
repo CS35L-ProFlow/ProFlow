@@ -601,14 +601,14 @@ export default function ProjectView(props: ProjectViewProps) {
 				<LinearProgress sx={{ position: "absolute", top: 0, right: 0, left: 0, bottom: 0 }} color="primary" />}
 			<div style={{ width: "100vw", height: "100vh", display: "flex", flexDirection: "column" }}>
 				<div style={{
-					height: "7vh",
+					height: "50pt",
 					width: "min-content",
 					backgroundColor: "#ececec",
 					marginTop: "max(1vh, 5pt)",
 					marginLeft: "30pt",
 					borderRadius: "10px",
-					paddingLeft: "2vw",
-					paddingRight: "2vw",
+					paddingLeft: "30pt",
+					paddingRight: "30pt",
 					display: "flex",
 					flexDirection: "row",
 					alignItems: "center",
@@ -617,7 +617,7 @@ export default function ProjectView(props: ProjectViewProps) {
 					<IconButton edge="start" color="inherit" aria-label="menu" sx={{ mr: 2 }} onClick={() => setShowAppDrawer(true)}>
 						<MenuIcon />
 					</IconButton>
-					<h2 style={{ fontSize: "2.2em", whiteSpace: "nowrap", marginRight: "3vw" }}>{projInfo.name}</h2>
+					<h2 style={{ fontSize: "2.2em", whiteSpace: "nowrap", marginRight: "30pt" }}>{projInfo.name}</h2>
 					<Tooltip title={projInfo.members.length + " members"}>
 						<PeopleIcon></PeopleIcon>
 					</Tooltip>
