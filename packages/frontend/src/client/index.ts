@@ -105,8 +105,11 @@ export class Session {
 	private client: ProFlow;
 
 	constructor(private user_email: string, private user_guid: string, jwt: string, expire_sec: number) {
+		const refresh_rate_ms = this.refresh_rate_ms(expire_sec);
+		localStorage.setItem("jwt", jwt)
+		localStorage.setItem("expirationDate", String(Date.now() + refresh_rate_ms));
 		this.client = init_proflow_client(jwt);
-		this.refresh_auth(this.refresh_rate_ms(expire_sec));
+		this.refresh_auth(refresh_rate_ms);
 	}
 
 	public get http() {
@@ -264,10 +267,18 @@ export class Session {
 		).mapErr(err => "Failed to add column: " + err);
 	}
 
-	public async create_sub_project(guid: string, name: string): Promise<Result<void, string>> {
+	public async create_sub_project(guid: string, name: string, parent?: string): Promise<Result<void, string>> {
 		return (
 			await safe_request(async () => {
-				await this.client.project.createSubProject(guid, { name });
+				await this.client.project.createSubProject(guid, { name }, parent);
+			})
+		).mapErr(err => "Failed to create sub-project: " + err);
+	}
+
+	public async delete_sub_project(guid: string): Promise<Result<void, string>> {
+		return (
+			await safe_request(async () => {
+				await this.client.subProject.deleteSubProject(guid);
 			})
 		).mapErr(err => "Failed to create sub-project: " + err);
 	}

@@ -1,10 +1,34 @@
-import { Button, TextField, Alert, LinearProgress, Snackbar, IconButton, Drawer } from '@mui/material'
+import {
+	Button,
+	TextField,
+	Alert,
+	LinearProgress,
+	Snackbar,
+	IconButton,
+	Drawer,
+	Divider,
+	Box,
+	Typography,
+	Menu,
+	CircularProgress,
+	Select,
+	MenuItem,
+	FormControl,
+	InputLabel,
+	Tooltip,
+	Dialog,
+	DialogTitle,
+	DialogContent,
+	DialogContentText,
+	DialogActions
+} from '@mui/material'
+
+import { TreeView, TreeItem, TreeItemContentProps, useTreeItem } from "@mui/lab";
 import { Session, ProjectInfo, SubProject, SubProjectColumnCards, Card, User, init_proflow_client } from "../../client"
 // import './index.css';
 import Pages from "../../pages";
 import React, { useEffect, useState, useRef, useLayoutEffect } from 'react';
 import { useNavigate, useParams } from "react-router-dom";
-import { CircularProgress, Select, MenuItem, FormControl, InputLabel, Tooltip } from "@mui/material";
 import { DndProvider, DropTargetMonitor, useDrag, useDrop } from 'react-dnd'
 import { HTML5Backend } from 'react-dnd-html5-backend'
 import { ProFlow } from '../../proflow';
@@ -14,7 +38,11 @@ import FaceIcon from '@mui/icons-material/Face';
 import MenuIcon from '@mui/icons-material/Menu';
 import PeopleIcon from '@mui/icons-material/People';
 import AccessTimeIcon from '@mui/icons-material/AccessTime';
+import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
+import ChevronRightIcon from '@mui/icons-material/ChevronRight';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import { Result, Err, Ok } from "ts-results";
+import clsx from 'clsx';
 
 
 interface ColumnProps {
@@ -152,7 +180,7 @@ function Column(props: ColumnProps) {
 				errorRename &&
 				<Alert severity="error" color="error">{errorRename}</Alert>
 			}
-			<hr></hr>
+			<Divider></Divider>
 		</div>
 		<div className="add-button">
 			<Button id="add-note-button" sx={{ margin: 1 }} onClick={props.onCreateCard}>Add New Notes</Button>
@@ -208,7 +236,7 @@ interface RenderedNoteProps {
 function RenderedNoteCard(props: RenderedNoteProps) {
 	return <div ref={props.ref} style={{ backgroundColor: "white", padding: "5pt", marginTop: "10pt", borderRadius: "10px" }}>
 		<h3 style={{ marginLeft: "2pt", marginTop: "2pt" }}>{props.card.title}</h3>
-		<hr />
+		<Divider sx={{ marginTop: "8pt" }} />
 		<p style={{
 			whiteSpace: "pre-wrap",
 			display: "-webkit-box",
@@ -233,6 +261,7 @@ function RenderedNoteCard(props: RenderedNoteProps) {
 				</Tooltip>
 			}
 		</div>
+		<Divider sx={{ marginTop: "8pt" }} />
 		<div style={{ display: "flex", flexDirection: "row", justifyContent: "space-evenly", alignItems: "center" }}>
 			<Button className='edit-card' onClick={() => props.onEditCard(props.card)}><EditIcon /></Button>
 			<Button className='delete-card' onClick={() => props.onDeleteCard(props.card)}><DeleteIcon /></Button>
@@ -336,20 +365,6 @@ function NoteCard(props: NoteProps) {
 
 }
 
-//Show User Menu
-function toggleMenu() {
-	let subMenu = document.getElementById("subMenu");
-	return subMenu!.classList.toggle("open-menu");
-}
-
-//Toggle side panel
-function toggleSidePanel() {
-	let sidePanel = document.querySelector(".side-panel");
-	let sidePanelOpen = document.querySelector(".side-panel-toggle")
-	sidePanelOpen!.classList.toggle("side-panel-open")
-	return sidePanel!.classList.toggle("open-side-panel")
-}
-
 interface ProjectViewProps {
 	session: Session | undefined,
 	onRefresh: (session: Session) => void,
@@ -367,6 +382,173 @@ interface EditPopup {
 
 const DEFAULT_EDIT_POPUP: EditPopup = { title: "", description: "", showProgress: false }
 
+const SubprojectContent = React.forwardRef(function SubprojectContent(
+	props: TreeItemContentProps,
+	ref
+) {
+	const {
+		classes,
+		className,
+		label,
+		nodeId,
+		icon: iconProp,
+		expansionIcon,
+		displayIcon,
+		onContextMenu,
+	} = props;
+
+	const {
+		disabled,
+		expanded,
+		selected,
+		focused,
+		handleExpansion,
+		handleSelection,
+		preventSelection,
+	} = useTreeItem(nodeId);
+
+	const icon = iconProp || expansionIcon || displayIcon;
+
+	const handleMouseDown = (event: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
+		preventSelection(event);
+	};
+
+	const handleExpansionClick = (
+		event: React.MouseEvent<HTMLDivElement, MouseEvent>,
+	) => {
+		handleExpansion(event);
+	};
+
+	const handleSelectionClick = (
+		event: React.MouseEvent<HTMLDivElement, MouseEvent>,
+	) => {
+		handleSelection(event);
+	};
+
+
+	return (
+		<div
+			className={clsx(className, classes.root, {
+				[classes.expanded]: expanded,
+				[classes.selected]: selected,
+				[classes.focused]: focused,
+				[classes.disabled]: disabled,
+			})}
+			onMouseDown={handleMouseDown}
+			ref={ref as React.Ref<HTMLDivElement>}
+			onContextMenu={onContextMenu}
+		>
+			<div onClick={handleExpansionClick} className={classes.iconContainer}>
+				{icon}
+			</div>
+			<Typography
+				onClick={handleSelectionClick}
+				component="div"
+				className={classes.label}
+			>
+				{label}
+			</Typography>
+		</div>
+	);
+})
+
+interface SubProjectTreeItemProps {
+	onOpenContextMenu: (subProjectGuid: string, mouseX: number, mouseY: number) => void;
+	subProject: SubProject
+}
+const SubProjectTreeItem = (props: SubProjectTreeItemProps) => {
+
+	return <TreeItem
+		nodeId={props.subProject.guid}
+		label={props.subProject.name}
+		ContentComponent={SubprojectContent}
+		ContentProps={{
+			onContextMenu: (event: React.MouseEvent<HTMLElement, MouseEvent>) => {
+				event.preventDefault();
+				event.stopPropagation();
+				props.onOpenContextMenu(props.subProject.guid, event.clientX, event.clientY)
+			},
+		} as any}>
+		{props.subProject.children.map(sp =>
+			<SubProjectTreeItem key={sp.guid} subProject={sp} onOpenContextMenu={props.onOpenContextMenu} />
+		)}
+	</TreeItem>
+}
+
+
+interface SubProjectTreeProps {
+	project: ProjectInfo;
+	selected: string | undefined;
+	onSelect: (guid: string) => void,
+	onCreateSubProject: (parent: string, name: string) => void,
+	onDeleteSubProject: (guid: string) => void,
+}
+
+const SubProjectTree = (props: SubProjectTreeProps) => {
+	const [editGuid, setEditGuid] = useState<string | undefined>(undefined);
+	const [editMouse, setEditMouse] = useState<{ x: number, y: number } | undefined>(undefined);
+	const [newSubProject, setNewSubProject] = useState<string | undefined>(undefined);
+	const closeMenu = () => {
+		setEditMouse(undefined);
+	}
+
+	return <>
+		<Menu
+			open={editMouse != undefined}
+			onClose={closeMenu}
+			anchorReference="anchorPosition"
+			anchorPosition={editMouse ? { top: editMouse.y, left: editMouse.x } : undefined}
+		>
+			<MenuItem onClick={() => {
+				closeMenu();
+				setNewSubProject("");
+			}}>Add Child</MenuItem>
+			<MenuItem onClick={() => {
+				closeMenu()
+				if (editGuid) {
+					props.onDeleteSubProject(editGuid);
+				}
+				setEditGuid(undefined);
+			}}>Delete</MenuItem>
+		</Menu>
+		<Dialog open={newSubProject != undefined}>
+			<DialogTitle>New Sub Project</DialogTitle>
+			<DialogContent>
+				<TextField autoFocus value={newSubProject} onChange={e => setNewSubProject(e.target.value)} />
+			</DialogContent>
+			<DialogActions>
+				<Button onClick={() => {
+					if (!editGuid || !newSubProject)
+						return;
+
+					props.onCreateSubProject(editGuid, newSubProject)
+					setEditGuid(undefined);
+					setNewSubProject(undefined)
+				}}>Create</Button>
+				<Button onClick={() => {
+					setEditGuid(undefined);
+					setNewSubProject(undefined)
+				}}>Cancel</Button>
+			</DialogActions>
+		</Dialog>
+		<TreeView
+			aria-label="sub project navigator"
+			defaultCollapseIcon={<ExpandMoreIcon />}
+			defaultExpandIcon={<ChevronRightIcon />}
+			sx={{ height: 240, flexGrow: 1, maxWidth: 400, overflowY: 'auto' }}
+			selected={props.selected}
+			onNodeSelect={(_: React.SyntheticEvent, guid: string) => props.onSelect(guid)}
+		>
+			{props.project.sub_projects.map(sp =>
+				<SubProjectTreeItem key={sp.guid} subProject={sp} onOpenContextMenu={(guid, x, y) => {
+					setEditGuid(guid);
+					setEditMouse({ x, y })
+				}} />)
+			}
+		</TreeView>
+	</>
+}
+
 export default function ProjectView(props: ProjectViewProps) {
 	const { guid } = useParams();
 	const navigate = useNavigate();
@@ -380,7 +562,10 @@ export default function ProjectView(props: ProjectViewProps) {
 	const [showProgress, setShowProgress] = useState<boolean>(false);
 	const [popupError, setPopupError] = useState<string | undefined>(undefined);
 
-	const [showAppDrawer, setShowAppDrawer] = useState<boolean>(false);
+	const [showAppDrawer, setShowAppDrawer] = useState<boolean>(true);
+
+	const [menuMouse, setMenuMouse] = useState<{ x: number, y: number } | undefined>(undefined);
+	const [newSubProject, setNewSubProject] = useState<string | undefined>(undefined);
 
 	const handleCloseDrag = (_?: React.SyntheticEvent | Event, reason?: string) => {
 		if (reason === 'clickaway') {
@@ -390,7 +575,7 @@ export default function ProjectView(props: ProjectViewProps) {
 		setPopupError(undefined);
 	};
 
-	const fetchProjectInfo = async () => {
+	const fetchProjectInfo = async (newCurrentSubProject?: SubProject) => {
 		if (!guid || !props.session)
 			return;
 
@@ -402,7 +587,7 @@ export default function ProjectView(props: ProjectViewProps) {
 		const proj_info = res.val;
 		setProjInfo(proj_info);
 
-		let sub_proj = currentSubProject;
+		let sub_proj = newCurrentSubProject ?? currentSubProject;
 		if (!currentSubProject && proj_info.sub_projects.length > 0) {
 			sub_proj = proj_info.sub_projects[0];
 			setCurrentSubProject(sub_proj);
@@ -461,22 +646,6 @@ export default function ProjectView(props: ProjectViewProps) {
 
 	if (!projInfo)
 		return <CircularProgress />;
-
-	if (!currentSubProject) {
-		return <body>
-			<Button onClick={async () => {
-				if (!props.session)
-					return;
-				// TODO: This is simply a placeholder until we actually have the UI for adding/viewing subprojects.
-				const res = await props.session.create_sub_project(guid!, "ROOT");
-				if (res.err) {
-					console.log(res.val);
-					return;
-				}
-				fetchProjectInfo();
-			}}>Create Root Sub-Project</Button>
-		</body>
-	}
 
 	const popupBox = () => {
 		if (!editPopup)
@@ -595,167 +764,315 @@ export default function ProjectView(props: ProjectViewProps) {
 		</div>
 	}
 
+	const get_sub_project_with_guid = (guid: string, current?: SubProject): SubProject | undefined => {
+		if (!projInfo)
+			return undefined;
+
+		if (current?.guid === guid)
+			return current;
+
+		let children = current?.children ?? projInfo.sub_projects;
+
+		for (const child of children) {
+			const res = get_sub_project_with_guid(guid, child);
+			if (res)
+				return res;
+		}
+		return undefined;
+	}
+
+	const closeMenu = () => {
+		setMenuMouse(undefined);
+	}
+
 	return (
 		<DndProvider backend={HTML5Backend}>
 			{showProgress &&
 				<LinearProgress sx={{ position: "absolute", top: 0, right: 0, left: 0, bottom: 0 }} color="primary" />}
-			<div style={{ width: "100vw", height: "100vh", display: "flex", flexDirection: "column" }}>
-				<div style={{
-					height: "50pt",
-					width: "min-content",
-					backgroundColor: "#ececec",
-					marginTop: "max(1vh, 5pt)",
-					marginLeft: "30pt",
-					borderRadius: "10px",
-					paddingLeft: "30pt",
-					paddingRight: "30pt",
-					display: "flex",
-					flexDirection: "row",
-					alignItems: "center",
-					justifyContent: "start",
-				}}>
-					<IconButton edge="start" color="inherit" aria-label="menu" sx={{ mr: 2 }} onClick={() => setShowAppDrawer(true)}>
-						<MenuIcon />
-					</IconButton>
-					<h2 style={{ fontSize: "2.2em", whiteSpace: "nowrap", marginRight: "30pt" }}>{projInfo.name}</h2>
-					<Tooltip title={projInfo.members.length + " members"}>
-						<PeopleIcon></PeopleIcon>
-					</Tooltip>
-				</div>
-				{popupBox()}
-				{/* <div className='side-wrapper'> */}
-				{/* <div className='side-panel'> */}
-				{/* 	<h2> */}
-				{/* 		Project */}
-				{/* 		<hr></hr> */}
-				{/* 		<Button>Project1</Button> */}
-				{/* 		<Button>Project2</Button> */}
-				{/* 	</h2> */}
-				{/* </div> */}
-				{/* <button className='side-panel-toggle' type='button' onClick={toggleSidePanel}> */}
-				{/* 	<span className="open"><ArrowForwardIosIcon /></span> */}
-				{/* 	<span className="close"><ArrowBackIosIcon /></span> */}
-				{/* </button> */}
-				<div
-					className="wrapper"
-					style={{
-						display: "grid",
-						flexGrow: 1,
-						gridAutoFlow: "column",
-						justifyContent: "start",
-						marginLeft: "20pt",
-						marginRight: "20pt",
-						marginTop: "max(2vh, 5pt)",
-						marginBottom: "max(5vh, 5pt)",
-					}}>
-					{projInfo.columns.map(c =>
-						<Column
-							key={c.guid}
-							guid={c.guid}
-							title={c.name}
-							cards={cards}
-							onCreateCard={() => setEditPopup({ ...DEFAULT_EDIT_POPUP, columnGuid: c.guid })}
-							onMoveCard={async (card, to_column, to_priority) => {
-								if (!props.session || !guid) {
-									setPopupError("Unknown error!");
-									return;
-								}
+			<Menu
+				open={menuMouse != undefined}
+				onClose={closeMenu}
+				anchorReference="anchorPosition"
+				anchorPosition={menuMouse ? { top: menuMouse.y, left: menuMouse.x } : undefined}
+			>
+				<MenuItem onClick={() => {
+					closeMenu();
+					setNewSubProject("");
+				}}>Create Sub-Project</MenuItem>
+			</Menu>
+			<Dialog open={newSubProject != undefined}>
+				<DialogTitle>New Sub Project</DialogTitle>
+				<DialogContent>
+					<TextField autoFocus value={newSubProject} onChange={e => setNewSubProject(e.target.value)} />
+				</DialogContent>
+				<DialogActions>
+					<Button onClick={async () => {
+						if (!newSubProject)
+							return;
 
-								// TODO(Brandon): Before we even make the request, we should probably do some client-side prediction so that it feels less laggy...
-
-								const res = await props.session.edit_sub_project_card(currentSubProject.guid, card.guid, { to_priority, to_column });
-								if (res.err) {
-									setPopupError(res.val);
-									return;
-								}
-
-								setPopupError(undefined);
-
-								await fetchProjectInfo();
-							}}
-							onEditCard={card => setEditPopup({
-								title: card.title,
-								description: card.description,
-								assignee: card.assignee,
-								cardGuid: card.guid,
-								showProgress: false
-							})}
-							onDeleteCard={async card => {
-								if (!props.session || !guid) {
-									return;
-								}
-
-								const res = await props.session.delete_sub_project_card(currentSubProject.guid, card.guid);
-								if (res.err) {
-									setPopupError(res.val);
-									return;
-								}
-
-								setPopupError(undefined);
-
-								await fetchProjectInfo();
-							}}
-							onDeleteColumn={async () => {
-								if (!props.session || !guid) {
-									return;
-								}
-
-								const res = await props.session.delete_project_column(guid, c.guid);
-								if (res.err) {
-									setPopupError(res.val);
-									return;
-								}
-
-								setPopupError(undefined);
-
-								await fetchProjectInfo();
-							}}
-							onRenameColumn={async (name): Promise<Result<void, string>> => {
-								if (!props.session || !guid) {
-									return Err("Unknown error!");
-								}
-
-								const res = await props.session.rename_project_column(guid, c.guid, name);
-								if (res.err) {
-									return res;
-								}
-
-								await fetchProjectInfo();
-								return Ok.EMPTY;
-							}}
-						/>
-
-					)}
-					<div style={{ display: 'flex', flexDirection: 'column', alignItems: 'start', width: "230pt" }}>
-						<TextField label="Column Name" onChange={e => setNewColumnName(e.target.value)} value={newColumnName} />
-						{showProgress &&
-							<LinearProgress sx={{ margin: 1 }} color="primary" />
+						if (!props.session || !guid) {
+							return;
 						}
-						<Button onClick={async () => {
-							if (!newColumnName || !props.session || !guid)
+
+						setMenuMouse(undefined);
+
+						setShowProgress(true);
+						const res = await props.session.create_sub_project(guid, newSubProject);
+						setNewSubProject(undefined)
+						if (res.err) {
+							setPopupError(res.val);
+							return;
+						}
+
+						setPopupError(undefined);
+
+						await fetchProjectInfo();
+						setShowProgress(false);
+					}}>Create</Button>
+					<Button onClick={() => {
+						setMenuMouse(undefined);
+						setNewSubProject(undefined)
+					}}>Cancel</Button>
+				</DialogActions>
+			</Dialog>
+			<Box sx={{ width: "100vw", height: "100vh", display: "flex", flexDirection: "row" }}>
+				<Drawer sx={{
+					width: showAppDrawer ? "200pt" : "0pt",
+					flexShrink: 0,
+					'& .MuiDrawer-paper': {
+						width: "200pt",
+						boxSizing: 'border-box',
+						backgroundColor: "#ececec",
+					},
+				}} color="#ececec" variant="persistent" anchor="left" open={showAppDrawer} onContextMenu={e => {
+					e.preventDefault();
+					setMenuMouse({ x: e.clientX, y: e.clientY })
+				}}>
+					<div style={{
+						display: "flex",
+						flexDirection: "row",
+						justifyContent: "space-between"
+					}}>
+						<Button onClick={() => navigate(Pages.USER)}>View Other projects</Button>
+						<IconButton sx={{
+							width: "fit-content",
+							padding: "10pt",
+						}} onClick={() => setShowAppDrawer(false)}>
+							<ChevronLeftIcon />
+						</IconButton>
+					</div>
+					<Divider />
+					<SubProjectTree
+						project={projInfo}
+						selected={currentSubProject?.guid}
+						onCreateSubProject={async (parent, name) => {
+							if (!props.session || !guid) {
 								return;
+							}
 
 							setShowProgress(true);
-							const res = await props.session.add_project_column(guid, newColumnName);
-							setShowProgress(false);
+							const res = await props.session.create_sub_project(guid, name, parent);
 							if (res.err) {
 								setPopupError(res.val);
 								return;
 							}
 
 							setPopupError(undefined);
-							setNewColumnName("");
 
 							await fetchProjectInfo();
-						}}>Create column</Button>
+							setShowProgress(false);
+						}}
+						onSelect={async guid => {
+							const sub_proj = get_sub_project_with_guid(guid);
+							setCurrentSubProject(sub_proj);
+							setShowProgress(true);
+							await fetchProjectInfo(sub_proj);
+							setShowProgress(false);
+						}}
+						onDeleteSubProject={async guid => {
+							if (!props.session || !guid) {
+								return;
+							}
+
+							setShowProgress(true);
+							const res = await props.session.delete_sub_project(guid);
+							if (res.err) {
+								setPopupError(res.val);
+								return;
+							}
+
+							setPopupError(undefined);
+
+							setCurrentSubProject(undefined);
+							await fetchProjectInfo();
+							setShowProgress(false);
+						}}
+					/>
+
+				</Drawer>
+				<div style={{ display: "flex", flexDirection: "column", flexGrow: 1 }}>
+					<div style={{
+						height: "50pt",
+						width: "min-content",
+						backgroundColor: "#ececec",
+						marginTop: "max(1vh, 5pt)",
+						marginLeft: "30pt",
+						borderRadius: "10px",
+						paddingLeft: "30pt",
+						paddingRight: "30pt",
+						display: "flex",
+						flexDirection: "row",
+						alignItems: "center",
+						justifyContent: "start",
+					}}>
+						<IconButton edge="start" color="inherit" aria-label="menu" sx={{ mr: 2 }} onClick={() => setShowAppDrawer(!showAppDrawer)}>
+							<MenuIcon />
+						</IconButton>
+						<h2 style={{ fontSize: "2.2em", whiteSpace: "nowrap", marginRight: "30pt" }}>{projInfo.name}</h2>
+						<Tooltip title={projInfo.members.length + " members"}>
+							<PeopleIcon></PeopleIcon>
+						</Tooltip>
 					</div>
+					{popupBox()}
+					{currentSubProject &&
+						<div
+							className="wrapper"
+							style={{
+								display: "grid",
+								flexGrow: 1,
+								gridAutoFlow: "column",
+								justifyContent: "start",
+								marginLeft: "20pt",
+								marginRight: "20pt",
+								marginTop: "max(2vh, 5pt)",
+								marginBottom: "max(5vh, 5pt)",
+							}}>
+							{projInfo.columns.map(c =>
+								<Column
+									key={c.guid}
+									guid={c.guid}
+									title={c.name}
+									cards={cards}
+									onCreateCard={() => setEditPopup({ ...DEFAULT_EDIT_POPUP, columnGuid: c.guid })}
+									onMoveCard={async (card, to_column, to_priority) => {
+										if (!props.session || !guid || !currentSubProject) {
+											setPopupError("Unknown error!");
+											return;
+										}
+
+										// TODO(Brandon): Before we even make the request, we should probably do some client-side prediction so that it feels less laggy...
+
+										setShowProgress(true);
+										const res = await props.session.edit_sub_project_card(currentSubProject.guid, card.guid, { to_priority, to_column });
+										if (res.err) {
+											setPopupError(res.val);
+											return;
+										}
+
+										setPopupError(undefined);
+
+										await fetchProjectInfo();
+										setShowProgress(false);
+									}}
+									onEditCard={card => setEditPopup({
+										title: card.title,
+										description: card.description,
+										assignee: card.assignee,
+										cardGuid: card.guid,
+										showProgress: false
+									})}
+									onDeleteCard={async card => {
+										if (!props.session || !guid || !currentSubProject) {
+											return;
+										}
+
+										const res = await props.session.delete_sub_project_card(currentSubProject.guid, card.guid);
+										if (res.err) {
+											setPopupError(res.val);
+											return;
+										}
+
+										setPopupError(undefined);
+
+										await fetchProjectInfo();
+									}}
+									onDeleteColumn={async () => {
+										if (!props.session || !guid) {
+											return;
+										}
+
+										const res = await props.session.delete_project_column(guid, c.guid);
+										if (res.err) {
+											setPopupError(res.val);
+											return;
+										}
+
+										setPopupError(undefined);
+
+										await fetchProjectInfo(undefined);
+									}}
+									onRenameColumn={async (name): Promise<Result<void, string>> => {
+										if (!props.session || !guid) {
+											return Err("Unknown error!");
+										}
+
+										const res = await props.session.rename_project_column(guid, c.guid, name);
+										if (res.err) {
+											return res;
+										}
+
+										await fetchProjectInfo();
+										return Ok.EMPTY;
+									}}
+								/>
+
+							)}
+							<div style={{ display: 'flex', flexDirection: 'column', alignItems: 'start', width: "230pt" }}>
+								<TextField label="Column Name" onChange={e => setNewColumnName(e.target.value)} value={newColumnName} />
+								<Button onClick={async () => {
+									if (!newColumnName || !props.session || !guid)
+										return;
+
+									setShowProgress(true);
+									const res = await props.session.add_project_column(guid, newColumnName);
+									setShowProgress(false);
+									if (res.err) {
+										setPopupError(res.val);
+										return;
+									}
+
+									setPopupError(undefined);
+									setNewColumnName("");
+
+									await fetchProjectInfo();
+								}}>Create Column</Button>
+							</div>
+						</div>
+					}
+					{!currentSubProject &&
+						<div style={{
+							display: "flex",
+							justifyContent: "center",
+							alignItems: "center",
+							height: "100%"
+						}}>
+							<div style={{
+								display: "flex",
+								justifyContent: "center",
+								alignItems: "center",
+								flexDirection: "column"
+							}}>
+								<h3>Create a Sub-Project to begin working with ProFlow!</h3>
+								<h4>(Right click the side-panel)</h4>
+							</div>
+						</div>}
+					<Snackbar open={popupError != undefined} autoHideDuration={6000} onClose={handleCloseDrag}>
+						<Alert onClose={handleCloseDrag} severity="error" sx={{ width: '100%' }}>
+							{popupError}
+						</Alert>
+					</Snackbar>
 				</div>
-				<Snackbar open={popupError != undefined} autoHideDuration={6000} onClose={handleCloseDrag}>
-					<Alert onClose={handleCloseDrag} severity="error" sx={{ width: '100%' }}>
-						{popupError}
-					</Alert>
-				</Snackbar>
-			</div>
+			</Box>
 		</DndProvider>
 	);
 }
