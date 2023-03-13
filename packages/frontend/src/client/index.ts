@@ -91,8 +91,8 @@ export interface Card {
 	description: string,
 	assignee?: User,
 	column_guid: string,
-	// date_created: Date,
-	// date_modified: Date,
+	date_created: Date,
+	date_modified: Date,
 	priority: number,
 }
 
@@ -185,8 +185,8 @@ export class Session {
 							description: c.description,
 							column_guid: res.column,
 							assignee: c.assignee ? project.members.find(m => m.guid == c.assignee) : undefined,
-							// date_created: c.date_created,
-							// date_modified: c.date_modified,
+							date_created: new Date(c.date_created),
+							date_modified: new Date(c.date_modified),
 							priority: c.priority,
 						}
 					})
