@@ -47,18 +47,21 @@ export class SubProjectController {
 	@ApiParam({ name: "guid", required: true, description: "Sub-Project GUID" })
 	@ApiQuery({ name: "column", required: true, description: "The project column GUID to get the cards for" })
 	@ApiQuery({ name: "assignee", required: false, description: "The assignee user GUID of the card to search for" })
+	@ApiQuery({ name: "filter", required: false, description: "The text filter cards by" })
 	@Get(":guid/cards")
 	async get_cards(
 		@AuthUser() user: User,
 		@Param() param: { guid: string },
 		@Query("column") column: string,
 		@Query("assignee") assignee?: string,
+		@Query("filter") filter?: string,
 	): Promise<GetColumnCardsResponse> {
 
 		const res = await this.project_service.find_cards(user, {
 			sub_project_guid: param.guid,
 			column_guid: column,
-			assignee_guid: assignee
+			assignee_guid: assignee,
+			filter,
 		});
 		if (res.err) {
 			throw new ForbiddenException(res.val);

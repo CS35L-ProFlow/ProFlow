@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from "@nestjs/typeorm";
-import { Repository, TreeRepository, DataSource, Between, EntityManager, MoreThanOrEqual, UpdateResult } from "typeorm";
+import { Repository, TreeRepository, DataSource, Between, EntityManager, MoreThanOrEqual, UpdateResult, Like, FindOperator } from "typeorm";
 import { Project, SubProject, User, UserInvite, ProjectColumn, Card } from "../database/entities";
 import { UserService } from "../user/user.service";
 import { Ok, Err, Result } from "ts-results";
@@ -352,7 +352,7 @@ export class ProjectService {
 				card.priority = Math.min(edits.priority, highest_priority);
 			}
 
-			const res = await manager.save(Card, card);
+			await manager.save(Card, card);
 
 			return Ok.EMPTY;
 		});
@@ -363,7 +363,8 @@ export class ProjectService {
 		project_guid?: string,
 		sub_project_guid?: string,
 		column_guid?: string,
-		assignee_guid?: string
+		assignee_guid?: string,
+		filter?: string,
 	}): Promise<Result<{ cards: Card[], project: Project, project_column?: ProjectColumn }, string>> {
 		return await this.data_source.transaction(async manager => {
 			if (!where.project_guid && !where.sub_project_guid) {
@@ -409,7 +410,22 @@ export class ProjectService {
 				}
 			}
 
-			const cards = await manager.find(Card, { where: { sub_project, project_column, assignee }, order: { priority: "ASC" }, relations: { assignee: true } })
+			let title: FindOperator<string> | undefined = undefined;
+			if (where.filter) {
+				title = Like(`%${where.filter}%`);
+			}
+
+			const cards = await manager.find(Card,
+				{
+					where: {
+						sub_project,
+						project_column,
+						assignee,
+						title
+					},
+					order: { priority: "ASC" },
+					relations: { assignee: true }
+				})
 			return Ok({ cards, project_column, project });
 		});
 	}

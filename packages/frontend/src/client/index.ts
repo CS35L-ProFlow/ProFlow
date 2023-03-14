@@ -173,11 +173,10 @@ export class Session {
 		).mapErr(err => "Failed to get user: " + err);
 	}
 
-	public async get_sub_project_cards(project: ProjectInfo, sub_project_guid: string, assignee_guid?: string): Promise<Result<SubProjectColumnCards, string>> {
+	public async get_sub_project_cards(project: ProjectInfo, sub_project_guid: string, assignee_guid?: string, filter?: string): Promise<Result<SubProjectColumnCards, string>> {
 		return (
 			await safe_request(async () => {
-				const res = await Promise.all(project.columns.map(c => this.client.subProject.getCards(c.guid, sub_project_guid, assignee_guid)));
-
+				const res = await Promise.all(project.columns.map(c => this.client.subProject.getCards(c.guid, sub_project_guid, assignee_guid, filter)));
 
 				const cards = new Map(res.map(res => [
 					res.column,
