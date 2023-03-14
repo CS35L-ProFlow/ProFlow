@@ -43,6 +43,7 @@ import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import { Result, Err, Ok } from "ts-results";
 import clsx from 'clsx';
+import { Fullscreen } from '@mui/icons-material';
 
 
 interface ColumnProps {
@@ -558,7 +559,7 @@ export default function ProjectView(props: ProjectViewProps) {
 	const [newColumnName, setNewColumnName] = useState<string>("");
 	const [searchCardTitle, setSearchCardTitle] = useState<string>("");
 	const [editPopup, setEditPopup] = useState<EditPopup | undefined>();
-
+	const [searchAssignee, setSearchAssignee] = useState<User | undefined>(undefined)
 	const [showProgress, setShowProgress] = useState<boolean>(false);
 	const [popupError, setPopupError] = useState<string | undefined>(undefined);
 
@@ -862,6 +863,43 @@ export default function ProjectView(props: ProjectViewProps) {
 						</IconButton>
 					</div>
 					<Divider />
+					<Divider>
+					<Typography style={{marginBottom: "10pt", marginTop: "20pt"}}>Search for Card Title</Typography>
+					<div style={{ marginTop: "5pt", marginBottom: "5pt", display: 'flex', flexDirection: 'column', width: "180pt" }}>
+							<TextField label="Card Title to Search" onChange={e => setSearchCardTitle(e.target.value)} value={searchCardTitle} />
+							<div style ={{flexDirection: 'row' }}>
+							<Button  onClick={() => {
+								console.log(searchCardTitle)
+							}}>
+
+							Search</Button>
+							<Button style ={{ }} onClick={() => {
+								setSearchCardTitle("")
+							}}>
+
+							Clear</Button>
+							</div>
+					</div>
+					</Divider>
+					<Divider>
+						<Typography style={{marginBottom: "10pt"}}>Search for Assignees</Typography>
+					<FormControl
+					fullWidth>
+					<InputLabel id="select-assignee">Assignee</InputLabel>
+					<Select
+						labelId="select-assignee"
+						label="Assignee"
+						sx={{ marginTop: "0pt", marginBottom: "20pt", width:"180pt" }}
+						onChange={e => {
+							const assignee = projInfo.members.find(user => user.guid == e.target.value);
+							setSearchAssignee(assignee)
+						}
+						}>
+						<MenuItem value={"ALL"}>All </MenuItem>
+						{projInfo.members.map(user => <MenuItem key={user.guid} value={user.guid}>{user.email}</MenuItem>)}
+					</Select>
+				</FormControl>
+					</Divider>
 					<SubProjectTree
 						project={projInfo}
 						selected={currentSubProject?.guid}
@@ -1027,7 +1065,19 @@ export default function ProjectView(props: ProjectViewProps) {
 								/>
 
 							)}
-							<div style={{ display: 'flex', flexDirection: 'column', alignItems: 'start', width: "230pt" }}>
+							<div className=''>
+							<div style={{ width: "230pt",
+									marginLeft: "min(2.5vw, 10pt)",
+									marginRight: "min(2.5vw, 10pt)",
+									marginTop: 0,
+									marginBottom: 0,
+									backgroundColor: "#ececec",
+									padding: "10pt",
+									borderRadius: "10px",
+									display: "flex",
+									flexDirection: "column",
+									justifyContent: "start",
+									alignContent: "center", }}>
 								<TextField label="Column Name" onChange={e => setNewColumnName(e.target.value)} value={newColumnName} />
 								<Button onClick={async () => {
 									if (!newColumnName || !props.session || !guid)
@@ -1047,13 +1097,6 @@ export default function ProjectView(props: ProjectViewProps) {
 									await fetchProjectInfo();
 								}}>Create Column</Button>
 							</div>
-							<div style={{ display: 'flex', flexDirection: 'column', alignItems: 'start', width: "230pt" }}>
-							<TextField label="Card Title to Search" onChange={e => setSearchCardTitle(e.target.value)} value={searchCardTitle} />
-							<Button onClick={() => {
-								console.log(searchCardTitle)
-							}}>
-
-							Search For the Card</Button>
 							</div>
 						</div>
 					}
