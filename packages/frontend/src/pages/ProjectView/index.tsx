@@ -64,7 +64,7 @@ enum DragTypes {
 function PlaceholderCard(props: { card: Card }) {
 	return <div style={{ backgroundColor: "#808080", borderRadius: "10px" }}>
 		<div style={{ opacity: 0 }}>
-			<RenderedNoteCard card={props.card} onEditCard={() => { }} onDeleteCard={() => { }} />
+			<RenderedNoteCard card={props.card} onEditCard={() => { }} onDeleteCard={() => { }}/>
 		</div>
 	</div>
 }
@@ -120,7 +120,7 @@ function Column(props: ColumnProps) {
 		}
 
 		let cards = raw_cards.sort((a, b) => a.priority - b.priority).map(c => {
-			return <NoteCard key={c.guid} card={c} onDrop={onCardDrop} onEditCard={props.onEditCard} onDeleteCard={props.onDeleteCard} />
+			return <NoteCard key={c.guid} card={c} onDrop={onCardDrop} onEditCard={props.onEditCard} onDeleteCard={props.onDeleteCard}/>
 		})
 
 		return cards;
@@ -556,7 +556,7 @@ export default function ProjectView(props: ProjectViewProps) {
 	const [currentSubProject, setCurrentSubProject] = useState<SubProject | undefined>(undefined);
 	const [cards, setCards] = useState<SubProjectColumnCards | undefined>(undefined);
 	const [newColumnName, setNewColumnName] = useState<string>("");
-
+	const [searchCardTitle, setSearchCardTitle] = useState<string>("");
 	const [editPopup, setEditPopup] = useState<EditPopup | undefined>();
 
 	const [showProgress, setShowProgress] = useState<boolean>(false);
@@ -1046,6 +1046,14 @@ export default function ProjectView(props: ProjectViewProps) {
 
 									await fetchProjectInfo();
 								}}>Create Column</Button>
+							</div>
+							<div style={{ display: 'flex', flexDirection: 'column', alignItems: 'start', width: "230pt" }}>
+							<TextField label="Card Title to Search" onChange={e => setSearchCardTitle(e.target.value)} value={searchCardTitle} />
+							<Button onClick={() => {
+								console.log(searchCardTitle)
+							}}>
+
+							Search For the Card</Button>
 							</div>
 						</div>
 					}
