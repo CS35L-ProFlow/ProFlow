@@ -72,15 +72,15 @@ export class ProjectService {
 		});
 	}
 
-	async add_column(owner: User, guid: string, name: string): Promise<Result<void, string>> {
+	async add_column(user: User, guid: string, name: string): Promise<Result<void, string>> {
 		return await this.data_source.transaction(async manager => {
-			const project = await manager.findOne(Project, { where: { guid }, relations: { owner: true } });
+			const project = await manager.findOne(Project, { where: { guid }, relations: { members: true } });
 			if (!project) {
 				return Err("Cannot add column to project that does not exist!");
 			}
 
-			if (project.owner.guid != owner.guid) {
-				return Err("Cannot add column to project that you do not own!");
+			if (!project.members.find(m => m.guid == user.guid)) {
+				return Err("User is not a member of the project and cannot add a column!")
 			}
 
 			const existing = await manager.findOne(ProjectColumn, { where: { name, project }, relations: { project: true } });
@@ -101,15 +101,15 @@ export class ProjectService {
 		});
 	}
 
-	async delete_column(owner: User, guid: string, column_guid: string): Promise<Result<void, string>> {
+	async delete_column(user: User, guid: string, column_guid: string): Promise<Result<void, string>> {
 		return await this.data_source.transaction(async manager => {
-			const project = await manager.findOne(Project, { where: { guid }, relations: { owner: true } });
+			const project = await manager.findOne(Project, { where: { guid }, relations: { members: true } });
 			if (!project) {
 				return Err("Cannot delete column in project that does not exist!");
 			}
 
-			if (project.owner.guid != owner.guid) {
-				return Err("Cannot delete column in project that you do not own!");
+			if (!project.members.find(m => m.guid == user.guid)) {
+				return Err("User is not a member of the project and cannot delete a column!")
 			}
 
 			const existing = await manager.findOne(ProjectColumn, { where: { guid: column_guid, project }, relations: { project: true } });
@@ -123,15 +123,15 @@ export class ProjectService {
 		});
 	}
 
-	async rename_column(owner: User, guid: string, column_guid: string, new_name: string): Promise<Result<void, string>> {
+	async rename_column(user: User, guid: string, column_guid: string, new_name: string): Promise<Result<void, string>> {
 		return await this.data_source.transaction(async manager => {
-			const project = await manager.findOne(Project, { where: { guid }, relations: { owner: true } });
+			const project = await manager.findOne(Project, { where: { guid }, relations: { members: true } });
 			if (!project) {
 				return Err("Cannot rename column in project that does not exist!");
 			}
 
-			if (project.owner.guid != owner.guid) {
-				return Err("Cannot rename column in project that you do not own!");
+			if (!project.members.find(m => m.guid == user.guid)) {
+				return Err("User is not a member of the project and cannot rename a column!")
 			}
 
 			const existing = await manager.findOne(ProjectColumn, { where: { guid: column_guid, project }, relations: { project: true } });
@@ -442,10 +442,10 @@ export class ProjectService {
 		return await query.getOne();
 	}
 
-	async create_sub_project(owner: User, project: Project, name: string, parent?: SubProject): Promise<Result<SubProject, string>> {
+	async create_sub_project(member: User, project: Project, name: string, parent?: SubProject): Promise<Result<SubProject, string>> {
 		return await this.data_source.transaction(async manager => {
-			if (project.owner.guid != owner.guid) {
-				return Err("Cannot create sub-project for project that you do not own!");
+			if (!project.members.find(m => m.guid == member.guid)) {
+				return Err("User is not a member of the project and cannot create a sub-project!")
 			}
 			const existing = await manager.findOne(SubProject, { where: { project, name }, relations: { project: true } });
 			if (existing) {
@@ -457,16 +457,14 @@ export class ProjectService {
 		});
 	}
 
-	async delete_sub_project(owner: User, guid: string): Promise<Result<void, string>> {
-		// NOTE(Brandon): Technically, this can cause a race condition if the same owner sends two requests to delete the same sub project, but we won't worry about it
-		// because a) it's very rare, and b) no real consequences happen other than a bad error message.
-		const existing = await this.find_sub_project(owner, guid);
+	async delete_sub_project(member: User, guid: string): Promise<Result<void, string>> {
+		const existing = await this.find_sub_project(member, guid);
 		if (!existing) {
 			return Err("Sub-project does not exist!");
 		}
 
-		if (existing.project.owner.guid != owner.guid) {
-			return Err("Cannot delete sub-project that you do not own!");
+		if (!existing.project.members.find(m => m.guid == member.guid)) {
+			return Err("User is not a member of the project and cannot delete a sub-project!")
 		}
 
 		await this.sub_project_repository.delete({ guid });
