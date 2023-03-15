@@ -34,9 +34,13 @@ The `.env` file contains environment variables that ProFlow uses to configure it
 ### Team Members
 
 [David Spector](https://github.com/davidspector67)
+
 [Brandon Shihabi](https://github.com/Bricktheworld)
+
 [David Jin](https://github.com/davidjin9294)
+
 [Artyom Sapa](https://github.com/artySapa)
+
 [Zeckria Kamrany](https://github.com/zeckria)
 
-(Order of team names listed using `cat README.md | tail -n 7 | head -n 5 | shuf`)
+(Order of team names listed using `cat README.md | grep -v "^$" | tail -n 6 | head -n 5 | shuf`)
