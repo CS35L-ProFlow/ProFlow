@@ -383,7 +383,7 @@ export class ProjectService {
 			}
 
 			if (where.sub_project_guid) {
-				sub_project = await manager.findOne(SubProject, { where: { guid: where.sub_project_guid }, relations: { project: true } }) ?? undefined;
+				sub_project = await manager.findOne(SubProject, { where: { guid: where.sub_project_guid }, relations: ["project", "project.members"] }) ?? undefined;
 				if (!sub_project) {
 					return Err("Sub-project does not exist!");
 				}
