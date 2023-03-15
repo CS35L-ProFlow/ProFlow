@@ -19,13 +19,11 @@ import {
 	Dialog,
 	DialogTitle,
 	DialogContent,
-	DialogContentText,
 	DialogActions
 } from '@mui/material'
 
 import { TreeView, TreeItem, TreeItemContentProps, useTreeItem } from "@mui/lab";
 import { Session, ProjectInfo, SubProject, SubProjectColumnCards, Card, User, init_proflow_client } from "../../client"
-// import './index.css';
 import Pages from "../../pages";
 import React, { useEffect, useState, useRef, useLayoutEffect } from 'react';
 import { useNavigate, useParams } from "react-router-dom";
@@ -43,7 +41,6 @@ import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import { Result, Err, Ok } from "ts-results";
 import clsx from 'clsx';
-import { Fullscreen } from '@mui/icons-material';
 
 
 interface ColumnProps {
@@ -65,7 +62,7 @@ enum DragTypes {
 function PlaceholderCard(props: { card: Card }) {
 	return <div style={{ backgroundColor: "#808080", borderRadius: "10px" }}>
 		<div style={{ opacity: 0 }}>
-			<RenderedNoteCard card={props.card} onEditCard={() => { }} onDeleteCard={() => { }}/>
+			<RenderedNoteCard card={props.card} onEditCard={() => { }} onDeleteCard={() => { }} />
 		</div>
 	</div>
 }
@@ -109,7 +106,6 @@ function Column(props: ColumnProps) {
 
 		const raw_cards = props.cards.cards.get(props.guid);
 		if (!raw_cards) {
-			// TODO: style this...
 			return <Alert variant="outlined" severity="error" sx={{ margin: 2, maxWidth: "100%", textAlign: "left" }}>
 				Failed to get cards for column that doesn't exist!</Alert>;
 		}
@@ -121,7 +117,7 @@ function Column(props: ColumnProps) {
 		}
 
 		let cards = raw_cards.sort((a, b) => a.priority - b.priority).map(c => {
-			return <NoteCard key={c.guid} card={c} onDrop={onCardDrop} onEditCard={props.onEditCard} onDeleteCard={props.onDeleteCard}/>
+			return <NoteCard key={c.guid} card={c} onDrop={onCardDrop} onEditCard={props.onEditCard} onDeleteCard={props.onDeleteCard} />
 		})
 
 		return cards;
@@ -198,34 +194,6 @@ function Column(props: ColumnProps) {
 
 	</div>;
 }
-
-// interface ProfileOptions {
-// 	userName: string;
-// 	children?: React.ReactNode,
-
-// }
-
-// function Profile(props: ProfileOptions) {
-// 	const navigate = useNavigate();
-// 	return <div><img src={require("./logo192.png")} className="user-pic" onClick={toggleMenu}></img>
-// 		<div className="drop-down-menu" id="subMenu">
-// 			<div className="drop-down">
-// 				<div className="user-profile">
-// 					<img src={require("./logo192.png")} />
-// 					<h2>{props.userName}</h2>
-// 				</div>
-// 				<hr></hr>
-
-// 				<a href='#' className="drop-down-link">
-// 					<p onClick={() => navigate(Pages.USER)}>View Other Projects</p>
-// 				</a>
-// 				<a href='#' className="drop-down-link">
-// 					<p onClick={() => navigate(Pages.LOGIN)}>Logout</p>
-// 				</a>
-// 			</div>
-// 		</div></div>
-// }
-
 
 interface RenderedNoteProps {
 	card: Card;
@@ -576,7 +544,7 @@ export default function ProjectView(props: ProjectViewProps) {
 		setPopupError(undefined);
 	};
 
-	const fetchProjectInfo = async (newCurrentSubProject?: SubProject) => {
+	const fetchProjectInfo = async (newInfo?: { newCurrentSubProject?: SubProject, clearSearchFilter?: boolean, assigneeFilter?: string }) => {
 		if (!guid || !props.session)
 			return;
 
@@ -588,14 +556,21 @@ export default function ProjectView(props: ProjectViewProps) {
 		const proj_info = res.val;
 		setProjInfo(proj_info);
 
-		let sub_proj = newCurrentSubProject ?? currentSubProject;
+		let sub_proj = newInfo?.newCurrentSubProject ?? currentSubProject;
 		if (!currentSubProject && proj_info.sub_projects.length > 0) {
 			sub_proj = proj_info.sub_projects[0];
 			setCurrentSubProject(sub_proj);
 		}
 
 		if (sub_proj) {
-			const res = await props.session.get_sub_project_cards(proj_info, sub_proj.guid);
+			const filter = (newInfo?.clearSearchFilter ?? false) ? undefined : searchCardTitle;
+
+			let assignee = newInfo?.assigneeFilter ?? searchAssignee?.guid;
+			if (assignee == "ALL") {
+				assignee = undefined;
+			}
+
+			const res = await props.session.get_sub_project_cards(proj_info, sub_proj.guid, assignee, filter);
 			if (res.err) {
 				setPopupError(res.val);
 				return;
@@ -864,41 +839,45 @@ export default function ProjectView(props: ProjectViewProps) {
 					</div>
 					<Divider />
 					<Divider>
-					<Typography style={{marginBottom: "10pt", marginTop: "20pt"}}>Search for Card Title</Typography>
-					<div style={{ marginTop: "5pt", marginBottom: "5pt", display: 'flex', flexDirection: 'column', width: "180pt" }}>
+						<Typography style={{ marginBottom: "10pt", marginTop: "20pt" }}>Search for Card Title</Typography>
+						<div style={{ marginTop: "5pt", marginBottom: "5pt", display: 'flex', flexDirection: 'column', width: "180pt" }}>
 							<TextField label="Card Title to Search" onChange={e => setSearchCardTitle(e.target.value)} value={searchCardTitle} />
-							<div style ={{flexDirection: 'row' }}>
-							<Button  onClick={() => {
-								console.log(searchCardTitle)
-							}}>
-
-							Search</Button>
-							<Button style ={{ }} onClick={() => {
-								setSearchCardTitle("")
-							}}>
-
-							Clear</Button>
+							<div style={{ flexDirection: 'row' }}>
+								<Button onClick={async () => {
+									setShowProgress(true);
+									await fetchProjectInfo();
+									setShowProgress(false);
+								}}>Search</Button>
+								<Button style={{}} onClick={async () => {
+									setSearchCardTitle("");
+									setShowProgress(true);
+									await fetchProjectInfo({ clearSearchFilter: true });
+									setShowProgress(false);
+								}}>Clear</Button>
 							</div>
-					</div>
+						</div>
 					</Divider>
 					<Divider>
-						<Typography style={{marginBottom: "10pt"}}>Search for Assignees</Typography>
-					<FormControl
-					fullWidth>
-					<InputLabel id="select-assignee">Assignee</InputLabel>
-					<Select
-						labelId="select-assignee"
-						label="Assignee"
-						sx={{ marginTop: "0pt", marginBottom: "20pt", width:"180pt" }}
-						onChange={e => {
-							const assignee = projInfo.members.find(user => user.guid == e.target.value);
-							setSearchAssignee(assignee)
-						}
-						}>
-						<MenuItem value={"ALL"}>All </MenuItem>
-						{projInfo.members.map(user => <MenuItem key={user.guid} value={user.guid}>{user.email}</MenuItem>)}
-					</Select>
-				</FormControl>
+						<Typography style={{ marginBottom: "10pt" }}>Search for Assignees</Typography>
+						<FormControl
+							fullWidth>
+							<InputLabel id="select-assignee">Assignee</InputLabel>
+							<Select
+								value={searchAssignee?.guid ?? "ALL"}
+								labelId="select-assignee"
+								label="Assignee"
+								sx={{ marginTop: "0pt", marginBottom: "20pt", width: "180pt" }}
+								onChange={async e => {
+									const assignee = projInfo.members.find(user => user.guid == e.target.value);
+									setSearchAssignee(assignee)
+									setShowProgress(true);
+									await fetchProjectInfo({ assigneeFilter: e.target.value });
+									setShowProgress(false);
+								}}>
+								<MenuItem value={"ALL"}>All</MenuItem>
+								{projInfo.members.map(user => <MenuItem key={user.guid} value={user.guid}>{user.email}</MenuItem>)}
+							</Select>
+						</FormControl>
 					</Divider>
 					<SubProjectTree
 						project={projInfo}
@@ -921,10 +900,10 @@ export default function ProjectView(props: ProjectViewProps) {
 							setShowProgress(false);
 						}}
 						onSelect={async guid => {
-							const sub_proj = get_sub_project_with_guid(guid);
-							setCurrentSubProject(sub_proj);
+							const newCurrentSubProject = get_sub_project_with_guid(guid);
+							setCurrentSubProject(newCurrentSubProject);
 							setShowProgress(true);
-							await fetchProjectInfo(sub_proj);
+							await fetchProjectInfo({ newCurrentSubProject });
 							setShowProgress(false);
 						}}
 						onDeleteSubProject={async guid => {
@@ -1066,7 +1045,8 @@ export default function ProjectView(props: ProjectViewProps) {
 
 							)}
 							<div className=''>
-							<div style={{ width: "230pt",
+								<div style={{
+									width: "230pt",
 									marginLeft: "min(2.5vw, 10pt)",
 									marginRight: "min(2.5vw, 10pt)",
 									marginTop: 0,
@@ -1077,26 +1057,27 @@ export default function ProjectView(props: ProjectViewProps) {
 									display: "flex",
 									flexDirection: "column",
 									justifyContent: "start",
-									alignContent: "center", }}>
-								<TextField label="Column Name" onChange={e => setNewColumnName(e.target.value)} value={newColumnName} />
-								<Button onClick={async () => {
-									if (!newColumnName || !props.session || !guid)
-										return;
+									alignContent: "center",
+								}}>
+									<TextField label="Column Name" onChange={e => setNewColumnName(e.target.value)} value={newColumnName} />
+									<Button onClick={async () => {
+										if (!newColumnName || !props.session || !guid)
+											return;
 
-									setShowProgress(true);
-									const res = await props.session.add_project_column(guid, newColumnName);
-									setShowProgress(false);
-									if (res.err) {
-										setPopupError(res.val);
-										return;
-									}
+										setShowProgress(true);
+										const res = await props.session.add_project_column(guid, newColumnName);
+										setShowProgress(false);
+										if (res.err) {
+											setPopupError(res.val);
+											return;
+										}
 
-									setPopupError(undefined);
-									setNewColumnName("");
+										setPopupError(undefined);
+										setNewColumnName("");
 
-									await fetchProjectInfo();
-								}}>Create Column</Button>
-							</div>
+										await fetchProjectInfo();
+									}}>Create Column</Button>
+								</div>
 							</div>
 						</div>
 					}
