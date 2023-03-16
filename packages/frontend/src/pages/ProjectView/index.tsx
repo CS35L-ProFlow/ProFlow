@@ -116,7 +116,7 @@ function Column(props: ColumnProps) {
 			</div>
 		}
 
-		let cards = raw_cards.sort((a, b) => a.priority - b.priority).map(c => {
+		let cards = raw_cards.map(c => {
 			return <NoteCard key={c.guid} card={c} onDrop={onCardDrop} onEditCard={props.onEditCard} onDeleteCard={props.onDeleteCard} />
 		})
 
@@ -977,7 +977,26 @@ export default function ProjectView(props: ProjectViewProps) {
 											return;
 										}
 
-										// TODO(Brandon): Before we even make the request, we should probably do some client-side prediction so that it feels less laggy...
+										setCards(column_cards => {
+											if (column_cards == undefined) {
+												return undefined;
+											}
+
+											let old_column = column_cards.cards.get(card.column_guid);
+											let new_column = column_cards.cards.get(to_column);
+											if (!old_column || !new_column) {
+												return column_cards;
+											}
+
+											old_column.splice(0, old_column.length, ...old_column.filter(old_card => old_card.guid != card.guid));
+											let index = new_column.findIndex(new_card => new_card.priority == to_priority);
+											if (index == -1) {
+												index = new_column.length;
+											}
+											new_column.splice(index, 0, card);
+
+											return column_cards;
+										})
 
 										setShowProgress(true);
 										const res = await props.session.edit_sub_project_card(currentSubProject.guid, card.guid, { to_priority, to_column });
