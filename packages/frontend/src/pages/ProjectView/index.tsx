@@ -711,7 +711,7 @@ export default function ProjectView(props: ProjectViewProps) {
 					setEditPopup(prev => ({ ...(prev ?? DEFAULT_EDIT_POPUP), showProgress: true }));
 					let res: Result<void, string>;
 					if (editPopup.columnGuid != undefined) {
-						res = await props.session.add_sub_project_card(currentSubProject.guid, editPopup.columnGuid, editPopup.title, editPopup.description);
+						res = await props.session.add_sub_project_card(currentSubProject.guid, editPopup.columnGuid, editPopup.title, editPopup.description, editPopup.assignee?.guid);
 					} else {
 						res = await props.session.edit_sub_project_card(currentSubProject.guid, editPopup.cardGuid!, {
 							title: editPopup.title,
