@@ -17,7 +17,7 @@ ProFlow attempts to minimize the number of required packages by taking advantage
 Once all of the prerequisites have been installed, simply run the following commands to get up and running.
 
 ```
-git clone https://github.com/CS35L-ProFlow/ProFlow
+git clone https://github.com/CS35L-ProFlow/ProFlow.git
 cd ProFlow
 cp env.Sample .env
 make
