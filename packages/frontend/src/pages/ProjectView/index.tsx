@@ -688,7 +688,11 @@ export default function ProjectView(props: ProjectViewProps) {
 							description: e.target.value
 						}))
 					}
-					value={editPopup.description} multiline />
+					value={editPopup.description}
+					multiline
+					minRows={3}
+					maxRows={12}
+				/>
 				{
 					editPopup.errorMsg &&
 					<div>
