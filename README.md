@@ -23,7 +23,9 @@ cp env.Sample .env
 make
 ```
 
-This will start up the containers and servers. This usually takes about 30 seconds in total. 
+This will start up the containers and servers. This usually takes about 30 seconds in total.
+
+Once started, simply visit `localhost:4000` to see the web page! If you have a different port set in .env, visit that port instead.
 
 ## .env
 
