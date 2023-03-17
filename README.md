@@ -2,7 +2,7 @@
 
 ## What Is This?
 
-When working on projects of any scale, managing tasks and tracking progress is essential to success. ProFlow is a web application that enables teams to do just this. By making an account, creating a project, and inviting members, managing a project will become simple. Project owners and administrators will be able to add action items to track issues and add columns such as todo, in progress, done, backlog, etc. 
+When working on projects of any scale, managing tasks and tracking progress is essential to success. ProFlow is a web application that enables teams to do just this. By making an account, creating a project, and inviting members, managing a project will become simple. Members of a project can add columns, subprojects, and tasks as the project evolves!
 
 ## Prerequisites
 
